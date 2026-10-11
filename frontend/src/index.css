@@ -13,3 +13,33 @@ a { color: #0f7a5c; text-decoration: none; }
 .hint { color: #5d6b65; }
 table { width: 100%; border-collapse: collapse; background: #fff; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #dde4e1; }
+
+.header nav a { color: #5d6b65; }
+.header nav a.active { color: #17211d; font-weight: 600; }
+.muted { color: #5d6b65; }
+.error { color: #b3261e; background: #fdecea; padding: 10px 14px; border-radius: 8px; }
+.num { font-variant-numeric: tabular-nums; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
+.r { text-align: right; }
+.up { color: #0f7a5c; }
+.down { color: #b3261e; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.fx { display: flex; flex-direction: column; gap: 16px; }
+.fx h1 { margin: 0; }
+.fx-head { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
+.fx-head .hint { margin: 4px 0 0; }
+.seg { display: inline-flex; border: 1px solid #dde4e1; border-radius: 8px; overflow: hidden; }
+.seg button, .tabs button { font: inherit; padding: 8px 14px; border: 0; background: #fff; color: #17211d; cursor: pointer; }
+.seg button[aria-pressed='true'] { background: #17211d; color: #fff; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.card { display: flex; flex-direction: column; gap: 4px; padding: 16px; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; }
+.card-label { font-size: 13px; color: #5d6b65; }
+.card-value { font-size: 24px; }
+.fx-tools { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tabs button { border: 1px solid #dde4e1; border-radius: 8px; }
+.tabs button[aria-selected='true'] { background: #0f7a5c; border-color: #0f7a5c; color: #fff; }
+.search input { font: inherit; padding: 8px 12px; border: 1px solid #c9d3cf; border-radius: 8px; min-width: 220px; }
+.table-wrap { overflow-x: auto; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; }
+.table-wrap table { min-width: 560px; }
+th.r, td.r { text-align: right; }

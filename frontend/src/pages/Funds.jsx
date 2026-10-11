@@ -14,7 +14,7 @@ export default function Funds() {
   return (
     <section>
       <h1>Fonlar</h1>
-      <p className="hint">Şimdilik örnek veri. TEFAS bağlantısı 2. aşamada eklenecek.</p>
+      <p className="hint">Veritabanı boşsa örnek veri gösterilir. TEFAS verisini yüklemek için: python -m scripts.tefas_yukle</p>
       <table>
         <thead>
           <tr><th>Kod</th><th>Ad</th><th>Kategori</th><th>Fiyat</th></tr>
@@ -23,7 +23,7 @@ export default function Funds() {
           {funds.map((f) => (
             <tr key={f.code}>
               <td>{f.code}</td><td>{f.name}</td><td>{f.category}</td>
-              <td>{f.price.toFixed(4)}</td>
+              <td>{f.price != null ? f.price.toFixed(4) : "–"}</td>
             </tr>
           ))}
         </tbody>
