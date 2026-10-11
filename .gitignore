@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+*.db
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# Editör / sistem
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
