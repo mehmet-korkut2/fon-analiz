@@ -1,30 +1,115 @@
-from datetime import date
+"""Veritabanı tabloları.
 
-from sqlalchemy import Date, Float, ForeignKey, String, UniqueConstraint
+funds ─┬─< prices                 (fonun günlük fiyat geçmişi)
+       └─< portfolio_allocations  (fonun varlık dağılımı)
+users ───< risk_profiles          (kullanıcının risk anketi sonuçları)
+"""
+from datetime import date, datetime
+
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    CheckConstraint,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
 
 class Fund(Base):
+    """TEFAS'taki her fon için sabit bilgiler."""
+
     __tablename__ = "funds"
 
-    code: Mapped[str] = mapped_column(String(10), primary_key=True)
+    code: Mapped[str] = mapped_column(String(10), primary_key=True)  # TEFAS fon kodu, ör. "TTE"
     name: Mapped[str] = mapped_column(String(255))
-    category: Mapped[str | None] = mapped_column(String(100))
-    company: Mapped[str | None] = mapped_column(String(255))
-    risk_level: Mapped[int | None]
+    category: Mapped[str | None] = mapped_column(String(100), index=True)  # Hisse Senedi, Para Piyasası...
+    fund_type: Mapped[str | None] = mapped_column(String(10))  # YAT (yatırım), EMK (emeklilik), BYF
+    company: Mapped[str | None] = mapped_column(String(255))  # kurucu portföy yönetim şirketi
+    risk_level: Mapped[int | None] = mapped_column(Integer)  # 1 (en düşük) - 7 (en yüksek)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    prices: Mapped[list["Price"]] = relationship(back_populates="fund")
+    __table_args__ = (CheckConstraint("risk_level BETWEEN 1 AND 7", name="ck_fund_risk_level"),)
+
+    prices: Mapped[list["Price"]] = relationship(back_populates="fund", cascade="all, delete-orphan")
+    allocations: Mapped[list["PortfolioAllocation"]] = relationship(
+        back_populates="fund", cascade="all, delete-orphan"
+    )
 
 
 class Price(Base):
+    """Fonun günlük fiyatı ve büyüklüğü (TEFAS 'Fon Getiri Bilgileri')."""
+
     __tablename__ = "prices"
-    __table_args__ = (UniqueConstraint("fund_code", "date"),)
+    __table_args__ = (UniqueConstraint("fund_code", "date", name="uq_price_fund_date"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code"), index=True)
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"), index=True)
     date: Mapped[date] = mapped_column(Date, index=True)
-    price: Mapped[float] = mapped_column(Float)
+    price: Mapped[float] = mapped_column(Float)  # pay fiyatı (TL)
+    total_value: Mapped[float | None] = mapped_column(Float)  # portföy büyüklüğü (TL)
+    shares_outstanding: Mapped[int | None] = mapped_column(BigInteger)  # tedavüldeki pay sayısı
+    investor_count: Mapped[int | None] = mapped_column(Integer)  # yatırımcı (kişi) sayısı
 
     fund: Mapped[Fund] = relationship(back_populates="prices")
+
+
+class PortfolioAllocation(Base):
+    """Fonun belirli bir tarihteki varlık dağılımı (yüzde)."""
+
+    __tablename__ = "portfolio_allocations"
+    __table_args__ = (
+        UniqueConstraint("fund_code", "date", "asset_type", name="uq_alloc_fund_date_asset"),
+        CheckConstraint("ratio >= 0 AND ratio <= 100", name="ck_alloc_ratio"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"), index=True)
+    date: Mapped[date] = mapped_column(Date)
+    asset_type: Mapped[str] = mapped_column(String(100))  # Hisse Senedi, Devlet Tahvili, Altın, Mevduat...
+    ratio: Mapped[float] = mapped_column(Float)  # yüzde, 0-100
+
+    fund: Mapped[Fund] = relationship(back_populates="allocations")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))  # asla düz şifre saklanmaz
+    full_name: Mapped[str | None] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    risk_profiles: Mapped[list["RiskProfile"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class RiskProfile(Base):
+    """Risk anketi sonucu. Kullanıcı anketi tekrar doldurursa yeni satır eklenir, en sonuncusu geçerlidir."""
+
+    __tablename__ = "risk_profiles"
+    __table_args__ = (
+        CheckConstraint("score BETWEEN 0 AND 100", name="ck_risk_score"),
+        CheckConstraint("profile IN ('temkinli', 'dengeli', 'agresif')", name="ck_risk_profile"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    score: Mapped[int] = mapped_column(Integer)  # 0-100 toplam puan
+    profile: Mapped[str] = mapped_column(String(20))  # temkinli / dengeli / agresif
+    horizon_years: Mapped[int | None] = mapped_column(Integer)  # yatırım vadesi (yıl)
+    answers: Mapped[dict] = mapped_column(JSON)  # {"soru_id": "cevap", ...}
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped[User] = relationship(back_populates="risk_profiles")
