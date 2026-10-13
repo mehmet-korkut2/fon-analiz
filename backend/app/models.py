@@ -152,3 +152,23 @@ class RiskProfile(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="risk_profiles")
+
+
+class BacktestWindow(Base):
+    """Kayan pencereli geriye dönük test: her seçim ayı, profil ve nitelikli yatırımcı seçeneği için
+    örnek portföyün sonraki 12 aylık getirisi ve para piyasası medyanı. Gece güncellemesinden sonra
+    yeniden hesaplanır (app/services/recommender.store_rolling)."""
+
+    __tablename__ = "backtest_windows"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    profile: Mapped[str] = mapped_column(String(20), index=True)
+    qualified: Mapped[bool] = mapped_column(default=False)
+    start_date: Mapped[date] = mapped_column(Date)  # seçim günü
+    end_date: Mapped[date] = mapped_column(Date)
+    codes: Mapped[str] = mapped_column(String(200))  # virgülle ayrılmış fon kodları (eşit ağırlık)
+    portfolio_return: Mapped[float] = mapped_column(Float)
+    benchmark_return: Mapped[float] = mapped_column(Float)
+    data_as_of: Mapped[date | None] = mapped_column(Date)  # hesaplamada kullanılan son fiyat tarihi
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+

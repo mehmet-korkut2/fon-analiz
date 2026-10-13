@@ -101,6 +101,26 @@ def test_category_limit_and_portfolio_pick():
     assert port["category"].nunique() == 2  # önce farklı kategoriler
 
 
+def test_dengeli_risky_quota():
+    pool = R.eligible(POOL, "dengeli", False)
+    scored = R.score(pool, "dengeli", RF)
+    assert sorted(pool.loc[R.is_risky(pool), "code"]) == ["HS1", "HS2", "HS3"]
+    # kota: ilk 3'ün en az 2'si riskli (risk değeri 4+ ve volatilite %5+) gruptan
+    picked = R.diversify(scored, limit=3, min_risky=2)
+    assert R.is_risky(picked).sum() >= 2 and len(picked) == 3
+    assert list(picked["score"]) == sorted(picked["score"], reverse=True)
+    port = R.portfolio_pick(picked, 2, min_risky=2)
+    assert R.is_risky(port).all()
+    # recommend_from: kota yüzünden girenler işaretli ve gerekçesi yazıyor
+    rec = R.recommend_from(POOL, date(2026, 10, 9), "dengeli", False, limit=3, rf=RF)
+    assert R.is_risky(rec.items).sum() >= 2 and R.is_risky(rec.portfolio).sum() >= 2
+    for code in rec.items.loc[rec.items["quota"], "code"]:
+        assert "çeşitlendirme" in rec.reasons[code][0][-1]
+    # temkinli ve agresif profillerde kota yok
+    assert set(R.RISKY_QUOTA) == {"dengeli"}
+    assert not R.recommend_from(POOL, None, "agresif", False, rf=RF).items["quota"].any()
+
+
 def test_reasons_and_caution():
     s = R.score(R.eligible(POOL, "agresif", False), "agresif", RF).set_index("code", drop=False)
     reasons, caution = R.explain(s.loc["HS1"], "agresif", RF)
@@ -201,8 +221,48 @@ def test_api_recommendations(db_session):
         assert body["items"][0]["rank"] == 1 and set(body["items"][0]["components"]) == set(R.COMPONENTS)
         assert body["items"][0]["reasons"] and body["performance"]["portfolio"]["return"] is not None
         assert sum(p["weight"] for p in body["portfolio"]) == pytest.approx(1)
+        # kayan pencere tablosu boşken özet yok
         bt = c.get("/api/recommendations/backtest", params={"profile": "agresif"}).json()
-        assert bt["selection_date"] == "2025-10-09" and "BAD" in [p["code"] for p in bt["portfolio"]]
+        assert bt["summary"] is None and bt["windows"] == [] and bt["years"] == 3
+        with Session() as s:
+            assert R.store_rolling(s) > 0
+        bt = c.get("/api/recommendations/backtest", params={"profile": "agresif"}).json()
+        s = bt["summary"]
+        assert s["windows"] == len(bt["windows"]) > 0
+        assert s["beats"] == sum(w["excess"] > 0 for w in bt["windows"])
+        assert s["worst"]["excess"] <= s["median_excess"] <= s["best"]["excess"]
         assert c.get("/api/recommendations", params={"profile": "yok"}).status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+def test_selection_dates_are_month_starts_with_full_horizon(db_session):
+    db, _ = db_session
+    dates = R.selection_dates(db)
+    # veri 2024-06-03'te başlıyor, son fiyat 2026-10-09: seçim 2024-06 ... 2025-10 (12 ay sonrası var)
+    assert dates[0] == date(2024, 6, 3) and dates[-1] == date(2025, 10, 1)
+    assert len(dates) == 17 and all(d.day <= 7 for d in dates)
+    assert len({(d.year, d.month) for d in dates}) == len(dates)
+
+
+def test_rolling_backtest_windows(db_session):
+    db, _ = db_session
+    ws = R.rolling_backtest(db, profiles=("agresif",), qualified_options=(False,))
+    # ilk aylarda 1 yıllık geçmiş yok, aday çıkmaz; pencereler 1 yıllık veri biriktikten sonra başlar
+    assert ws and ws[0].start >= date(2025, 6, 1)
+    for w in ws:
+        assert w.end == (pd.Timestamp(w.start) + pd.DateOffset(months=12)).date()
+        assert w.excess == pytest.approx(w.portfolio_return - w.benchmark_return)
+    # BAD seçim günlerinde en iyi görünüyordu, sonradan çöktü: seçildiği pencerelerde portföyü aşağı çeker
+    bad = [w for w in ws if "BAD" in w.codes]
+    assert bad and all(w.excess < 0 for w in bad if w.start <= date(2025, 10, 1))
+    s = R.summarize_windows(ws)
+    assert s["windows"] == len(ws) and s["best"].excess >= s["worst"].excess
+
+
+def test_store_and_load_rolling(db_session):
+    db, _ = db_session
+    n = R.store_rolling(db)
+    loaded = [w for p in R.PROFILES_ALL for q in (False, True) for w in R.load_windows(db, p, q)]
+    assert n == len(loaded) > 0
+    assert R.store_rolling(db) == n  # yeniden hesaplama öncekileri siler, çoğaltmaz

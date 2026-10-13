@@ -2,15 +2,16 @@ from typing import Literal
 
 import pandas as pd
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models import Fund
+from app.models import BacktestWindow, Fund
 from app.routers.funds import fund_out, stale_cutoff
 from app.schemas import (
-    BacktestFund,
     BacktestOut,
+    BacktestSummary,
+    BacktestWindowOut,
     PerformanceOut,
     PerfPoint,
     PortfolioFund,
@@ -70,7 +71,7 @@ def recommendations(
         reasons, caution = rec.reasons[row.code]
         items.append(RecommendationItem(
             **fund_out(funds[row.code], cutoff).model_dump(), rank=rank, score=round(row.score, 4),
-            components={c: round(getattr(row, c), 4) for c in R.COMPONENTS}, low_volatility=bool(row.low_vol),
+            components={c: round(getattr(row, c), 4) for c in R.COMPONENTS}, low_volatility=bool(row.low_vol), quota=bool(row.quota),
             reasons=reasons, caution=caution,
         ))
     perf = None
@@ -86,22 +87,24 @@ def recommendations(
     )
 
 
+def _window(w: R.Window) -> BacktestWindowOut:
+    return BacktestWindowOut(start=w.start, end=w.end, codes=w.codes, portfolio_return=w.portfolio_return,
+                             benchmark_return=w.benchmark_return, excess=w.excess)
+
+
 @router.get("/backtest", response_model=BacktestOut)
 def backtest(profile: Profile, qualified: bool = False, db: Session = Depends(get_db)):
-    """Seçimi 12 ay önceki veriyle yapar, sonraki 12 ayın performansını para piyasası medyanıyla karşılaştırır."""
-    bt = R.backtest(db, profile, qualified)
-    if bt is None:
-        return BacktestOut(profile=profile, qualified=qualified, selection_date=None, risk_free_rate=None,
-                           pool_size=0, recommendations=[], portfolio=[], performance=None)
-    rec = bt.recommendation
+    """Kayan pencereli geriye dönük test: son 3 yılda her ayın ilk işlem günü o güne kadarki veriyle
+    seçilen örnek portföyün sonraki 12 aylık getirisi, para piyasası medyanıyla karşılaştırmalı.
+    Sonuçlar gece güncellemesinden sonra hesaplanıp saklanır (scripts/geriye_donuk_test)."""
+    windows = R.load_windows(db, profile, qualified)
+    s = R.summarize_windows(windows)
+    summary = None
+    if s:
+        summary = BacktestSummary(**{k: v for k, v in s.items() if k not in ("best", "worst")},
+                                  best=_window(s["best"]), worst=_window(s["worst"]))
     return BacktestOut(
-        profile=profile, qualified=qualified, selection_date=bt.selection_date, risk_free_rate=rec.risk_free_rate,
-        pool_size=rec.pool_size,
-        recommendations=[
-            BacktestFund(code=r.code, name=r.name, category=r.category,
-                         risk_level=None if pd.isna(r.risk_level) else int(r.risk_level),
-                         score=round(r.score, 4), ret_1y_before=r.ret_1y, reasons=rec.reasons[r.code][0])
-            for r in rec.items.itertuples()
-        ],
-        portfolio=_portfolio(rec, bt.performance), performance=_perf(bt.performance),
+        profile=profile, qualified=qualified, years=R.ROLLING_YEARS, horizon_months=R.BACKTEST_MONTHS,
+        data_as_of=db.scalar(select(func.max(BacktestWindow.data_as_of))), summary=summary,
+        windows=[_window(w) for w in windows],
     )

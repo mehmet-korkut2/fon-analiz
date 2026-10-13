@@ -154,6 +154,7 @@ class RecommendationItem(FundOut):
     score: float  # 0-1, bileşen yüzdeliklerinin ağırlıklı toplamı
     components: dict[str, float]  # getiri, riske_gore, dusus, tutarlilik (0-1, 1 = en iyi)
     low_volatility: bool  # volatilite %5 altı: riske göre getiri fazla getiriyle ölçüldü
+    quota: bool = False  # dengeli profilde riskli fon kotası yüzünden listeye girdi
     reasons: list[str]
     caution: str | None = None
 
@@ -207,22 +208,32 @@ class RecommendationsOut(BaseModel):
     performance: PerformanceOut | None
 
 
-class BacktestFund(BaseModel):
-    code: str
-    name: str
-    category: str | None
-    risk_level: int | None
-    score: float
-    ret_1y_before: float  # seçim günündeki 1 yıllık getirisi (seçimde kullanılan)
-    reasons: list[str]
+class BacktestWindowOut(BaseModel):
+    start: date  # seçim günü
+    end: date
+    codes: list[str]
+    portfolio_return: float
+    benchmark_return: float
+    excess: float  # portföy - para piyasası medyanı
+
+
+class BacktestSummary(BaseModel):
+    windows: int
+    beats: int  # para piyasası medyanını geçtiği dönem sayısı
+    mean_excess: float
+    median_excess: float
+    mean_portfolio: float
+    mean_benchmark: float
+    best: BacktestWindowOut
+    worst: BacktestWindowOut
 
 
 class BacktestOut(BaseModel):
+    """Kayan pencereli geriye dönük test: son 3 yılda her ayın ilk işlem günü seçim, 12 ay tutma."""
     profile: str
     qualified: bool
-    selection_date: date | None
-    risk_free_rate: float | None  # seçim günündeki
-    pool_size: int
-    recommendations: list[BacktestFund]
-    portfolio: list[PortfolioFund]
-    performance: PerformanceOut | None
+    years: int
+    horizon_months: int
+    data_as_of: date | None
+    summary: BacktestSummary | None  # tablo boşsa (henüz hesaplanmadıysa) None
+    windows: list[BacktestWindowOut]

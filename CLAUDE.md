@@ -18,11 +18,11 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
   - `app/services/tefas_client.py`: TEFAS'ın 2026 JSON API'si (`/api/funds/fonGetiriBazliBilgiGetir`, `/api/funds/fonFiyatBilgiGetir`)
   - `app/services/updater.py`: fiyatları DB'ye yazar, ardından metrikleri hesaplar
   - `app/services/metrics.py` + `metrics_job.py`: getiri, volatilite, Sharpe, maks. düşüş
-  - `app/services/risk_survey.py` + `recommender.py`: risk anketi, öneri puanlaması, örnek portföy, geriye dönük test (yöntem ve gerekçeler: `docs/oneri_sistemi.md`)
+  - `app/services/risk_survey.py` + `recommender.py`: risk anketi, öneri puanlaması (dengeli profilde riskli fon kotası), örnek portföy, kayan pencereli geriye dönük test (yöntem ve gerekçeler: `docs/oneri_sistemi.md`). Geriye dönük test ~1 dk sürer; gece güncellemesinden sonra hesaplanıp `backtest_windows` tablosuna yazılır, API oradan okur
   - `app/services/fund_status.py`, `data_quality.py`: SPK kararıyla kapatılan fonlar, fiyat sıçramaları
   - `app/services/fx.py`: TCMB today.xml (resmi) + Truncgil v4 (anlık)
   - `app/scheduler.py`: APScheduler, hafta içi 21:00; açılışta veri eskiyse günceller
-  - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `oneri_analizi`
+  - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `geriye_donuk_test`, `oneri_analizi`
 - `frontend/` React 19 + Vite, React Router, axios, Recharts. Sayfalar: Home, Funds, FundDetail, Rankings, Compare, RiskSurvey, Recommendations, Doviz. Risk profili `localStorage`'da (`profileStore.js`).
 
 ## Komutlar

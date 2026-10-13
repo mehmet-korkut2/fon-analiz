@@ -72,13 +72,25 @@ Her satırda ağırlıklar değiştirilip ilk 10 (kategori sınırıyla) yeniden
 | Düşüş direnci yok: 0,41 / 0,35 / 0,00 / 0,24 | 5/10 | 0,98 | AES, BBP, BTK, SGT, YAY |
 | Tutarlılık yok: 0,44 / 0,38 / 0,19 / 0,00 | 7/10 | 0,98 | CPU, ECA, HIZ |
 
-## 3. Geriye dönük test özeti
+## 3. Kayan pencereli geriye dönük test
 
-| Profil | Seçim günü | Seçimdeki risksiz getiri | Portföy | Getiri | Kıyas (PP medyanı) | Fark | Volatilite | Maks. düşüş |
-|---|---|---|---|---|---|---|---|---|
-| temkinli | 2025-10-13 | %57,1 | HVK, HVT, OLE | %41,0 | %46,3 | -%5,3 | %3,5 | -%2,5 |
-| dengeli | 2025-10-13 | %57,1 | HVK, PRY, OLE, RIK | %34,0 | %46,3 | -%12,3 | %4,1 | -%3,2 |
-| agresif | 2025-10-13 | %57,1 | BIH, NAU, HAM, OTJ, RIK | %27,7 | %46,3 | -%18,6 | %18,3 | -%15,4 |
+Son 3 yılda her ayın ilk işlem günü o güne kadarki veriyle seçim, 12 ay tutma; kıyas para piyasası fonlarının medyanı. Kaynak: backtest_windows tablosu (`python -m scripts.geriye_donuk_test`).
+
+**Nitelikli olmayan yatırımcı**
+
+| Profil | Dönem | PP medyanını geçtiği | Ort. fazla getiri | Medyan fazla getiri | Ort. portföy / PP | En iyi dönem | En kötü dönem |
+|---|---|---|---|---|---|---|---|
+| temkinli | 24 | 12/24 | -%0,9 | -%0,1 | %54,3 / %55,3 | 07.2025: +%4,9 | 12.2023: -%8,5 |
+| dengeli | 24 | 5/24 | -%11,0 | -%9,3 | %44,3 / %55,3 | 06.2025: +%8,0 | 04.2024: -%32,3 |
+| agresif | 24 | 9/24 | -%7,0 | -%9,3 | %48,3 / %55,3 | 04.2025: +%55,1 | 07.2024: -%46,6 |
+
+**Nitelikli yatırımcı (serbest fonlar dahil)**
+
+| Profil | Dönem | PP medyanını geçtiği | Ort. fazla getiri | Medyan fazla getiri | Ort. portföy / PP | En iyi dönem | En kötü dönem |
+|---|---|---|---|---|---|---|---|
+| temkinli | 24 | 18/24 | +%1,1 | +%1,2 | %56,3 / %55,3 | 03.2025: +%2,9 | 09.2025: -%2,0 |
+| dengeli | 24 | 6/24 | -%10,1 | -%11,2 | %45,2 / %55,3 | 06.2025: +%7,9 | 04.2024: -%26,7 |
+| agresif | 24 | 7/24 | -%10,0 | -%6,1 | %45,2 / %55,3 | 03.2025: +%39,3 | 07.2024: -%55,1 |
 
 ## 4. Örnek kişiler
 
@@ -86,27 +98,36 @@ Her satırda ağırlıklar değiştirilip ilk 10 (kategori sınırıyla) yeniden
 
 - Puan 77/100 → puana göre agresif, sonuç **agresif** (sınır: yok)
 - İlk 5 öneri: KNJ (Katılım, risk 5), CKL (Değişken, risk 5), OPF (Değişken, risk 5), KTJ (Katılım, risk 6), GBG (Hisse Senedi, risk 6)
-- Örnek portföy: KNJ, CKL, GBG, OPF, KTJ
-- Geriye dönük test (2025-10-13 seçim → 2026-10-13): portföy %27,7, para piyasası medyanı %46,3; portföy volatilitesi %18,3, maks. düşüş -%15,4. Seçilen fonlar: BIH %65,4, NAU %13,6, HAM %23,6, OTJ %26,5, RIK %9,5
+- Örnek portföy: KNJ, CKL, OPF, KTJ, GBG
+- Kayan pencereli test (agresif): 9/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%7,0
 
 ### Mehmet, 58, emekliliğe 2 yıl
 
 - Puan 35/100 → puana göre temkinli, sonuç **temkinli** (sınır: yok)
 - İlk 5 öneri: RBP (Para Piyasası, risk 1), EIL (Para Piyasası, risk 2), OSD (Borçlanma Araçları, risk 1), OLE (Fon Sepeti, risk 2), NSP (Katılım, risk 1)
 - Örnek portföy: RBP, OSD, OLE
-- Geriye dönük test (2025-10-13 seçim → 2026-10-13): portföy %41,0, para piyasası medyanı %46,3; portföy volatilitesi %3,5, maks. düşüş -%2,5. Seçilen fonlar: HVK %23,9, HVT %51,3, OLE %47,8
+- Kayan pencereli test (temkinli): 12/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%0,9
 
 ### Zeynep, 40, orta yol
 
 - Puan 60/100 → puana göre dengeli, sonuç **dengeli** (sınır: yok)
-- İlk 5 öneri: EIL (Para Piyasası, risk 2), NBO (Fon Sepeti, risk 2), OLE (Fon Sepeti, risk 2), PLR (Para Piyasası, risk 2), NJR (Borçlanma Araçları, risk 2)
-- Örnek portföy: EIL, NBO, NJR, OLE
-- Geriye dönük test (2025-10-13 seçim → 2026-10-13): portföy %34,0, para piyasası medyanı %46,3; portföy volatilitesi %4,1, maks. düşüş -%3,2. Seçilen fonlar: HVK %23,9, PRY %54,8, OLE %47,8, RIK %9,5
+- İlk 5 öneri: EIL (Para Piyasası, risk 2), NBO (Fon Sepeti, risk 2), OLE (Fon Sepeti, risk 2), FFH (Katılım, risk 4), IDY (Değişken, risk 4)
+- Örnek portföy: EIL, NBO, FFH, IDY
+- Kayan pencereli test (dengeli): 5/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%11,0
 
 ### Can, 30, birikimi yok ama riskli
 
 - Puan 87/100 → puana göre agresif, sonuç **dengeli** (sınır: Acil durum birikimi yok: beklenmedik bir ihtiyaçta fonu düşük fiyattan satmak gerekebilir.)
-- İlk 5 öneri: EIL (Para Piyasası, risk 2), NBO (Fon Sepeti, risk 2), OLE (Fon Sepeti, risk 2), PLR (Para Piyasası, risk 2), NJR (Borçlanma Araçları, risk 2)
-- Örnek portföy: EIL, NBO, NJR, OLE
-- Geriye dönük test (2025-10-13 seçim → 2026-10-13): portföy %34,0, para piyasası medyanı %46,3; portföy volatilitesi %4,1, maks. düşüş -%3,2. Seçilen fonlar: HVK %23,9, PRY %54,8, OLE %47,8, RIK %9,5
+- İlk 5 öneri: EIL (Para Piyasası, risk 2), NBO (Fon Sepeti, risk 2), OLE (Fon Sepeti, risk 2), FFH (Katılım, risk 4), IDY (Değişken, risk 4)
+- Örnek portföy: EIL, NBO, FFH, IDY
+- Kayan pencereli test (dengeli): 5/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%11,0
+
+## 5. Dengeli profil: riskli fon kotası
+
+Kota: önerilerin ve örnek portföyün en az 2'si risk değeri 4+ ve volatilitesi %5+ fonlardan.
+
+| | İlk 10 | Örnek portföy | PP medyanını geçtiği | Ort. fazla getiri | Medyan fazla getiri |
+|---|---|---|---|---|---|
+| Kotalı (kullanılan) | EIL, NBO, OLE, PLR, NJR, KSK, DBZ, TE4, FFH, IDY | EIL, NBO, FFH, IDY | 5/24 | -%11,0 | -%9,3 |
+| Kotasız | EIL, NBO, OLE, PLR, NJR, KSK, DBZ, TE4, TND, RRP | EIL, NBO, NJR, KSK | 8/24 | -%8,1 | -%4,2 |
 

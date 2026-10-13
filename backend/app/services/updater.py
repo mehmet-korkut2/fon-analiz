@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Fund, Price
-from app.services import fund_status, metrics_job
+from app.services import fund_status, metrics_job, recommender
 from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError
 
 log = logging.getLogger(__name__)
@@ -127,6 +127,12 @@ def run_update(
                 except Exception as e:  # metrik hatası fiyat güncellemesini boşa çıkarmasın
                     log.exception("Metrik hesaplama başarısız")
                     result.errors.append(f"metrikler: {e}")
+                try:
+                    n = recommender.store_rolling(db)  # ~1 dk; öneri sayfasındaki geriye dönük test
+                    log.info("Kayan pencereli geriye dönük test: %s pencere", n)
+                except Exception as e:
+                    log.exception("Geriye dönük test başarısız")
+                    result.errors.append(f"geriye dönük test: {e}")
 
         result.status = "partial" if result.errors else "ok"
         return result

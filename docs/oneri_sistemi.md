@@ -102,19 +102,21 @@ Ağırlıklar uzman görüşüne dayanır; geçmiş veriyle optimize **edilmemi�
 
 Fonlar puan sırasıyla seçilir; **aynı kategoriden en fazla 2 fon** alınır ve ilk 10 gösterilir.
 
+**Dengeli profilde riskli fon kotası.** Dengeli profilde önerilerin ve örnek portföyün **en az 2'si**, TEFAS risk değeri 4 ve üstü **ve** 1 yıllık volatilitesi %5 ve üstü (yani gerçekten dalgalanan) fonlardan gelir. Önce bu gruptaki en yüksek puanlı fonlar (kategori sınırıyla) alınır, kalan yerler puan sırasıyla dolar; liste yine puana göre sıralanır. Kota olmasaydı listeye giremeyecek fonların gerekçesine bu durum yazılır ve arayüzde "Çeşitlendirme kotası" etiketiyle gösterilir. Temkinli ve agresif profillerde kota yoktur. Gerekçesi ve geçmiş testteki etkisi Bölüm 6.1 ve 6.4'te.
+
 Her önerinin gerekçesi otomatik üretilir: fonun en yüksek yüzdelikteki iki bileşeni somut sayılarla yazılır, ardından profil uyumu eklenir. En zayıf bileşen alt %25'teyse "Dikkat" notu düşülür. Örnek (dengeli profil, EIL):
 
 > Son 3, 6 ve 12 aylık getirilerinin hepsi, yıllık bazda risksiz getirinin üstünde. Son 1 yılda %48,2 getiri sağladı; risksiz getirinin 1,9 puan üstünde (risksiz getiri %46,3). Bu, adayların ilk %10'unda. TEFAS risk değeri 2, dengeli profilin aralığında (2-5).
 
 ## 5. Örnek portföy ve geriye dönük test
 
-**Örnek portföy.** Öneriler arasından temkinli profilde 3, dengeli profilde 4, agresif profilde 5 fon seçilir: önce her kategoriden en iyi fon, yetmezse kalan en iyiler. Ağırlıklar eşittir; portföy dönem başında alınıp yeniden dengelenmeden tutulur. Dönem içinde verisi kesilen fon son fiyatında kalır (yatırımcı o fiyattan çıkamamış sayılır).
+**Örnek portföy.** Öneriler arasından temkinli profilde 3, dengeli profilde 4, agresif profilde 5 fon seçilir: (dengeli profilde önce kota kadar riskli fon), sonra her kategoriden en iyi fon, yetmezse kalan en iyiler. Ağırlıklar eşittir; portföy dönem başında alınıp yeniden dengelenmeden tutulur. Dönem içinde verisi kesilen fon son fiyatında kalır (yatırımcı o fiyattan çıkamamış sayılır).
 
 **Kıyas:** Para piyasası fonlarının her gün, 100'den başlayan serilerinin medyanı. Kıyasa sonradan kapatılan para piyasası fonları da dahildir (yalnızca bugün ayakta kalanları almak kıyası olduğundan iyi gösterirdi).
 
 **İki ayrı performans:**
 1. *Son 1 yıl (arayüzdeki "geçmiş performans"):* Fonlar bu dönemin verisiyle seçildiği için sonuç **iyimserdir** (seçim yanlılığı). Arayüzde bu açıkça yazar.
-2. *Gerçek geriye dönük test:* Seçim, 12 ay önceki (13.10.2025) veriyle yapılır; sonraki 12 ayın performansı ölçülür. O gün fiyatı olan **tüm** fonlar adaydır, sonradan SPK kararıyla kapatılan ya da verisi kesilen fonlar dahil; metrikler ve risksiz getiri o tarihe kadarki fiyatlardan yeniden hesaplanır.
+2. *Kayan pencereli geriye dönük test:* Son 3 yılda, ardından 12 aylık verisi olan **her ayın ilk işlem günü** (01.11.2023 – 01.10.2025, 24 seçim günü) aynı yöntemle örnek portföy seçilir ve 12 ay tutulur; her dönemde portföyün getirisi aynı dönemin para piyasası medyanıyla karşılaştırılır. Her seçim gününde o gün fiyatı olan **tüm** fonlar adaydır, sonradan SPK kararıyla kapatılan ya da verisi kesilen fonlar dahil; metrikler ve risksiz getiri o tarihe kadarki fiyatlardan yeniden hesaplanır. Hesap yaklaşık 1 dakika sürdüğü için gece güncellemesinden sonra yapılıp `backtest_windows` tablosunda saklanır (`python -m scripts.geriye_donuk_test`).
 
 ## 6. Sonuçlar
 
@@ -137,7 +139,7 @@ Dengeli havuzda 163 fon var; 60'ı düşük volatiliteli. İki modun ilk 10'u:
 
 **Değerlendirme.** İki mod 9/10 aynı fonu seçiyor; tek fark, tüm havuz modunda RRP'nin, ayrı havuz modunda KDE'nin (tek Sharpe'lı fon) listeye girmesi. Değişiklik ilk 10'u neredeyse etkilemiyor, çünkü dengeli profilin ilk 10'unu belirleyen RA değil, düşük volatiliteli fonların fazla getiri, düşüş ve tutarlılıkta zaten en üstte olmasıdır.
 
-**Asıl bulgu:** Dengeli profilin ilk 10'u, tüm havuz modunda tamamen, ayrı havuz modunda 9/10 oranında volatilitesi %2'nin altında, maksimum düşüşü ~0 olan fonlardan oluşuyor (medyan 1 yıllık getiri ~%47). Bunun nedeni dönemin piyasa koşulu: risksiz getiri %46 iken düşük riskli fonlar son bir yılda riskli fonlardan hem daha çok kazandırdı hem de hiç düşmedi (risk değeri 1–2 fonların medyan getirisi %45, risk değeri 7 fonlarınki %15). Riske göre getiriyi ödüllendiren her yöntem bu dönemde dengeli yatırımcıyı muhafazakâr fonlara yönlendirir. Bu, yöntemin bir hatası değil, piyasa rejimine duyarlı olduğunun göstergesidir; ancak dengeli bir yatırımcı farklı bir dağılım bekleyebilir. Olası bir iyileştirme, dengeli portföyde risk değeri 4 ve üstü fonlara asgari bir pay ayırmaktır (Bölüm 8).
+**Asıl bulgu:** Dengeli profilin ilk 10'u, tüm havuz modunda tamamen, ayrı havuz modunda 9/10 oranında volatilitesi %2'nin altında, maksimum düşüşü ~0 olan fonlardan oluşuyor (medyan 1 yıllık getiri ~%47). Bunun nedeni dönemin piyasa koşulu: risksiz getiri %46 iken düşük riskli fonlar son bir yılda riskli fonlardan hem daha çok kazandırdı hem de hiç düşmedi (risk değeri 1–2 fonların medyan getirisi %45, risk değeri 7 fonlarınki %15). Riske göre getiriyi ödüllendiren her yöntem bu dönemde dengeli yatırımcıyı muhafazakâr fonlara yönlendirir. Bu, yöntemin bir hatası değil, piyasa rejimine duyarlı olduğunun göstergesidir; ancak dengeli bir yatırımcı farklı bir dağılım bekleyebilir. Bu nedenle dengeli profile riskli fon kotası eklendi (Bölüm 4); yukarıdaki tablo kota uygulanmadan önceki sıralamadır. Kotalı ilk 10 ve kotanın geçmiş testteki etkisi Bölüm 6.4'te.
 
 ### 6.2 Ağırlık duyarlılığı
 
@@ -149,30 +151,57 @@ Her profilde ağırlıklar değiştirilip ilk 10 yeniden seçildi: her bileşene
 | Dengeli | 7–10 / 10 | 0,95 | D'nin çıkarılması (7/10: KNJ, PRD, RKC girer) |
 | Agresif | 5–10 / 10 | 0,95 | D'nin çıkarılması (5/10), eşit ağırlık ve RA'nın çıkarılması (6/10) |
 
-**Değerlendirme.** Temkinli ve dengeli profiller ağırlıklara karşı sağlamdır: ±0,10'luk değişikliklerin hiçbiri ilk 10'dan birden fazla fonu değiştirmiyor. Agresif profil daha duyarlıdır, çünkü havuzu büyük (382 fon) ve fonlar birbirine yakın puanlar alıyor; özellikle düşüş direnci çıkarıldığında ilk 10'un yarısı değişiyor. Bu, agresif profilde D'nin düşük de olsa (0,15) korunmasının önemini gösterir. Tam tablo: `docs/oneri_analizi_cikti.md`, Bölüm 2.
+**Değerlendirme.** Temkinli ve dengeli profiller ağırlıklara karşı sağlamdır: ±0,10'luk değişikliklerin hiçbiri ilk 10'dan birden fazla fonu değiştirmiyor. Agresif profil daha duyarlıdır, çünkü havuzu büyük (382 fon) ve fonlar birbirine yakın puanlar alıyor; özellikle düşüş direnci çıkarıldığında ilk 10'un yarısı değişiyor. Bu, agresif profilde D'nin düşük de olsa (0,15) korunmasının önemini gösterir. Analiz, puan sıralamasının kendisini ölçmek için dengeli profilde kota uygulanmadan yapıldı. Tam tablo: `docs/oneri_analizi_cikti.md`, Bölüm 2.
 
-### 6.3 Gerçek geriye dönük test (13.10.2025 seçim → 13.10.2026)
+### 6.3 Kayan pencereli geriye dönük test
 
-| Profil | Seçimdeki r_f | Portföy | Getiri | Kıyas (PP medyanı) | Fark | Volatilite | Maks. düşüş |
-|---|---|---|---|---|---|---|---|
-| Temkinli | %57,1 | HVK, HVT, OLE | %41,0 | %46,3 | −%5,3 | %3,5 | −%2,5 |
-| Dengeli | %57,1 | HVK, PRY, OLE, RIK | %34,0 | %46,3 | −%12,3 | %4,1 | −%3,2 |
-| Agresif | %57,1 | BIH, NAU, HAM, OTJ, RIK | %27,7 | %46,3 | −%18,6 | %18,3 | −%15,4 |
+24 seçim günü (01.11.2023 – 01.10.2025), her biri 12 ay tutuldu. "Fazla getiri": portföy getirisi − aynı dönemin para piyasası (PP) medyanı, puan olarak. Dönemlerin PP medyanı ortalaması %55,3'tür.
 
-**Değerlendirme.** Test döneminde üç profilin örnek portföyü de para piyasası medyanının gerisinde kaldı. Bunun nedenleri:
-1. **Piyasa koşulu:** Para piyasası fonlarının 1 yıllık medyan getirisi seçim gününde %57,1, test döneminde %46,3 oldu; yüksek faizli bu dönemde risk almak ek getiri sağlamadı (bugün risk değeri 7 fonların medyan 1 yıllık getirisi %15). Agresif portföyün en çok geride kalması bu koşulla tutarlıdır.
-2. **Sonradan kapatılan fonlar:** Temkinli ve dengeli portföydeki HVK (Hedef Portföy) ile dengeli portföydeki PRY (Pusula Portföy), 17.09.2026'da SPK kararıyla işleme kapatılan şirketlerin fonlarıdır. Seçim günü bu bilinemezdi; test bu riski bilinçli olarak dışarıda bırakmaz. HVK'nın dönem getirisi %23,9'da kaldı.
-3. **Tek dönem:** Sonuç yalnızca bir 12 aylık döneme aittir ve istatistiksel olarak genellenemez. Kayan pencerelerle (ör. son 4 yılın her çeyreğinde seçim) yapılacak bir test daha güvenilir olur (Bölüm 8).
+**Nitelikli olmayan yatırımcı (serbest fonlar hariç; arayüzün varsayılanı)**
 
-Bu sonuç, arayüzdeki "son 1 yıl" grafiğinin neden iyimser olduğunu da gösteriyor: aynı yöntemle bugün seçilen portföyler, seçimde kullanılan dönemde kıyası geçiyor (temkinli %48,8, dengeli %48,7, agresif %54,5; kıyas %46,3), 12 ay önce seçilenler ise sonraki dönemde geçemedi.
+| Profil | PP medyanını geçtiği | Ort. fazla getiri | Medyan fazla getiri | Ort. portföy / PP | En iyi dönem (seçim ayı) | En kötü dönem (seçim ayı) |
+|---|---|---|---|---|---|---|
+| Temkinli | 12/24 | −0,9 | −0,1 | %54,3 / %55,3 | 07.2025: +4,9 | 12.2023: −8,5 |
+| Dengeli | 5/24 | −11,0 | −9,3 | %44,3 / %55,3 | 06.2025: +8,0 | 04.2024: −32,3 |
+| Agresif | 9/24 | −7,0 | −9,3 | %48,3 / %55,3 | 04.2025: +55,1 | 07.2024: −46,6 |
 
-### 6.4 Örnek kişiler
+**Nitelikli yatırımcı (serbest fonlar dahil)**
 
-| Kişi | Puan | Profil | İlk öneriler | Not |
+| Profil | PP medyanını geçtiği | Ort. fazla getiri | Medyan fazla getiri | Ort. portföy / PP | En iyi dönem | En kötü dönem |
+|---|---|---|---|---|---|---|
+| Temkinli | 18/24 | +1,1 | +1,2 | %56,3 / %55,3 | 03.2025: +2,9 | 09.2025: −2,0 |
+| Dengeli | 6/24 | −10,1 | −11,2 | %45,2 / %55,3 | 06.2025: +7,9 | 04.2024: −26,7 |
+| Agresif | 7/24 | −10,0 | −6,1 | %45,2 / %55,3 | 03.2025: +39,3 | 07.2024: −55,1 |
+
+Dönem dönem sonuçlar: `docs/oneri_analizi_cikti.md` ve `python -m scripts.geriye_donuk_test --pencere`.
+
+**Değerlendirme.**
+- **Temkinli:** Portföy para piyasası medyanına çok yakın seyretti (medyan fark −0,1 puan); bu, portföyün zaten para piyasası benzeri fonlardan oluşmasıyla tutarlı. Kasım 2023 – Temmuz 2024 seçimlerinin hepsi hafifçe geride, Ağustos 2024 – Ağustos 2025 seçimlerinin çoğu hafifçe önde kaldı. Son iki dönemdeki −5,3 puanın büyük kısmı, portföydeki HVK'dan geliyor: 17.09.2026'da SPK kararıyla kapatılan bir şirketin fonu. Serbest fonlar dahil edildiğinde temkinli portföy 24 dönemin 18'inde medyanı geçti.
+- **Dengeli:** En zayıf profil: 24 dönemin yalnızca 5'inde medyanı geçti, ortalamada 11 puan geride kaldı. En kötü dönem Nisan 2024 seçimi: portföy (EIB, TLE, GO4, KSR) %27,4, PP medyanı %59,7. Kotanın bu sonuca etkisi Bölüm 6.4'te.
+- **Agresif:** Sonuçlar çok dağınık (−46,6 ile +55,1 puan arası). Kasım 2023 – Eylül 2024 arasında seçilen 11 portföyün hepsi medyanın gerisinde kaldı; Ekim 2024 – Haziran 2025 arasındaki 9 seçimin 8'i medyanı geçti (üçü 35 puandan fazla). Yani agresif profilin sonucu büyük ölçüde seçim zamanına bağlı.
+- **Genel:** Test döneminin tamamında para piyasası fonları yüksek getiri sağladı (ortalama %55); bu dönemde risk almak ortalamada ödüllendirilmedi ve geçmiş 1 yıllık performansa göre yapılan seçim sonraki yıla taşınmadı. Arayüzdeki "son 1 yıl" grafiği ise iyimserdir: bugün seçilen portföyler, seçimde kullanılan dönemde kıyası geçiyor (temkinli %48,8, dengeli %47,5, agresif %54,5; kıyas %46,3).
+- **Bağımsızlık:** Dönemler birer ay arayla başlayıp 12 ay sürdüğü için birbirleriyle büyük ölçüde örtüşür; 24 dönem, birbirinden bağımsız 24 deneme değildir (yaklaşık 3 yıllık tek bir faiz ortamını kapsar). Sonuçlar istatistiksel bir kanıt değil, yöntemin bu dönemdeki davranışının bir göstergesidir.
+
+### 6.4 Dengeli profilde riskli fon kotası
+
+Bölüm 6.1'deki bulgu üzerine dengeli profile kota eklendi: önerilerin ve örnek portföyün en az 2'si risk değeri 4+ ve volatilitesi %5+ fonlardan. Dengeli havuzdaki 163 fonun 77'si bu gruptadır.
+
+| | İlk 10 | Örnek portföy | PP medyanını geçtiği (24 dönem) | Ort. fazla getiri | Medyan fazla getiri |
+|---|---|---|---|---|---|
+| **Kotalı (kullanılan)** | EIL, NBO, OLE, PLR, NJR, KSK, DBZ, TE4, **FFH**, **IDY** | EIL, NBO, **FFH**, **IDY** | 5/24 | −11,0 | −9,3 |
+| Kotasız | EIL, NBO, OLE, PLR, NJR, KSK, DBZ, TE4, TND, RRP | EIL, NBO, NJR, KSK | 8/24 | −8,1 | −4,2 |
+
+Kotayla listeye giren fonlar: **FFH** (QNB Portföy Çoklu Varlık Katılım; risk 4, volatilite %5,7, 1 yıllık getiri %43,9, maks. düşüş −%1,8) ve **IDY** (TEB Portföy İkinci Değişken; risk 4, volatilite %9,0, 1 yıllık getiri %46,4, maks. düşüş −%3,1). İlk 8 fon değişmedi.
+
+**Değerlendirme.** Kota, dengeli profilin önerilerine beklenen risk çeşitliliğini getiriyor: örnek portföyün yarısı artık gerçekten dalgalanan fonlardan oluşuyor. Ancak test döneminde bunun bedeli oldu: kotalı dengeli portföy kotasıza göre daha az dönemde medyanı geçti (5'e karşı 8) ve ortalamada 2,9 puan daha geride kaldı. Bu, Bölüm 6.3'teki genel bulguyla tutarlı: bu dönemde risk almak ödüllendirilmedi. Kotanın değeri, risk priminin pozitif olduğu dönemlerde ortaya çıkar; elimizdeki ~3 yıllık veri tek bir yüksek faiz dönemini kapsadığı için bunu test edemiyoruz. Kota bu yüzden geçmiş getiriye göre değil, **profil tutarlılığı** gerekçesiyle tutuldu: "dengeli" etiketli bir öneri listesinin tamamen para piyasası benzeri fonlardan oluşması, kullanıcının beklentisiyle çelişir.
+
+### 6.5 Örnek kişiler
+
+| Kişi | Puan | Profil | Öneri sayfasındaki ilk 5 | Not |
 |---|---|---|---|---|
 | Ayşe, 26, uzun vadeli birikim | 77 | Agresif | KNJ, CKL, OPF, KTJ, GBG | – |
 | Mehmet, 58, emekliliğe 2 yıl | 35 | Temkinli | RBP, EIL, OSD, OLE, NSP | – |
-| Zeynep, 40, orta yol | 60 | Dengeli | EIL, NBO, OLE, PLR, NJR | – |
+| Zeynep, 40, orta yol | 60 | Dengeli | EIL, NBO, OLE, PLR, NJR | Kota fonları FFH ve IDY 9. ve 10. sırada; örnek portföy EIL, NBO, FFH, IDY |
 | Can, 30, birikimi yok ama riskli | 87 | Dengeli | EIL, NBO, OLE, PLR, NJR | Puana göre agresif; acil durum birikimi olmadığı için dengeliye indi |
 
 ## 7. Sınırlamalar
@@ -181,12 +210,12 @@ Bu sonuç, arayüzdeki "son 1 yıl" grafiğinin neden iyimser olduğunu da göst
 - **Maliyet ve vergi:** Fon yönetim ücretleri fiyata yansımıştır; alım-satım masrafı ve stopaj hesaba katılmadı.
 - **Al-tut ve eşit ağırlık:** Portföy yeniden dengelenmez; gerçek bir yatırımcının davranışını basitleştirir.
 - **Ağırlıklar optimize edilmedi:** Uzman görüşüne dayanır; duyarlılık analizi sonuçların ağırlıklara ne kadar bağlı olduğunu gösterir.
-- **Tek dönem:** Geriye dönük test tek bir 12 aylık dönemdir.
+- **Örtüşen ve kısa test dönemi:** Kayan pencereler birbiriyle örtüşür ve toplam ~3 yıllık, tek bir yüksek faiz dönemini kapsar; sonuçlar başka piyasa koşullarına genellenemez.
 - **Veri:** Fiyatlar TEFAS'tan alınır; tek günlük hatalı fiyatlar metriklerde yok sayılır, SPK kararıyla kapatılan fonlar işaretlidir (bkz. `CLAUDE.md`).
 
 ## 8. Gelecek çalışmalar
 
-- Kayan pencereli geriye dönük test (çok dönem, ortalama ve dağılım).
-- Dengeli portföyde risk değeri 4+ fonlara asgari pay.
-- Aynı portföy yönetim şirketinden en fazla 1–2 fon (şirket riskini çeşitlendirmek; Bölüm 6.3'teki SPK kararı bu riskin gerçek bir örneği).
+- Daha uzun veriyle (TEFAS 5 yıl veriyor; seçim için 1 yıllık geçmiş gerektiğinden en fazla ~4 yıllık pencere) farklı faiz dönemlerini kapsayan test.
+- Dengeli profildeki riskli fon kotasını piyasa koşuluna bağlamak (ör. risk primi negatifken kotayı azaltmak) ve bunu ayrı bir test döneminde sınamak.
+- Aynı portföy yönetim şirketinden en fazla 1–2 fon (şirket riskini çeşitlendirmek; Bölüm 6.3'te HVK'nın etkisi bu riskin gerçek bir örneği).
 - Kullanıcı girişiyle profillerin `risk_profiles` tablosunda saklanması.

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getBacktest, getRecommendations } from '../api/client'
+import { getRecommendations } from '../api/client'
 import Disclaimer from '../components/Disclaimer'
 import PerfChart from '../components/PerfChart'
 import ProfileSummary from '../components/ProfileSummary'
 import RiskBar from '../components/RiskBar'
+import RollingBacktest from '../components/RollingBacktest'
 import { num, pct, signClass, trDate } from '../format'
 import { loadProfile } from '../profileStore'
 
@@ -38,7 +39,10 @@ function RecCard({ item, weights }) {
         <span className="rec-rank num">{item.rank}</span>
         <div className="rec-title">
           <Link to={`/fonlar/${item.code}`}><strong className="num">{item.code}</strong> <span className="rec-name">{item.name}</span></Link>
-          <span className="muted small rec-meta">{item.category} <RiskBar level={item.risk_level} /></span>
+          <span className="muted small rec-meta">
+            {item.category} <RiskBar level={item.risk_level} />
+            {item.quota && <span className="quota-badge" title="Dengeli profilde önerilerin en az 2'si risk değeri 4 ve üstü, gerçekten dalgalanan fonlardan seçilir">Çeşitlendirme kotası</span>}
+          </span>
         </div>
         <div className="rec-score">
           <span className="card-label">Puan</span>
@@ -82,36 +86,6 @@ function PortfolioTable({ funds, showReturn }) {
         </tbody>
       </table>
     </div>
-  )
-}
-
-function Backtest({ profile, qualified }) {
-  const [data, setData] = useState(null)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    let ignore = false
-    getBacktest(profile, qualified)
-      .then((d) => { if (!ignore) setData(d) })
-      .catch(() => { if (!ignore) setError('Geriye dönük test yüklenemedi.') })
-    return () => { ignore = true }
-  }, [profile, qualified])
-
-  if (error) return <p className="error">{error}</p>
-  if (!data) return <p className="muted">Geriye dönük test hesaplanıyor (ilk açılışta birkaç saniye sürebilir)...</p>
-  if (!data.performance) return <p className="muted">Bu profil için geriye dönük test yapılamadı.</p>
-  const diff = data.performance.portfolio.return - data.performance.benchmark.return
-  return (
-    <>
-      <p className="small">
-        <strong>{trDate(data.selection_date)}</strong> tarihindeki veriyle (o günkü risksiz getiri {pct(data.risk_free_rate)})
-        aynı yöntemle seçilen portföy, sonraki 12 ayda para piyasası fonlarının medyanından{' '}
-        <strong className={signClass(diff)}>{num(Math.abs(diff) * 100, 1)} puan {diff >= 0 ? 'daha iyi' : 'daha kötü'}</strong> performans gösterdi.
-        Seçimde sadece o güne kadarki veri kullanıldı; sonradan işleme kapatılan fonlar da o gün aday sayıldı.
-      </p>
-      <PerfChart perf={data.performance} />
-      <PortfolioTable funds={data.portfolio} showReturn />
-    </>
   )
 }
 
@@ -200,7 +174,7 @@ export default function Recommendations() {
                 <h3>Son 1 yılda nasıl giderdi?</h3>
                 <p className="notice small">
                   Bu fonlar aynı dönemin verisiyle seçildiği için bu grafik <strong>iyimserdir</strong> (seçim yanlılığı).
-                  Gerçekçi bir test için aşağıdaki geriye dönük teste bak.
+                  Gerçekçi bir test için aşağıdaki kayan pencereli geriye dönük teste bak.
                 </p>
                 <PerfChart perf={data.performance} />
               </>
@@ -210,7 +184,7 @@ export default function Recommendations() {
 
           <h2>Geriye dönük test</h2>
           <div className="panel">
-            <Backtest profile={profile} qualified={qualified} />
+            <RollingBacktest profile={profile} qualified={qualified} />
           </div>
         </>
       )}

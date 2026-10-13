@@ -270,3 +270,9 @@ a.tag:hover { border-color: #0f7a5c; }
   .comp-bars li { grid-template-columns: 104px minmax(0, 1fr) 28px; }
   .footer { padding: 16px; }
 }
+.quota-badge { padding: 1px 8px; border-radius: 999px; background: #eef2fb; color: #1f4f8f; font-size: 12px; }
+.rolling { display: flex; flex-direction: column; gap: 12px; }
+.rolling p { margin: 0; }
+.rolling .cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.rolling .card-value { font-size: 20px; }
+.rolling code { font-size: 12px; }
