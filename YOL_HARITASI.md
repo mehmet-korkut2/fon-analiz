@@ -27,20 +27,21 @@ Son güncelleme: 13 Ekim 2026
 - [x] Tüm fonları yükle: `python -m scripts.tefas_yukle --limit 0`
 - [ ] Emeklilik (EMK) fonlarını ekle: `python -m scripts.tefas_yukle --tip EMK --limit 0`
 - [x] Veri doğrulama: 5 fonun fiyatı TEFAS sitesiyle birebir eşleşti
+- [ ] Şüpheli fiyat sıçramaları için karar ver (`python -m scripts.veri_kalitesi`: 41 fonda 64 sıçrama; 9 Ekim 2026'da 17 fonda %95–100 düşüş, TEFAS'taki veriyle aynı)
 - [ ] Portföy dağılımı kararı: TEFAS artık bu veriyi vermiyor. Başka kaynak (ör. KAP aylık raporları) bul ya da özelliği çıkar
 - [ ] Backend açılışında eksik günleri otomatik tamamla (bilgisayar 21:00'de kapalıysa)
 - [ ] Ara değerlendirme: danışmana ilerlemeyi göster
 
 ## 3. Backend ve metrikler
 
-- [ ] Getiri hesapları: 1 ay, 3 ay, 6 ay, 1 yıl, 3 yıl, yılbaşından bu yana
+- [x] Getiri hesapları: 1 ay, 3 ay, 6 ay, 1 yıl, 3 yıl, yılbaşından bu yana
 - [ ] Volatilite, Sharpe oranı, maksimum düşüş (fonksiyonlar `app/services/metrics.py` içinde hazır, API'ye bağlanacak)
 - [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta
 - [ ] `fund_metrics` tablosu: metrikleri her gece önceden hesapla
 - [ ] Endpoint: fon detay (`GET /api/funds/{kod}`)
 - [ ] Endpoint: fiyat geçmişi (tarih aralığı parametresiyle)
 - [x] Endpoint: karşılaştırma (`GET /api/compare?funds=A,B,C`)
-- [ ] Endpoint: sıralamalar (en iyi getiri, en düşük risk, en iyi Sharpe)
+- [x] Endpoint: sıralamalar (en iyi getiri, en düşük risk, en iyi Sharpe)
 - [ ] Fon listesine sayfalama, arama, kategori ve risk filtresi
 - [ ] Metrik testleri (bilinen örnek verilerle)
 - [ ] Alembic migration'larına geçiş
@@ -51,7 +52,7 @@ Son güncelleme: 13 Ekim 2026
 - [ ] Fon detay sayfası: bilgiler, metrik kartları, metrik açıklamaları
 - [ ] Fiyat grafiği (Recharts) ve dönem seçici
 - [x] Karşılaştırma sayfası: fon seçimi, 100'den başlayan grafik, metrik tablosu
-- [ ] Sıralamalar sayfası
+- [x] Sıralamalar sayfası
 - [ ] Taslaklardaki tasarımı uygula (renkler, yazı tipleri, yerleşim)
 - [ ] Yükleme, hata ve boş durum ekranları
 - [ ] Mobil uyum
