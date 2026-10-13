@@ -61,14 +61,14 @@ Son güncelleme: 13 Ekim 2026
 
 ## 5. Risk profili ve öneri
 
-- [ ] Anket sorularını ve puanlamayı kesinleştir (taslakta 5 soruluk çalışan sürüm var)
-- [ ] Endpoint: `POST /api/risk-profile` (puan ve profil: temkinli / dengeli / agresif)
-- [ ] Anket ekranı
-- [ ] Öneri algoritması: risk değeri + Sharpe + getiri ağırlıklı puan
-- [ ] Endpoint: `GET /api/recommendations`
-- [ ] Öneri sayfası ve yasal uyarı metni
-- [ ] Profile göre örnek portföy ve geçmiş performansı
-- [ ] Farklı profillerle test et, ağırlıkları ayarla
+- [x] Anket sorularını ve puanlamayı kesinleştir (7 soru + nitelikli yatırımcı sorusu; ayrıntı `docs/oneri_sistemi.md`)
+- [x] Endpoint: `POST /api/risk-profile` (puan ve profil: temkinli / dengeli / agresif)
+- [x] Anket ekranı
+- [x] Öneri algoritması: risk değeri + Sharpe + getiri ağırlıklı puan
+- [x] Endpoint: `GET /api/recommendations`
+- [x] Öneri sayfası ve yasal uyarı metni
+- [x] Profile göre örnek portföy ve geçmiş performansı (gerçek geriye dönük test dahil)
+- [x] Farklı profillerle test et, ağırlıkları ayarla (4 örnek kişi ve ağırlık duyarlılık analizi; ağırlıklar bilinçli olarak optimize edilmedi)
 
 ## 6. ML tahmin modülü
 

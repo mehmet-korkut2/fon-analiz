@@ -14,14 +14,16 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
 
 - `backend/` FastAPI + SQLAlchemy 2.0
   - `app/models.py`: funds, prices, fund_metrics, portfolio_allocations, users, risk_profiles
-  - `app/routers/`: funds (liste/filtre/sıralama/detay/fiyatlar), fx (döviz), status
+  - `app/routers/`: funds (liste/filtre/sıralama/detay/fiyatlar), compare, rankings, risk (anket, profil), recommendations (öneri, geriye dönük test), fx (döviz), status
   - `app/services/tefas_client.py`: TEFAS'ın 2026 JSON API'si (`/api/funds/fonGetiriBazliBilgiGetir`, `/api/funds/fonFiyatBilgiGetir`)
   - `app/services/updater.py`: fiyatları DB'ye yazar, ardından metrikleri hesaplar
   - `app/services/metrics.py` + `metrics_job.py`: getiri, volatilite, Sharpe, maks. düşüş
+  - `app/services/risk_survey.py` + `recommender.py`: risk anketi, öneri puanlaması, örnek portföy, geriye dönük test (yöntem ve gerekçeler: `docs/oneri_sistemi.md`)
+  - `app/services/fund_status.py`, `data_quality.py`: SPK kararıyla kapatılan fonlar, fiyat sıçramaları
   - `app/services/fx.py`: TCMB today.xml (resmi) + Truncgil v4 (anlık)
   - `app/scheduler.py`: APScheduler, hafta içi 21:00; açılışta veri eskiyse günceller
-  - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`
-- `frontend/` React 19 + Vite, React Router, axios. Sayfalar: Home, Funds, Doviz.
+  - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `oneri_analizi`
+- `frontend/` React 19 + Vite, React Router, axios, Recharts. Sayfalar: Home, Funds, FundDetail, Rankings, Compare, RiskSurvey, Recommendations, Doviz. Risk profili `localStorage`'da (`profileStore.js`).
 
 ## Komutlar
 
@@ -54,4 +56,4 @@ npm run lint
 
 ## Sıradaki işler
 
-3. aşama devam ediyor: fon detay sayfası (fiyat grafiği, metrik kartları, kategori sırası), karşılaştırma endpoint'i ve sayfası, sıralamalar. Ayrıntı için `YOL_HARITASI.md`.
+5. aşama (risk anketi ve öneri sistemi) tamamlandı. Sırada 6. aşama (ML tahmin modülü) ve 3. aşamada kalanlar (kıyaslama: BIST 100, enflasyon, beta; Alembic). Ayrıntı için `YOL_HARITASI.md`.
