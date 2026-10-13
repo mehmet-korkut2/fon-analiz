@@ -7,6 +7,7 @@ import { num, pct, signClass, trDate } from '../format'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
 import { axisDigits, monthTicks } from '../chart'
 import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
+import { isClosed } from '../fundStatus'
 
 const LINE = '#0f7a5c'
 const GRID = '#e5ebe8'
@@ -212,6 +213,19 @@ export default function FundDetail() {
         )}
       </div>
 
+      {isClosed(fund) && fund.status_note && (
+        <p className="notice notice-closed" role="note">
+          <strong>{fund.status_note}</strong>
+          {fund.status_source && (
+            <>
+              {' '}Kaynak:{' '}
+              {fund.status_url
+                ? <a href={fund.status_url} target="_blank" rel="noopener noreferrer">{fund.status_source}</a>
+                : fund.status_source}
+            </>
+          )}
+        </p>
+      )}
       {fund.is_stale && fund.price_date && (
         <p className="notice">
           Bu fonun verisi {trDate(fund.price_date)} tarihinden beri güncellenmiyor. Metrikler o tarihe aittir;
@@ -287,7 +301,9 @@ export default function FundDetail() {
             >
               {fund.category_rank_1y
                 ? `1 yıllık getiriye göre ${fund.category} kategorisindeki ${fund.category_size} fon arasında.`
-                : fund.is_stale
+                : isClosed(fund)
+                  ? 'İşleme kapatıldığı için sıralamaya alınmadı.'
+                  : fund.is_stale
                   ? 'Verisi güncellenmediği için sıralamaya alınmadı.'
                   : 'Bu fon için kategori sıralaması hesaplanamadı.'}
             </MetricCard>

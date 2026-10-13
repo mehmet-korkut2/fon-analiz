@@ -28,6 +28,10 @@ class FundOut(BaseModel):
     price: float | None = None
     price_date: date | None = None
     is_stale: bool = False  # son fiyatı genel son tarihten STALE_AFTER_DAYS günden eski
+    status: str = "aktif"  # aktif / islem_kapali / islem_kapali_tasfiye
+    status_note: str | None = None
+    status_source: str | None = None
+    status_url: str | None = None
     metrics: MetricsOut | None = None
 
 

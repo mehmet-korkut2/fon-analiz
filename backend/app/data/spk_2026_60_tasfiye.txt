@@ -1,0 +1,140 @@
+# SPK Bülteni 2026/60 (17.09.2026), 57/1706 ve 57/1707 sayılı kararlar:
+# Tera, Pusula, Hedef, Atlas, A1, Pardus ve Bulls Portföy'ün kurduğu ve TEFAS'ta işlem gören
+# TÜM yatırım fonları TEFAS'ta alım satıma kapatıldı. Aşağıda unvanları yer alan fonların ise
+# Kurulca belirlenecek yöntemle tasfiye ettirilmesine karar verildi.
+#
+# Bülten: https://spk.gov.tr/data/6aab8e7b8f95db07100fd7b4/2026-60.pdf
+# Liste kaynağı (bülten PDF'indeki metin tam okunamadığı için haberdeki liste kullanıldı):
+#   https://www.istiklal.com.tr/ekonomi/pusula-ve-teranin-da-yer-aldigi-7-portfoy-sirketinin-fonlari-isleme-kapatildi-1105496h
+#   https://www.foreks.com/haber/detay/6aaba09224008d7d43732f77/FRKS/tr/spk-yeni-bulten-yayinladi-bazi-fonlarin-tasfiye-ettirilmesine-karar-verildi-17-09-26/
+# Eşleştirme fon unvanına göre yapılır (büyük/küçük harf, "Fon"/"Fonu", "(Hisse Senedi Yoğun)" farkları yok sayılır).
+Bulls Portföy Para Piyasası (Tl) Fonu
+Bulls Portföy Birinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Bankacılık Sektörü Dışı Şirketler Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Dördüncü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Bist 50 Dışı Şirketler Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy İkinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Algoritmik Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Mutlak Getiri Hedefli Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Bist 30 Dışı Şirketler Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Altıncı Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Beşinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Sanayi Şirketleri Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Üçüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Gms Hisse Senedi Serbest Özel Fon (Hisse Senedi Yoğun Fon)
+Bulls Portföy Yıldız Pazar Şirketleri Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Tera Portföy Birinci Serbest Fon
+Tera Portföy Dördüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Tera Portföy Üçüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun)
+Tera Portföy Para Piyasası Katılım (Tl) Fonu
+Tera Portföy Para Piyasası (Tl) Fonu
+Pusula Portföy Birinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy Üçüncü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy Dördüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy Doğu Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy Güney Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy Beşinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy İkinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy İkinci Katılım Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy Para Piyasası Katılım (Tl) Fonu
+Pusula Portföy Kuzey Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pusula Portföy İkinci Para Piyasası (Tl) Fonu
+Pusula Portföy Para Piyasası (Tl) Fonu
+Atlas Portföy Dördüncü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Beşinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Birinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Bankacılık Sektörü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy İstatistiksel Arbitraj Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Ufuk Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy İkinci Katılım Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Katılım Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy İkinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Algo Toros Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Dördüncü Serbest (Tl) Fon
+Atlas Portföy Serbest Fon
+Atlas Portföy Para Piyasası (Tl) Fonu
+Atlas Portföy Para Piyasası Serbest Fon
+Atlas Portföy Sanayi Sektörü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Atlas Portföy Üçüncü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Ufuk Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Model Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Atlas İstatistiksel Arbitraj Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Doruk Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Dördüncü İstatistiksel Arbitraj Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Doğu Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Vega İstatistiksel Arbitraj Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Algo Everest İstatistiksel Arbitraj Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy İkinci Katılım Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Güneş Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Güney Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Birinci İstatistiksel Arbitraj Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy İnci Hisse Senedi Serbest Özel Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Para Piyasası Serbest Fon
+Hedef Portföy Başak Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Katılım Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Ada Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Ege Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Mavi Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Kuzey Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy İdeal Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Çınar Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy İkinci Para Piyasası (Tl) Fon
+Hedef Portföy Zen Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun)
+Hedef Portföy Ece Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Pusula Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Rota Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Para Piyasası (Tl) Fonu
+Hedef Portföy Para Piyasası Katılım Fonu
+Hedef Portföy Nehir Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Hedef Portföy Kısa Vadeli Serbest Fon
+A1 Capital Portföy İstatistiksel Arbitraj Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy Bankacılık Sektörü Dışı Şirketler Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy Bist 100 Dışı Şirketler Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy Bist 30 Dışı Şirketler Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy İkinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy Sanayi Sektörü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+A1 Capital Portföy Para Piyasası (Tl) Serbest Fon
+A1 Capital Portföy Para Piyasası (Tl) Fonu
+Pardus Portföy İstatistiksel Arbitraj Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Birinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy İkinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy İkinci Hisse Senedi (Tl) Fonu (Hisse Senedi Yoğun Fon)
+Pardus Portföy Altıncı Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Bist 50 Dışı Şirketler Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Beşinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Bereket Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Bist 30 Dışı Şirketler Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Bankacılık Sektörü Dışı Şirketler Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Üçüncü Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Dokuzuncu Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Dördüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy İkinci İstatistiksel Arbitraj Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Kartal Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Mutlak Getiri Hedefli Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onuncu Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Anadolu Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Bist 100 Dışı Şirketler Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Capital Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Doğu Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Güney Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Batı Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Kuzey Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Marmara Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Model Portföy Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onyedinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onsekizinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Ondokuzuncu Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onbirinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onaltıncı Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onikinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onbeşinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Onüçüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Ondördüncü Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Sanayi Şirketleri Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Sanayi Sektörü Dışı Şirketler Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Yirmibirinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Yirmiikinci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Yirminci Hisse Senedi Serbest Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Sekizinci Hisse Senedi Serbest (Tl) Fon (Hisse Senedi Yoğun Fon)
+Pardus Portföy Para Piyasası (Tl) Fon

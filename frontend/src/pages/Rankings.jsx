@@ -95,7 +95,7 @@ export default function Rankings() {
         <p className="hint">
           {data ? `${data.eligible.toLocaleString('tr-TR')} fon arasından ilk 10` : 'Yükleniyor...'}
           {data?.as_of && ` · Veriler ${trDate(data.as_of)} tarihli`}
-          {' · Verisi güncellenmeyen ve kapanmış fonlar dahil edilmez'}
+          {' · Verisi güncellenmeyen, kapanmış ve SPK kararıyla işleme kapatılan fonlar dahil edilmez'}
         </p>
       </div>
 

@@ -4,6 +4,7 @@ import { getCategories, getFunds } from '../api/client'
 import RiskBar from '../components/RiskBar'
 import { num, pct } from '../format'
 import { useDebounced } from '../hooks'
+import { STATUS_LABELS, isClosed } from '../fundStatus'
 
 const PAGE_SIZE = 25
 
@@ -43,7 +44,8 @@ export default function Funds() {
     setLoading(true)
     getFunds({
       q: q || undefined, category: category || undefined,
-      risk_min: riskMin, risk_max: riskMax, include_stale: showStale || undefined,
+      risk_min: riskMin, risk_max: riskMax,
+      include_stale: showStale || undefined, include_closed: showStale || undefined,
       sort: sort.key, order: sort.order, page, page_size: PAGE_SIZE,
     })
       .then((d) => { setData(d); setError(null) })
@@ -100,9 +102,9 @@ export default function Funds() {
             <option value="6-7">Yüksek risk (6–7)</option>
           </select>
         </label>
-        <label className="check" title="Son fiyatı en güncel tarihten 7 günden eski olan fonlar">
+        <label className="check" title="Son fiyatı en güncel tarihten 7 günden eski olan ve SPK kararıyla işleme kapatılan fonlar">
           <input type="checkbox" checked={showStale} onChange={(e) => setShowStale(e.target.checked)} />
-          Eski verili fonları da göster
+          Eski verili ve işleme kapatılan fonları da göster
         </label>
       </div>
 
@@ -127,6 +129,7 @@ export default function Funds() {
                 <td className="fund-name">
                   {data.sample ? <span>{f.name}</span> : <Link to={`/fonlar/${f.code}`}>{f.name}</Link>}
                   {f.category && <span className="muted small">{f.category}</span>}
+                  {isClosed(f) && <span className="closed-badge small" title={f.status_note ?? undefined}>{STATUS_LABELS[f.status] ?? f.status}</span>}
                   {f.is_stale && f.price_date && (
                     <span className="stale-badge small">Veri {new Date(f.price_date).toLocaleDateString('tr-TR')} tarihinden beri güncellenmiyor</span>
                   )}

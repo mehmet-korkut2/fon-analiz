@@ -46,6 +46,9 @@ npm run lint
 - Fon adları Türkçe büyük harf (İ, Ş, Ğ); aramada `tr_upper()` kullanılıyor.
 - Metrikler ondalık kesir olarak saklanır (0.25 = %25). Sharpe için risksiz getiri: para piyasası fonlarının 1 yıllık medyan getirisi.
 - Kullanıcıya yatırım tavsiyesi verilmez; arayüzde uyarı metinleri korunmalı.
+- `funds.status`: SPK Bülteni 2026/60 ile 7 şirketin (Tera, Pusula, Hedef, Atlas, A1 Capital, Pardus, Bulls) fonları `islem_kapali`, tasfiye listesindekiler (`app/data/spk_2026_60_tasfiye.txt`) `islem_kapali_tasfiye`. Bu fonlar ve eski verili fonlar (son fiyatı 7 günden eski) listede varsayılan olarak gizli; sıralamaya ve risksiz getiriye girmez. TEFAS'ın `tefasDurum` alanı bu fonlar için `true` geliyor, kullanılamıyor.
+- Fiyat verisi değiştirilmez. Tek günlük sıçrayıp ertesi gün geri dönen fiyatlar sadece metrik hesabında yok sayılır (`data_quality.drop_one_day_glitches`).
+- Yeni sütun eklerken `init_db()` boş bırakılabilir sütunları mevcut tabloya ekler (Alembic'e geçene kadar).
 
 ## Sıradaki işler
 

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, contains_eager
 from app.database import get_db
 from app.models import Fund, FundMetrics
 from app.routers.funds import fund_out, is_fresh, stale_cutoff
+from app.services.fund_status import is_tradable
 from app.schemas import RankedFund, RankingList, RankingsOut
 
 router = APIRouter(prefix="/rankings", tags=["rankings"])
@@ -23,13 +24,13 @@ def rankings(
 ):
     """En iyi getiri, en düşük volatilite ve en iyi Sharpe listeleri.
 
-    Eski verili (son fiyatı güncel olmayan) ve kapanmış fonlar sıralamaya girmez.
+    Eski verili (son fiyatı güncel olmayan), kapanmış ve SPK kararıyla işleme kapatılan fonlar sıralamaya girmez.
     """
     cutoff = stale_cutoff(db)
     base = (
         select(Fund)
         .join(FundMetrics)
-        .where(Fund.is_active.is_(True), is_fresh(cutoff))
+        .where(Fund.is_active.is_(True), is_fresh(cutoff), is_tradable())
         .options(contains_eager(Fund.metrics))
     )
     if category:

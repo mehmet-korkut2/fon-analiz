@@ -38,6 +38,19 @@ def find_jumps(prices: pd.DataFrame, threshold: float = DEFAULT_THRESHOLD) -> pd
     return jumps[COLUMNS].reset_index(drop=True)
 
 
+def drop_one_day_glitches(prices: pd.Series, threshold: float = DEFAULT_THRESHOLD) -> pd.Series:
+    """Tek günlük hatalı fiyatları (sıçrayıp ertesi gün geri dönen) seriden çıkarır.
+
+    find_jumps'taki "geri döndü" tanımının aynısı. Veritabanına dokunmaz; metrik hesabında
+    aykırı değerleri yok saymak için kullanılır. Serinin son günü (ertesi günü olmadığı için) çıkarılmaz.
+    """
+    prev, nxt = prices.shift(1), prices.shift(-1)
+    change = prices / prev - 1
+    after = (nxt / prev - 1).abs()
+    glitch = (change.abs() > threshold) & nxt.notna() & (after < change.abs() / 2)
+    return prices[~glitch]
+
+
 def summarize(jumps: pd.DataFrame, funds_scanned: int) -> dict:
     return {
         "funds_scanned": funds_scanned,

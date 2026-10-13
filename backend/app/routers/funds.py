@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import Fund, FundMetrics, Price
 from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, MetricsOut, PricePoint
+from app.services.fund_status import STATUS_ACTIVE, is_tradable
 from app.services.metrics_job import STALE_AFTER_DAYS
+from app.text import tr_upper
 
 router = APIRouter(prefix="/funds", tags=["funds"])
 
@@ -28,11 +30,6 @@ SORT_COLUMNS = {
 }
 
 
-def tr_upper(s: str) -> str:
-    """Türkçe büyük harf: 'i' -> 'İ', 'ı' -> 'I' (Python'un upper()'ı bunu yapmaz)."""
-    return s.replace("i", "İ").replace("ı", "I").upper()
-
-
 def stale_cutoff(db: Session) -> date | None:
     """Bu tarihten önce son fiyatı olan fonlar eski verili sayılır."""
     latest = db.scalar(select(func.max(FundMetrics.as_of)))
@@ -50,6 +47,7 @@ def fund_out(f: Fund, cutoff: date | None) -> FundOut:
         code=f.code, name=f.name, category=f.category, risk_level=f.risk_level,
         price=m.last_price if m else None, price_date=m.as_of if m else None,
         is_stale=m is None or (cutoff is not None and m.as_of < cutoff),
+        status=f.status or STATUS_ACTIVE, status_note=f.status_note, status_source=f.status_source, status_url=f.status_url,
         metrics=MetricsOut.model_validate(m) if m else None,
     )
 
@@ -66,6 +64,7 @@ def list_funds(
     page_size: int = Query(25, ge=1, le=200),
     include_inactive: bool = False,
     include_stale: bool = Query(False, description="Verisi güncellenmeyen fonları da getir"),
+    include_closed: bool = Query(False, description="SPK kararıyla işleme kapatılan fonları da getir"),
     db: Session = Depends(get_db),
 ):
     if db.scalar(select(func.count()).select_from(Fund)) == 0:
@@ -78,6 +77,8 @@ def list_funds(
         stmt = stmt.where(Fund.is_active.is_(True))
     if not include_stale:
         stmt = stmt.where(is_fresh(cutoff))
+    if not include_closed:
+        stmt = stmt.where(is_tradable())
     if q:
         # TEFAS fon adları Türkçe büyük harfle; SQLite'ın LIKE'ı Türkçe harfleri
         # büyük/küçük eşleştiremediği için aramayı da Türkçe büyük harfe çeviriyoruz.
@@ -110,7 +111,7 @@ def list_categories(db: Session = Depends(get_db)):
     rows = db.execute(
         select(Fund.category, func.count())
         .join(FundMetrics)
-        .where(Fund.category.is_not(None), Fund.is_active.is_(True), is_fresh(stale_cutoff(db)))
+        .where(Fund.category.is_not(None), Fund.is_active.is_(True), is_fresh(stale_cutoff(db)), is_tradable())
         .group_by(Fund.category)
         .order_by(func.count().desc())
     ).all()
@@ -125,12 +126,14 @@ def get_fund(code: str, db: Session = Depends(get_db)):
     cutoff = stale_cutoff(db)
     out = FundDetail(**fund_out(f, cutoff).model_dump(), fund_type=f.fund_type, is_active=f.is_active)
 
-    # Kategori sırası sadece güncel verili fonlar arasında (eski fonun 1 yıllık getirisi başka döneme ait)
-    if f.category and f.metrics and f.metrics.ret_1y is not None and not out.is_stale:
+    # Kategori sırası sadece güncel verili ve işlem gören fonlar arasında
+    # (eski fonun 1 yıllık getirisi başka döneme ait; işleme kapatılan fona yatırım yapılamaz)
+    tradable = out.status == STATUS_ACTIVE
+    if f.category and f.metrics and f.metrics.ret_1y is not None and not out.is_stale and tradable:
         peers = (
             select(FundMetrics.ret_1y)
             .join(Fund)
-            .where(Fund.category == f.category, FundMetrics.ret_1y.is_not(None), is_fresh(cutoff))
+            .where(Fund.category == f.category, FundMetrics.ret_1y.is_not(None), is_fresh(cutoff), is_tradable())
         ).subquery()
         out.category_size = db.scalar(select(func.count()).select_from(peers))
         out.category_rank_1y = 1 + db.scalar(

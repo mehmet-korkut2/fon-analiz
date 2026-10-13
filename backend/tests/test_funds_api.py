@@ -11,6 +11,7 @@ from sqlalchemy.pool import StaticPool
 from app.database import Base, get_db
 from app.main import app
 from app.models import Fund, FundMetrics, Price
+from app.services.fund_status import apply_status_rules
 from app.services.metrics_job import recompute_all
 
 
@@ -35,12 +36,19 @@ def client():
         ("HSX", "ESKİ HİSSE FONU", "Hisse Senedi", 7, 1.0, 5.0),
         ("PPX", "ESKİ PARA PİYASASI FONU", "Para Piyasası", 1, 1.0, 3.0),
     ]
+    # SPK 2026/60 kapsamındaki fonlar: verisi güncel ve getirisi yüksek ama varsayılan listede,
+    # sıralamada ve risksiz getiride yer almamalı. PPK tasfiye listesinde, BAX sadece işleme kapalı.
+    closed = [
+        ("PPK", "PARDUS PORTFÖY PARA PİYASASI (TL) FON", "Para Piyasası", 1, 1.0, 2.5),
+        ("BAX", "BULLS PORTFÖY ALTIN FONU", "Hisse Senedi", 5, 1.0, 3.0),
+    ]
     with Session() as db:
-        for (code, name, cat, risk, a, b), dates in [(f, idx) for f in funds] + [(f, stale_idx) for f in stale]:
+        for (code, name, cat, risk, a, b), dates in [(f, idx) for f in funds + closed] + [(f, stale_idx) for f in stale]:
             db.add(Fund(code=code, name=name, category=cat, risk_level=risk, fund_type="YAT"))
             db.add_all(Price(fund_code=code, date=d.date(), price=float(p)) for d, p in zip(dates, np.linspace(a, b, len(dates))))
         db.add(Fund(code="KPL", name="KAPALI FON", category="Hisse Senedi", is_active=False))
         db.commit()
+        apply_status_rules(db)
         recompute_all(db)
 
     def override():
@@ -199,3 +207,29 @@ def test_rankings_category_period_and_limit(client):
     ret = body["lists"][0]
     assert ret["metric"] == "ret_3m" and len(ret["items"]) == 1 and ret["items"][0]["category"] == "Hisse Senedi"
     assert client.get("/api/rankings?period=volatility_1y").status_code == 422
+
+
+def test_spk_closed_funds_hidden_by_default(client):
+    codes = [f["code"] for f in client.get("/api/funds?page_size=50").json()["items"]]
+    assert "PPK" not in codes and "BAX" not in codes
+    body = client.get("/api/funds?include_closed=true&page_size=50").json()
+    status = {f["code"]: f["status"] for f in body["items"]}
+    assert status["PPK"] == "islem_kapali_tasfiye" and status["BAX"] == "islem_kapali" and status["HSA"] == "aktif"
+    # kategori sayıları ve sıralamalar da kapalı fonları saymaz
+    cats = {c["name"]: c["count"] for c in client.get("/api/funds/categories").json()}
+    assert cats == {"Hisse Senedi": 2, "Para Piyasası": 2}
+    rankings = client.get("/api/rankings").json()
+    assert rankings["eligible"] == 4
+    assert all(f["code"] not in ("PPK", "BAX") for l in rankings["lists"] for f in l["items"])
+
+
+def test_spk_closed_fund_detail_note_and_rank(client):
+    d = client.get("/api/funds/PPK").json()
+    assert d["status"] == "islem_kapali_tasfiye"
+    assert d["status_note"] == "SPK'nın 17.09.2026 tarihli kararıyla işleme kapatılmış ve tasfiye sürecindedir."
+    assert d["status_source"] == "SPK Bülteni 2026/60" and d["status_url"].startswith("https://spk.gov.tr/")
+    assert d["category_rank_1y"] is None
+    bax = client.get("/api/funds/BAX").json()
+    assert bax["status"] == "islem_kapali" and "tasfiye" not in bax["status_note"]
+    # aktif fonun kategori sırasına kapalı fon (BAX, Hisse Senedi) girmez
+    assert client.get("/api/funds/HSA").json()["category_size"] == 2

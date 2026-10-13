@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import Fund, FundMetrics, Price
+from app.services.data_quality import drop_one_day_glitches
+from app.services.fund_status import is_tradable
 from app.services.metrics import compute_fund_metrics
 
 log = logging.getLogger(__name__)
@@ -45,17 +47,22 @@ def load_prices(db: Session) -> pd.DataFrame:
     return df
 
 
+def fund_series(g: pd.DataFrame) -> pd.Series:
+    """Bir fonun fiyat serisi; tek günlük hatalı fiyatlar (ör. YCK, BFS) aykırı değer olarak çıkarılır."""
+    return drop_one_day_glitches(g.sort_values("date").set_index("date")["price"])
+
+
 def estimate_risk_free_rate(db: Session, prices: pd.DataFrame) -> float | None:
-    """Para piyasası fonlarının 1 yıllık getirilerinin medyanı."""
+    """Para piyasası fonlarının 1 yıllık getirilerinin medyanı (SPK kararıyla işleme kapatılanlar hariç)."""
     if settings.risk_free_rate is not None:
         return settings.risk_free_rate
-    codes = set(db.scalars(select(Fund.code).where(Fund.category == RISK_FREE_CATEGORY)))
+    codes = set(db.scalars(select(Fund.code).where(Fund.category == RISK_FREE_CATEGORY, is_tradable())))
     cutoff = prices["date"].max() - pd.Timedelta(days=STALE_AFTER_DAYS)
     rets = []
     for code, g in prices[prices["code"].isin(codes)].groupby("code"):
         if g["date"].max() < cutoff:
             continue  # eski verili fon
-        m = compute_fund_metrics(g.set_index("date")["price"])
+        m = compute_fund_metrics(fund_series(g))
         if m and m.ret_1y is not None:
             rets.append(m.ret_1y)
     return statistics.median(rets) if rets else None
@@ -72,7 +79,7 @@ def recompute_all(db: Session) -> dict:
 
     rows = []
     for code, g in prices.groupby("code"):
-        m = compute_fund_metrics(g.set_index("date")["price"], risk_free_rate=rf)
+        m = compute_fund_metrics(fund_series(g), risk_free_rate=rf)
         if m:
             rows.append(FundMetrics(fund_code=code, **asdict(m)))
 

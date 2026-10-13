@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Fund, Price
-from app.services import metrics_job
+from app.services import fund_status, metrics_job
 from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError
 
 log = logging.getLogger(__name__)
@@ -54,6 +54,8 @@ def upsert_funds(db: Session, funds: list[FundInfo]) -> None:
         fund.fund_type = f.fund_type
         fund.risk_level = f.risk_level or fund.risk_level
         fund.is_active = f.is_active
+    db.flush()
+    fund_status.apply_status_rules(db, commit=False)  # yeni eklenen fonlar da SPK kararlarına göre işaretlensin
     db.commit()
 
 

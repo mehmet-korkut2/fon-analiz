@@ -37,6 +37,12 @@ class Fund(Base):
     company: Mapped[str | None] = mapped_column(String(255))  # kurucu portföy yönetim şirketi
     risk_level: Mapped[int | None] = mapped_column(Integer)  # 1 (en düşük) - 7 (en yüksek)
     is_active: Mapped[bool] = mapped_column(default=True)
+    # Düzenleyici durum (app/services/fund_status.py): aktif / islem_kapali / islem_kapali_tasfiye.
+    # Boşsa aktif sayılır. TEFAS'ın is_active'inden ayrıdır: SPK'nın kapattığı fon TEFAS'ta görünmeye devam edebilir.
+    status: Mapped[str | None] = mapped_column(String(30), default="aktif")
+    status_note: Mapped[str | None] = mapped_column(String(500))  # kullanıcıya gösterilen açıklama
+    status_source: Mapped[str | None] = mapped_column(String(100))  # ör. "SPK Bülteni 2026/60"
+    status_url: Mapped[str | None] = mapped_column(String(500))
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (CheckConstraint("risk_level BETWEEN 1 AND 7", name="ck_fund_risk_level"),)

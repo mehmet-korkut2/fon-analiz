@@ -27,7 +27,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] Tüm fonları yükle: `python -m scripts.tefas_yukle --limit 0`
 - [ ] Emeklilik (EMK) fonlarını ekle: `python -m scripts.tefas_yukle --tip EMK --limit 0`
 - [x] Veri doğrulama: 5 fonun fiyatı TEFAS sitesiyle birebir eşleşti
-- [ ] Şüpheli fiyat sıçramaları için karar ver (`python -m scripts.veri_kalitesi`: 41 fonda 64 sıçrama; 9 Ekim 2026'da 17 fonda %95–100 düşüş, TEFAS'taki veriyle aynı)
+- [x] Şüpheli fiyat sıçramaları için karar ver: veri değiştirilmedi; tek günlük hatalar metriklerde yok sayılıyor, SPK 2026/60 kapsamındaki fonlar işaretlendi (`python -m scripts.fon_durumu_isaretle`)
 - [ ] Portföy dağılımı kararı: TEFAS artık bu veriyi vermiyor. Başka kaynak (ör. KAP aylık raporları) bul ya da özelliği çıkar
 - [ ] Backend açılışında eksik günleri otomatik tamamla (bilgisayar 21:00'de kapalıysa)
 - [ ] Ara değerlendirme: danışmana ilerlemeyi göster

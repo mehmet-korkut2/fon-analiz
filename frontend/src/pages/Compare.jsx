@@ -8,6 +8,7 @@ import { num, pct, signClass, trDate } from '../format'
 import { useDebounced } from '../hooks'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
 import { logTicks, monthTicks } from '../chart'
+import { STATUS_LABELS, isClosed, isExcludedFromBest } from '../fundStatus'
 
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
@@ -32,9 +33,9 @@ const ROWS = [
 
 const valueOf = (f, key) => (key === 'period_return' || key === 'risk_level' ? f[key] : f.metrics?.[key]) ?? null
 
-// Eski verili fonlar en iyi değer yarışına girmez (metrikleri başka bir döneme ait)
+// Eski verili ve işleme kapatılan fonlar en iyi değer yarışına girmez
 function bestValue(funds, key, better) {
-  const vals = funds.filter((f) => !f.is_stale).map((f) => valueOf(f, key)).filter((v) => v != null)
+  const vals = funds.filter((f) => !isExcludedFromBest(f)).map((f) => valueOf(f, key)).filter((v) => v != null)
   if (!better || vals.length < 2 || vals.every((v) => v === vals[0])) return null
   return better === 'max' ? Math.max(...vals) : Math.min(...vals)
 }
@@ -224,6 +225,7 @@ export default function Compare() {
                     <span className="legend-line" style={{ background: colorOf(f.code) }} />
                     <strong>{f.code}</strong>
                     <span className={`num ${signClass(f.period_return)}`}>{pct(f.period_return)}</span>
+                    {isClosed(f) && <span className="closed-badge small" title={f.status_note ?? undefined}>{STATUS_LABELS[f.status] ?? f.status}</span>}
                     {f.is_stale && <span className="stale-badge small">eski veri</span>}
                   </span>
                 ))}
@@ -299,7 +301,7 @@ export default function Compare() {
                           <th scope="row">{label ?? `${period[2]} getirisi (grafik)`}</th>
                           {funds.map((f) => {
                             const v = valueOf(f, key)
-                            const isBest = best != null && v === best && !f.is_stale
+                            const isBest = best != null && v === best && !isExcludedFromBest(f)
                             const cls = fmt === 'pct' && key !== 'max_drawdown_1y' ? signClass(v) : key === 'max_drawdown_1y' && v < 0 ? 'down' : ''
                             return (
                               <td key={f.code} className={`r num ${cls}${isBest ? ' best' : ''}`}>
@@ -321,7 +323,7 @@ export default function Compare() {
               <p className="hint small">
                 Vurgulu hücre o satırdaki en iyi değerdir: getiri ve Sharpe'ta en yüksek, volatilite ve risk değerinde en düşük,
                 maksimum düşüşte en küçük kayıp. "En iyi" sadece o metriğe göredir; tek başına bir fonu daha iyi yapmaz.
-                {funds.some((f) => f.is_stale) && ' Verisi güncellenmeyen fonlar vurgulamaya dahil edilmez.'}
+                {funds.some(isExcludedFromBest) && ' Verisi güncellenmeyen ve işleme kapatılan fonlar vurgulamaya dahil edilmez.'}
               </p>
             </>
           )}

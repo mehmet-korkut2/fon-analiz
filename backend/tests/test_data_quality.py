@@ -2,7 +2,9 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from app.services.data_quality import find_jumps, summarize
+from app.services.data_quality import drop_one_day_glitches, find_jumps, summarize
+from app.services.metrics import compute_fund_metrics
+from app.services.metrics_job import fund_series
 
 
 def series(code, prices):
@@ -32,3 +34,26 @@ def test_threshold_and_empty():
     assert find_jumps(prices).empty
     assert len(find_jumps(prices, threshold=0.12)) == 1
     assert find_jumps(prices.iloc[0:0]).empty
+
+
+def test_drop_one_day_glitches_keeps_real_moves():
+    s = pd.Series([1.0, 1.01, 10.1, 1.02, 1.03, 0.5, 0.51])  # 2. gün hata, 5. gün kalıcı düşüş
+    cleaned = drop_one_day_glitches(s)
+    assert list(cleaned.index) == [0, 1, 3, 4, 5, 6]
+    # son gün ertesi günü olmadığı için hiçbir zaman çıkarılmaz
+    assert list(drop_one_day_glitches(pd.Series([1.0, 1.0, 5.0])).index) == [0, 1, 2]
+
+
+def test_metrics_ignore_one_day_glitch():
+    idx = pd.bdate_range("2025-01-01", "2026-10-09")
+    clean = pd.Series([1.0 + 0.001 * i for i in range(len(idx))], index=idx)
+    glitchy = clean.copy()
+    glitchy.iloc[-30] *= 3  # YCK/BFS gibi tek günlük sıçrama
+    g = pd.DataFrame({"date": idx, "price": glitchy.values})
+    with_glitch = compute_fund_metrics(glitchy, risk_free_rate=0.0)
+    ignored = compute_fund_metrics(fund_series(g), risk_free_rate=0.0)
+    expected = compute_fund_metrics(clean.drop(clean.index[-30]), risk_free_rate=0.0)
+    assert with_glitch.volatility_1y > 5 * expected.volatility_1y
+    assert ignored.volatility_1y == expected.volatility_1y
+    assert ignored.max_drawdown_1y == expected.max_drawdown_1y == 0
+    assert ignored.data_points == with_glitch.data_points - 1  # veri silinmedi, sadece hesapta yok sayıldı
