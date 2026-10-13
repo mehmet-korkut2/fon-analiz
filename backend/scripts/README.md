@@ -10,3 +10,4 @@ Backend klasöründe, `.venv` aktifken çalıştır.
 | `python -m scripts.metrik_hesapla` | Tüm fonların getiri, volatilite, Sharpe ve maks. düşüş metriklerini yeniden hesaplar |
 | `python -m scripts.veri_kalitesi` | Fiyat serilerinde bir günde %30'dan fazla değişen şüpheli sıçramaları listeler (`--esik`, `--fon`, `--csv`). Veritabanını değiştirmez |
 | `python -m scripts.fon_durumu_isaretle` | SPK Bülteni 2026/60 kapsamındaki fonları işaretler (tasfiye / işleme kapalı). Önce TEFAS'taki `tefasDurum`'a bakar; `--deneme` ile sadece raporlar |
+| `python -m scripts.oneri_analizi > ../docs/oneri_analizi_cikti.md` | Öneri sistemi analizleri (RA modu, ağırlık duyarlılığı, geriye dönük test, örnek kişiler); markdown çıktı. Veritabanını değiştirmez |
