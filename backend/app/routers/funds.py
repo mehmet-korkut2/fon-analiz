@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -121,17 +121,20 @@ def get_fund(code: str, db: Session = Depends(get_db)):
 @router.get("/{code}/prices", response_model=list[PricePoint])
 def get_prices(
     code: str,
-    months: int = Query(12, ge=1, le=60, description="Kaç aylık geçmiş"),
+    months: int = Query(12, ge=1, le=60, description="Kaç aylık geçmiş (start verilmezse)"),
+    start: date | None = Query(None, description="Başlangıç tarihi; verilirse months yok sayılır"),
+    end: date | None = Query(None, description="Bitiş tarihi (dahil)"),
     db: Session = Depends(get_db),
 ):
     code = code.upper()
     last = db.scalar(select(func.max(Price.date)).where(Price.fund_code == code))
     if last is None:
         raise HTTPException(404, f"{code} için fiyat verisi yok.")
-    since = last - timedelta(days=round(months * 30.44))
-    rows = db.execute(
-        select(Price.date, Price.price)
-        .where(Price.fund_code == code, Price.date >= since)
-        .order_by(Price.date)
-    ).all()
+    if start and end and start > end:
+        raise HTTPException(422, "Başlangıç tarihi bitişten sonra olamaz.")
+    since = start or last - timedelta(days=round(months * 30.44))
+    stmt = select(Price.date, Price.price).where(Price.fund_code == code, Price.date >= since)
+    if end:
+        stmt = stmt.where(Price.date <= end)
+    rows = db.execute(stmt.order_by(Price.date)).all()
     return [PricePoint(date=d, price=p) for d, p in rows]

@@ -81,6 +81,14 @@ def test_price_history(client):
     assert pts[-1]["date"] == "2026-10-09"
 
 
+def test_price_history_date_range(client):
+    pts = client.get("/api/funds/HSA/prices?start=2026-01-01").json()
+    assert pts[0]["date"] == "2026-01-01" and pts[-1]["date"] == "2026-10-09"
+    pts = client.get("/api/funds/HSA/prices?start=2026-03-01&end=2026-03-31").json()
+    assert pts[0]["date"] == "2026-03-02" and pts[-1]["date"] == "2026-03-31"
+    assert client.get("/api/funds/HSA/prices?start=2026-03-31&end=2026-03-01").status_code == 422
+
+
 def test_risk_free_rate_is_money_market_median(client):
     # Sharpe = (getiri - rf) / volatilite; rf = PPA ve PPB'nin 1 yıllık getirilerinin medyanı
     items = {f["code"]: f["metrics"] for f in client.get("/api/funds?page_size=10").json()["items"]}

@@ -2,7 +2,7 @@
 
 Bitirme projesinin yapılacaklar listesi. Biten maddeyi `[ ]` yerine `[x]` yaparak işaretle.
 
-Son güncelleme: 11 Ekim 2026
+Son güncelleme: 13 Ekim 2026
 
 ---
 
@@ -23,10 +23,12 @@ Son güncelleme: 11 Ekim 2026
 - [x] Fon bilgileri: kod, ad, kategori, risk değeri, işlem durumu
 - [x] Günlük otomatik güncelleme (hafta içi 21:00)
 - [x] Döviz ve altın: TCMB (resmi) + anlık kaynak, ayrı sayfa
-- [ ] Tüm fonları yükle: `python -m scripts.tefas_yukle --limit 0`
+- [x] Çift tıklamayla çalışan başlatma dosyaları (.bat)
+- [x] Tüm fonları yükle: `python -m scripts.tefas_yukle --limit 0`
 - [ ] Emeklilik (EMK) fonlarını ekle: `python -m scripts.tefas_yukle --tip EMK --limit 0`
-- [ ] Veri doğrulama: 10 fonun fiyatını TEFAS sitesiyle karşılaştır
+- [x] Veri doğrulama: 5 fonun fiyatı TEFAS sitesiyle birebir eşleşti
 - [ ] Portföy dağılımı kararı: TEFAS artık bu veriyi vermiyor. Başka kaynak (ör. KAP aylık raporları) bul ya da özelliği çıkar
+- [ ] Backend açılışında eksik günleri otomatik tamamla (bilgisayar 21:00'de kapalıysa)
 - [ ] Ara değerlendirme: danışmana ilerlemeyi göster
 
 ## 3. Backend ve metrikler
@@ -101,7 +103,9 @@ Son güncelleme: 11 Ekim 2026
 
 ## Sık kullanılan komutlar
 
-Backend (her yeni terminalde önce ilk iki satır):
+En kolayı: proje klasöründeki .bat dosyalarına çift tıkla (1_backend_baslat, 2_frontend_baslat, 3_tum_fonlari_yukle, 4_backend_terminal).
+
+Elle çalıştırmak istersen, backend (her yeni terminalde önce ilk iki satır):
 
 ```powershell
 cd C:\Users\MONSTER\Desktop\fon-analiz\backend

@@ -64,3 +64,40 @@ th.r .th-btn { flex-direction: row-reverse; }
 .pager { display: flex; gap: 12px; align-items: center; justify-content: center; }
 .pager button { font: inherit; padding: 8px 14px; border: 1px solid #dde4e1; border-radius: 8px; background: #fff; cursor: pointer; }
 .pager button:disabled { opacity: .4; cursor: default; }
+
+/* Fon detay */
+.detail { display: flex; flex-direction: column; gap: 16px; }
+.detail h1 { margin: 0; font-size: 24px; line-height: 1.25; }
+.detail h2 { margin: 8px 0 0; font-size: 18px; }
+.back { align-self: flex-start; font-size: 14px; }
+.detail-head { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-end; }
+.detail-title { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 420px; }
+.detail-code { font-size: 14px; font-weight: 700; color: #0f7a5c; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; font-size: 13px; color: #17211d; background: #fff; border: 1px solid #dde4e1; border-radius: 999px; }
+a.tag:hover { border-color: #0f7a5c; }
+.detail-price { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+.detail-price-value { font-size: 28px; font-weight: 600; }
+.notice { margin: 0; padding: 10px 14px; border-radius: 8px; background: #fdf3e2; color: #6b4a0e; }
+.panel { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; }
+.panel-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end; }
+.panel-head > div:first-child { display: flex; flex-direction: column; gap: 2px; }
+.panel-value { font-size: 22px; font-weight: 600; }
+.chart { min-height: 320px; }
+.chart-empty { display: grid; place-items: center; height: 320px; margin: 0; }
+.chart-tip { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; background: #fff; border: 1px solid #dde4e1; border-radius: 8px; box-shadow: 0 2px 8px rgba(23, 33, 29, .08); }
+.price-table summary { cursor: pointer; font-size: 14px; color: #5d6b65; }
+.price-table .table-wrap { max-height: 320px; overflow-y: auto; margin-top: 8px; }
+.price-table table { min-width: 0; font-size: 14px; }
+.metric .card-value { font-size: 22px; }
+.metric-desc { font-size: 13px; line-height: 1.4; color: #5d6b65; }
+
+@media (max-width: 600px) {
+  .main { padding: 16px; }
+  .detail-price { align-items: flex-start; }
+  .seg { width: 100%; }
+  .seg button { flex: 1; padding: 8px 0; }
+}
+/* Büyük rakamlarda monospace font virgülü açıyor; tabular-nums yeterli */
+.card-value.num, .panel-value.num, .detail-price-value.num { font-family: inherit; }
+.header { flex-wrap: wrap; row-gap: 8px; }

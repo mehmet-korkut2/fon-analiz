@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { getCategories, getFunds } from '../api/client'
+import RiskBar from '../components/RiskBar'
+import { num, pct } from '../format'
 
 const PAGE_SIZE = 25
 
@@ -14,12 +17,6 @@ const COLUMNS = [
   ['max_drawdown_1y', 'Maks. düşüş', 'Son 1 yılda bir zirveden sonraki en büyük kayıp'],
 ]
 
-const pct = (v) => {
-  if (v == null) return '–'
-  if (Math.abs(v) < 0.0005) return '0,0%' // -0,0% gibi görünmesin
-  return `${v > 0 ? '+' : ''}${(v * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`
-}
-const num = (v, d = 2) => (v == null ? '–' : v.toLocaleString('tr-TR', { maximumFractionDigits: d, minimumFractionDigits: d }))
 const isReturn = (k) => k.startsWith('ret_')
 
 function useDebounced(value, ms = 300) {
@@ -31,21 +28,11 @@ function useDebounced(value, ms = 300) {
   return v
 }
 
-function RiskBar({ level }) {
-  if (!level) return <span className="muted">–</span>
-  const color = level >= 6 ? '#b4570e' : level >= 4 ? '#c98a1a' : '#0f7a5c'
-  return (
-    <span className="risk" title={`Risk değeri ${level}/7`}>
-      <span className="risk-track"><span style={{ width: `${(level / 7) * 100}%`, background: color }} /></span>
-      <span className="num">{level}</span>
-    </span>
-  )
-}
-
 export default function Funds() {
+  const [searchParams] = useSearchParams()
   const [categories, setCategories] = useState([])
   const [query, setQuery] = useState('')
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState(searchParams.get('kategori') || '')
   const [risk, setRisk] = useState('')
   const [sort, setSort] = useState({ key: 'ret_1y', order: 'desc' })
   const [page, setPage] = useState(1)
@@ -138,9 +125,9 @@ export default function Funds() {
             {data && data.items.length === 0 && <tr><td colSpan={4 + COLUMNS.length} className="muted">Aramana uyan fon yok.</td></tr>}
             {data?.items.map((f) => (
               <tr key={f.code}>
-                <td className="num"><strong>{f.code}</strong></td>
+                <td className="num">{data.sample ? <strong>{f.code}</strong> : <Link to={`/fonlar/${f.code}`}><strong>{f.code}</strong></Link>}</td>
                 <td className="fund-name">
-                  <span>{f.name}</span>
+                  {data.sample ? <span>{f.name}</span> : <Link to={`/fonlar/${f.code}`}>{f.name}</Link>}
                   {f.category && <span className="muted small">{f.category}</span>}
                 </td>
                 <td><RiskBar level={f.risk_level} /></td>
