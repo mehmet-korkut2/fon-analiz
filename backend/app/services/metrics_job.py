@@ -28,9 +28,9 @@ RISK_FREE_CATEGORY = "Para Piyasası"
 STALE_AFTER_DAYS = 7
 
 
-# Metrikler en fazla 1 yıl geriye bakar (yılbaşı getirisi de dahil). Biraz pay bırakıp
-# sadece son ~13 ayı okuyoruz; 5 yıllık verinin tamamını okumaktan çok daha hızlı.
-LOOKBACK_DAYS = 400
+# Metrikler en fazla 3 yıl geriye bakar (3 yıllık getiri). Biraz pay bırakıp sadece
+# son ~3 yıl 1 ayı okuyoruz; 5 yıllık verinin tamamını okumaktan daha hızlı.
+LOOKBACK_DAYS = 3 * 365 + 35
 
 
 def load_prices(db: Session) -> pd.DataFrame:

@@ -175,3 +175,27 @@ def test_compare_validation(client):
     assert client.get("/api/compare?funds=HSA,HSB,PPA,PPB,HSX").status_code == 422
     r = client.get("/api/compare?funds=HSA,YOK")
     assert r.status_code == 404 and "YOK" in r.json()["detail"]
+
+
+def test_rankings_exclude_stale_funds(client):
+    body = client.get("/api/rankings").json()
+    assert body["eligible"] == 4 and body["as_of"] == "2026-10-09"
+    lists = {l["key"]: l for l in body["lists"]}
+    ret = lists["return"]
+    assert ret["metric"] == "ret_1y" and [f["code"] for f in ret["items"]] == ["HSA", "PPB", "PPA", "HSB"]
+    assert [f["rank"] for f in ret["items"]] == [1, 2, 3, 4]
+    assert ret["items"][0]["value"] == ret["items"][0]["metrics"]["ret_1y"]
+    # eski verili HSX ve PPX hiçbir listede yok
+    assert all(f["code"] not in ("HSX", "PPX") for l in body["lists"] for f in l["items"])
+    vols = [f["value"] for f in lists["volatility"]["items"]]
+    assert vols == sorted(vols)
+    sharpes = [f["value"] for f in lists["sharpe"]["items"]]
+    assert sharpes == sorted(sharpes, reverse=True)
+
+
+def test_rankings_category_period_and_limit(client):
+    body = client.get("/api/rankings?category=Hisse Senedi&period=ret_3m&limit=1").json()
+    assert body["eligible"] == 2 and body["category"] == "Hisse Senedi"
+    ret = body["lists"][0]
+    assert ret["metric"] == "ret_3m" and len(ret["items"]) == 1 and ret["items"][0]["category"] == "Hisse Senedi"
+    assert client.get("/api/rankings?period=volatility_1y").status_code == 422

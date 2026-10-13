@@ -4,13 +4,13 @@
 """
 import logging
 
-from app.database import Base, SessionLocal, engine
+from app.database import SessionLocal, init_db
 from app.services.metrics_job import recompute_all
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 if __name__ == "__main__":
-    Base.metadata.create_all(bind=engine)
+    init_db()
     with SessionLocal() as db:
         r = recompute_all(db)
     rf = f"%{r['risk_free_rate'] * 100:.1f}" if r["risk_free_rate"] is not None else "hesaplanamadı"

@@ -13,6 +13,7 @@ const COLUMNS = [
   ['ret_3m', '3 ay', 'Son 3 aydaki getiri'],
   ['ret_1y', '1 yıl', 'Son 1 yıldaki getiri'],
   ['ret_ytd', 'YBB', 'Yılbaşından bu yana getiri'],
+  ['ret_3y', '3 yıl', 'Son 3 yıldaki toplam getiri (yıllık değil)'],
   ['volatility_1y', 'Volatilite', 'Fiyatın ne kadar dalgalandığı (yıllık). Yüksekse risk yüksektir.'],
   ['sharpe_1y', 'Sharpe', 'Alınan risk başına getiri. Risksiz getiri olarak para piyasası fonlarının medyanı kullanılır.'],
   ['max_drawdown_1y', 'Maks. düşüş', 'Son 1 yılda bir zirveden sonraki en büyük kayıp'],

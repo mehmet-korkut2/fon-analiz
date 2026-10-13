@@ -104,6 +104,7 @@ class FundMetrics(Base):
     ret_6m: Mapped[float | None] = mapped_column(Float)
     ret_1y: Mapped[float | None] = mapped_column(Float, index=True)
     ret_ytd: Mapped[float | None] = mapped_column(Float)  # yılbaşından bu yana
+    ret_3y: Mapped[float | None] = mapped_column(Float)  # toplam (yıllıklandırılmamış)
     volatility_1y: Mapped[float | None] = mapped_column(Float)  # yıllıklandırılmış
     sharpe_1y: Mapped[float | None] = mapped_column(Float, index=True)
     max_drawdown_1y: Mapped[float | None] = mapped_column(Float)  # negatif sayı, ör. -0.12

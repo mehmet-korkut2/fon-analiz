@@ -14,6 +14,7 @@ class MetricsOut(BaseModel):
     ret_6m: float | None = None
     ret_1y: float | None = None
     ret_ytd: float | None = None
+    ret_3y: float | None = None
     volatility_1y: float | None = None
     sharpe_1y: float | None = None
     max_drawdown_1y: float | None = None
@@ -68,3 +69,22 @@ class CompareOut(BaseModel):
     funds: list[CompareFund]
     base_date: date
     points: list[ComparePoint]
+
+
+class RankedFund(FundOut):
+    rank: int
+    value: float  # sıralamada kullanılan metriğin değeri
+
+
+class RankingList(BaseModel):
+    key: str  # return | volatility | sharpe
+    metric: str  # ör. ret_1y
+    order: str  # desc: büyük olan iyi, asc: küçük olan iyi
+    items: list[RankedFund]
+
+
+class RankingsOut(BaseModel):
+    as_of: date | None
+    category: str | None
+    eligible: int  # sıralamaya giren (güncel verili, açık) fon sayısı
+    lists: list[RankingList]

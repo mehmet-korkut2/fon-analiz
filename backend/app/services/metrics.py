@@ -6,6 +6,7 @@ Tanımlar (rapor için):
 - Dönem getirisi   : son fiyat / dönem başındaki fiyat - 1
                      (dönem başı = o tarihteki veya ondan önceki son fiyat)
 - Yılbaşından beri : son fiyat / önceki yılın son fiyatı - 1
+- 3 yıllık getiri  : toplam getiri, yıllıklandırılmaz (3 yılda %100 = 2 kat)
 - Volatilite       : günlük getirilerin standart sapması × √252 (yıllıklandırılmış)
 - Sharpe oranı     : (1 yıllık getiri - risksiz getiri) / 1 yıllık volatilite
 - Maksimum düşüş   : 1 yıl içinde bir zirveden sonraki en büyük yüzde kayıp
@@ -61,6 +62,7 @@ class FundMetricValues:
     ret_6m: float | None
     ret_1y: float | None
     ret_ytd: float | None
+    ret_3y: float | None
     volatility_1y: float | None
     sharpe_1y: float | None
     max_drawdown_1y: float | None
@@ -130,6 +132,7 @@ def compute_fund_metrics(prices: pd.Series, risk_free_rate: float | None = None)
         ret_6m=_clean(period_return(prices, 6)),
         ret_1y=_clean(ret_1y),
         ret_ytd=_clean(ytd_return(prices)),
+        ret_3y=_clean(period_return(prices, 36)),
         volatility_1y=vol,
         sharpe_1y=sharpe,
         max_drawdown_1y=mdd,

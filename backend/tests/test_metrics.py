@@ -31,11 +31,20 @@ def test_period_returns_on_linear_series():
     assert m.daily_change > 0
 
 
+def test_three_year_return():
+    s = business_series("2023-01-02", "2026-10-09", 100, 400)
+    m = compute_fund_metrics(s)
+    three_years_ago = s.loc[:"2023-10-09"].iloc[-1]
+    assert m.ret_3y == pytest.approx(400 / three_years_ago - 1)
+    # 2 yıllık fonun 3 yıllık getirisi yok
+    assert compute_fund_metrics(business_series("2024-10-01", "2026-10-09", 100, 200)).ret_3y is None
+
+
 def test_young_fund_has_no_long_period_returns():
     s = business_series("2026-08-01", "2026-10-09", 1, 1.1)  # 2 aylık fon
     m = compute_fund_metrics(s, risk_free_rate=0.3)
     assert m.ret_1m is not None
-    assert m.ret_3m is None and m.ret_1y is None and m.ret_ytd is None
+    assert m.ret_3m is None and m.ret_1y is None and m.ret_ytd is None and m.ret_3y is None
     assert m.sharpe_1y is None
 
 

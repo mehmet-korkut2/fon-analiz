@@ -3,6 +3,7 @@ import { Routes, Route, NavLink, Link } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Funds from './pages/Funds.jsx'
 import Doviz from './pages/Doviz.jsx'
+import Rankings from './pages/Rankings.jsx'
 
 // Grafik kütüphanesi (Recharts) büyük; sadece grafikli sayfalar açılınca indirilsin
 const FundDetail = lazy(() => import('./pages/FundDetail.jsx'))
@@ -16,6 +17,7 @@ export default function App() {
         <nav>
           <NavLink to="/" end>Ana Sayfa</NavLink>
           <NavLink to="/fonlar">Fonlar</NavLink>
+          <NavLink to="/siralamalar">Sıralamalar</NavLink>
           <NavLink to="/karsilastir">Karşılaştır</NavLink>
           <NavLink to="/doviz">Döviz ve Altın</NavLink>
         </nav>
@@ -26,6 +28,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/fonlar" element={<Funds />} />
             <Route path="/fonlar/:code" element={<FundDetail />} />
+            <Route path="/siralamalar" element={<Rankings />} />
             <Route path="/karsilastir" element={<Compare />} />
             <Route path="/doviz" element={<Doviz />} />
           </Routes>

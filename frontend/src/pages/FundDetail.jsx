@@ -21,6 +21,7 @@ const RETURNS = [
   ['ret_6m', '6 ay', 'Son 6 aydaki getiri'],
   ['ret_ytd', 'Yılbaşından bu yana', 'Geçen yılın son fiyatına göre getiri'],
   ['ret_1y', '1 yıl', 'Son 1 yıldaki getiri'],
+  ['ret_3y', '3 yıl', 'Son 3 yıldaki toplam getiri (yıllık değil)'],
 ]
 
 const fmtPrice = (v) => num(v, v < 100 ? 4 : 2)

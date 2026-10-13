@@ -7,7 +7,7 @@ import RiskBar from '../components/RiskBar'
 import { num, pct, signClass, trDate } from '../format'
 import { useDebounced } from '../hooks'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
-import { monthTicks } from '../chart'
+import { logTicks, monthTicks } from '../chart'
 
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
@@ -23,6 +23,7 @@ const ROWS = [
   ['ret_6m', '6 ay getiri', 'max', 'pct'],
   ['ret_ytd', 'Yılbaşından bu yana', 'max', 'pct'],
   ['ret_1y', '1 yıl getiri', 'max', 'pct'],
+  ['ret_3y', '3 yıl getiri', 'max', 'pct'],
   ['volatility_1y', 'Volatilite (1 yıl)', 'min', 'vol'],
   ['sharpe_1y', 'Sharpe oranı (1 yıl)', 'max', 'num'],
   ['max_drawdown_1y', 'Maksimum düşüş (1 yıl)', 'max', 'pct'],
@@ -120,6 +121,7 @@ export default function Compare() {
     return toSlots([...new Set(fromUrl.length ? fromUrl : getCompareList())].slice(0, MAX_COMPARE))
   })
   const period = findPeriod(params.get('donem'))
+  const logScale = params.get('olcek') === 'log'
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -162,12 +164,13 @@ export default function Compare() {
     return i === -1 ? s : s.map((c, j) => (j === i ? code : c))
   })
   const remove = (code) => setSlots((s) => s.map((c) => (c === code ? null : c)))
-  const setPeriod = (k) => setParams((p) => {
+  const setParam = (name, value) => setParams((p) => {
     const next = new URLSearchParams(p)
-    if (k === DEFAULT_PERIOD) next.delete('donem')
-    else next.set('donem', k)
+    if (value == null) next.delete(name)
+    else next.set(name, value)
     return next
   }, { replace: true })
+  const setPeriod = (k) => setParam('donem', k === DEFAULT_PERIOD ? null : k)
 
   // Veri gelene kadar eski veriyle çizilir; sadece hâlâ seçili fonlar gösterilir
   const funds = data ? data.funds.filter((f) => selected.includes(f.code)) : []
@@ -175,6 +178,15 @@ export default function Compare() {
   const months = period[3]?.months ?? new Date().getMonth() + 1
   const daily = months <= 1
   const ticks = useMemo(() => (daily ? undefined : monthTicks(chartData, months)), [chartData, months, daily])
+  // Log ölçekte eksen aralığı ve tikleri elle; Recharts'ın log tikleri düzensiz
+  const logAxis = useMemo(() => {
+    if (!logScale || !data) return null
+    const vals = data.points.flatMap((p) => Object.values(p.values)).filter((v) => v > 0)
+    if (!vals.length) return null
+    const lo = Math.min(...vals) * 0.95
+    const hi = Math.max(...vals) * 1.05
+    return { domain: [lo, hi], ticks: logTicks(lo, hi) }
+  }, [logScale, data])
 
   return (
     <section className="compare">
@@ -233,7 +245,8 @@ export default function Compare() {
                       tickFormatter={(d) => trDate(d, daily ? { day: 'numeric', month: 'short' } : { month: 'short', year: '2-digit' })}
                     />
                     <YAxis
-                      domain={['auto', 'auto']} width={48} orientation="right" tickLine={false} axisLine={false}
+                      scale={logAxis ? 'log' : 'auto'} domain={logAxis ? logAxis.domain : ['auto', 'auto']} ticks={logAxis?.ticks}
+                      allowDataOverflow={!!logAxis} width={56} orientation="right" tickLine={false} axisLine={false}
                       tick={{ fontSize: 12, fill: INK_MUTED }} tickFormatter={(v) => num(v, 0)}
                     />
                     <ReferenceLine y={100} stroke={INK_MUTED} strokeDasharray="3 3" />
@@ -250,7 +263,13 @@ export default function Compare() {
                 <p className="muted chart-empty">{loading ? 'Yükleniyor...' : 'Grafik için veri yok.'}</p>
               )}
             </div>
-            {data && <p className="muted small chart-note">Baz gün: {trDate(data.base_date)} = 100</p>}
+            <div className="chart-foot">
+              {data && <p className="muted small chart-note">Baz gün: {trDate(data.base_date)} = 100</p>}
+              <label className="check small" title="Eşit dikey mesafe eşit yüzde değişim demektir; getirisi çok farklı fonlarda diğer çizgiler düzleşmez">
+                <input type="checkbox" checked={logScale} onChange={(e) => setParam('olcek', e.target.checked ? 'log' : null)} />
+                Logaritmik ölçek
+              </label>
+            </div>
           </div>
 
           {funds.length > 0 && (

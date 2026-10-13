@@ -157,3 +157,29 @@ a.tag:hover { border-color: #0f7a5c; }
   .th-name { display: none; }
   .compare-table th, .compare-table td { padding: 8px; }
 }
+.chart-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; }
+
+/* Sıralamalar */
+.rankings { display: flex; flex-direction: column; gap: 16px; }
+.rankings h1 { margin: 0; }
+.rankings > div > .hint { margin: 4px 0 0; }
+.rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
+.rank-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; }
+.rank-card h2 { margin: 0; font-size: 16px; }
+.rank-card .metric-desc { margin: 0 0 4px; }
+.rank-list { margin: 0; padding: 0; list-style: none; }
+.rank-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid #eef2f0; }
+.rank-no { color: #5d6b65; font-size: 13px; text-align: right; }
+.rank-fund { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: #17211d; }
+.rank-fund:hover strong { color: #0f7a5c; }
+.rank-fund > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.rank-name { color: #3b4742; font-size: 13px; }
+.rank-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.rank-value { font-size: 14px; font-weight: 600; white-space: nowrap; }
+/* Menü dar ekranda bağlantı bağlantı alt satıra geçsin, kelime kelime bölünmesin */
+.header nav { flex-wrap: wrap; gap: 4px 16px; }
+.header nav a { white-space: nowrap; }
+@media (max-width: 600px) {
+  .header { padding: 12px 16px; gap: 6px 24px; }
+  .header nav { gap: 4px 14px; font-size: 15px; }
+}

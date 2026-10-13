@@ -51,3 +51,22 @@ def test_invalid_profile_rejected(db):
     db.add(user)
     with pytest.raises(IntegrityError):
         db.commit()
+
+
+def test_init_db_adds_new_nullable_columns():
+    # Eski şemayla oluşturulmuş bir veritabanı: fund_metrics tablosunda ret_3y sütunu yok
+    from sqlalchemy import create_engine, inspect, text
+
+    from app.database import init_db
+
+    engine = create_engine("sqlite://")
+    with engine.begin() as conn:
+        conn.execute(text("CREATE TABLE fund_metrics (fund_code VARCHAR(10) PRIMARY KEY, as_of DATE NOT NULL, "
+                          "last_price FLOAT NOT NULL, data_points INTEGER NOT NULL)"))
+        conn.execute(text("INSERT INTO fund_metrics VALUES ('TTE', '2026-10-09', 1.5, 250)"))
+    init_db(engine)
+    cols = {c["name"] for c in inspect(engine).get_columns("fund_metrics")}
+    assert {"ret_3y", "ret_1y", "sharpe_1y"} <= cols
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT fund_code, ret_3y FROM fund_metrics")).one() == ("TTE", None)
+    init_db(engine)  # ikinci kez çalışınca hata vermez

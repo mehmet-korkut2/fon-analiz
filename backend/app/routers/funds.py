@@ -19,11 +19,11 @@ SAMPLE_FUNDS = [
     FundOut(code="CCC", name="Örnek Altın Fonu", category="Kıymetli Madenler", risk_level=5, price=0.8765),
 ]
 
-SortField = Literal["code", "name", "ret_1m", "ret_3m", "ret_6m", "ret_1y", "ret_ytd", "volatility_1y", "sharpe_1y", "max_drawdown_1y", "risk_level"]
+SortField = Literal["code", "name", "ret_1m", "ret_3m", "ret_6m", "ret_1y", "ret_ytd", "ret_3y", "volatility_1y", "sharpe_1y", "max_drawdown_1y", "risk_level"]
 SORT_COLUMNS = {
     "code": Fund.code, "name": Fund.name, "risk_level": Fund.risk_level,
     "ret_1m": FundMetrics.ret_1m, "ret_3m": FundMetrics.ret_3m, "ret_6m": FundMetrics.ret_6m,
-    "ret_1y": FundMetrics.ret_1y, "ret_ytd": FundMetrics.ret_ytd, "volatility_1y": FundMetrics.volatility_1y,
+    "ret_1y": FundMetrics.ret_1y, "ret_ytd": FundMetrics.ret_ytd, "ret_3y": FundMetrics.ret_3y, "volatility_1y": FundMetrics.volatility_1y,
     "sharpe_1y": FundMetrics.sharpe_1y, "max_drawdown_1y": FundMetrics.max_drawdown_1y,
 }
 

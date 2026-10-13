@@ -12,3 +12,18 @@ export function monthTicks(points, months) {
     .filter((p) => (Number(p.date.slice(5, 7)) - 1) % step === 0)
     .map((p) => p.date)
 }
+
+// Logaritmik eksen tikleri: 1-2-5 dizisi (…, 50, 100, 200, 500, 1000, …); çok fazlaysa sadece 10'un katları.
+// 100 (baz) aralıktaysa her zaman dahil.
+export function logTicks(min, max) {
+  if (!(min > 0) || !(max > min)) return undefined
+  const ticks = []
+  for (let e = Math.floor(Math.log10(min)); e <= Math.ceil(Math.log10(max)); e++) {
+    for (const m of [1, 2, 5]) {
+      const v = m * 10 ** e
+      if (v >= min && v <= max) ticks.push(v)
+    }
+  }
+  const out = ticks.length > 8 ? ticks.filter((v) => Number.isInteger(Math.log10(v)) || v === 100) : ticks
+  return out.length >= 2 ? out : [min, ...out, max]
+}
