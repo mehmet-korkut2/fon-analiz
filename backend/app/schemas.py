@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MetricsOut(BaseModel):
@@ -147,3 +147,82 @@ class ProfileOut(BaseModel):
     description: str
     qualified: bool
     caps: list[CapOut]
+
+
+class RecommendationItem(FundOut):
+    rank: int
+    score: float  # 0-1, bileşen yüzdeliklerinin ağırlıklı toplamı
+    components: dict[str, float]  # getiri, riske_gore, dusus, tutarlilik (0-1, 1 = en iyi)
+    low_volatility: bool  # volatilite %5 altı: riske göre getiri fazla getiriyle ölçüldü
+    reasons: list[str]
+    caution: str | None = None
+
+
+class StatsOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    total_return: float = Field(serialization_alias="return")
+    volatility: float | None
+    max_drawdown: float
+
+
+class PerfPoint(BaseModel):
+    date: date
+    portfolio: float
+    benchmark: float
+
+
+class PerformanceOut(BaseModel):
+    start: date
+    end: date
+    portfolio: StatsOut
+    benchmark: StatsOut
+    benchmark_label: str
+    benchmark_funds: int
+    series: list[PerfPoint]
+
+
+class PortfolioFund(BaseModel):
+    code: str
+    name: str
+    category: str | None
+    weight: float
+    period_return: float | None = None  # performans dönemindeki getirisi
+
+
+class RecommendationsOut(BaseModel):
+    profile: str
+    label: str
+    qualified: bool
+    as_of: date | None
+    risk_free_rate: float | None
+    pool_size: int
+    risk_range: tuple[int, int]
+    max_volatility: float | None
+    weights: dict[str, float]
+    ra_mode: str
+    category_limit: int
+    items: list[RecommendationItem]
+    portfolio: list[PortfolioFund]
+    performance: PerformanceOut | None
+
+
+class BacktestFund(BaseModel):
+    code: str
+    name: str
+    category: str | None
+    risk_level: int | None
+    score: float
+    ret_1y_before: float  # seçim günündeki 1 yıllık getirisi (seçimde kullanılan)
+    reasons: list[str]
+
+
+class BacktestOut(BaseModel):
+    profile: str
+    qualified: bool
+    selection_date: date | None
+    risk_free_rate: float | None  # seçim günündeki
+    pool_size: int
+    recommendations: list[BacktestFund]
+    portfolio: list[PortfolioFund]
+    performance: PerformanceOut | None
