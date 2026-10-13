@@ -27,35 +27,35 @@ Son güncelleme: 13 Ekim 2026
 - [x] Tüm fonları yükle: `python -m scripts.tefas_yukle --limit 0`
 - [ ] Emeklilik (EMK) fonlarını ekle: `python -m scripts.tefas_yukle --tip EMK --limit 0`
 - [x] Veri doğrulama: 5 fonun fiyatı TEFAS sitesiyle birebir eşleşti
-- [x] Şüpheli fiyat sıçramaları için karar ver: veri değiştirilmedi; tek günlük hatalar metriklerde yok sayılıyor, SPK 2026/60 kapsamındaki fonlar işaretlendi (`python -m scripts.fon_durumu_isaretle`)
+- [x] Şüpheli fiyat sıçramaları için karar ver: SPK kararı ile işaretlendi (SPK Bülteni 2026/60, `python -m scripts.fon_durumu_isaretle`)
 - [ ] Portföy dağılımı kararı: TEFAS artık bu veriyi vermiyor. Başka kaynak (ör. KAP aylık raporları) bul ya da özelliği çıkar
-- [ ] Backend açılışında eksik günleri otomatik tamamla (bilgisayar 21:00'de kapalıysa)
+- [x] Backend açılışında eksik günleri otomatik tamamla (bilgisayar 21:00'de kapalıysa)
 - [ ] Ara değerlendirme: danışmana ilerlemeyi göster
 
 ## 3. Backend ve metrikler
 
 - [x] Getiri hesapları: 1 ay, 3 ay, 6 ay, 1 yıl, 3 yıl, yılbaşından bu yana
-- [ ] Volatilite, Sharpe oranı, maksimum düşüş (fonksiyonlar `app/services/metrics.py` içinde hazır, API'ye bağlanacak)
+- [x] Volatilite, Sharpe oranı, maksimum düşüş
 - [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta
-- [ ] `fund_metrics` tablosu: metrikleri her gece önceden hesapla
-- [ ] Endpoint: fon detay (`GET /api/funds/{kod}`)
-- [ ] Endpoint: fiyat geçmişi (tarih aralığı parametresiyle)
+- [x] `fund_metrics` tablosu: metrikleri her gece önceden hesapla
+- [x] Endpoint: fon detay (`GET /api/funds/{kod}`)
+- [x] Endpoint: fiyat geçmişi (tarih aralığı parametresiyle)
 - [x] Endpoint: karşılaştırma (`GET /api/compare?funds=A,B,C`)
 - [x] Endpoint: sıralamalar (en iyi getiri, en düşük risk, en iyi Sharpe)
-- [ ] Fon listesine sayfalama, arama, kategori ve risk filtresi
-- [ ] Metrik testleri (bilinen örnek verilerle)
+- [x] Fon listesine sayfalama, arama, kategori ve risk filtresi
+- [x] Metrik testleri (bilinen örnek verilerle)
 - [ ] Alembic migration'larına geçiş
 
 ## 4. Frontend
 
-- [ ] Fon listesi: tablo, filtreler, arama, sıralama, sayfalama
-- [ ] Fon detay sayfası: bilgiler, metrik kartları, metrik açıklamaları
-- [ ] Fiyat grafiği (Recharts) ve dönem seçici
+- [x] Fon listesi: tablo, filtreler, arama, sıralama, sayfalama
+- [x] Fon detay sayfası: bilgiler, metrik kartları, metrik açıklamaları
+- [x] Fiyat grafiği (Recharts) ve dönem seçici
 - [x] Karşılaştırma sayfası: fon seçimi, 100'den başlayan grafik, metrik tablosu
 - [x] Sıralamalar sayfası
 - [ ] Taslaklardaki tasarımı uygula (renkler, yazı tipleri, yerleşim)
-- [ ] Yükleme, hata ve boş durum ekranları
-- [ ] Mobil uyum
+- [x] Yükleme, hata ve boş durum ekranları
+- [x] Mobil uyum
 - [ ] Favori fonlar
 - [ ] Kullanıcı girişi (opsiyonel, zaman kalırsa)
 

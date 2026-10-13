@@ -41,6 +41,7 @@ npm run lint
 ## Kurallar ve bilinenler
 
 - Değişiklikten sonra `pytest` ve `npm run lint` / `npm run build` çalıştır.
+- `YOL_HARITASI.md`'yi düzenlerken her zaman önce dosyanın son hâlini oku ve sadece ilgili maddeleri değiştir (dosya editörde de düzenleniyor; tamamını yeniden yazmak başka değişiklikleri siler).
 - TEFAS artık portföy dağılımı, yatırımcı sayısı ve fon büyüklüğü yayınlamıyor; bu sütunlar boş kalabilir.
 - TEFAS fiyat geçmişi en fazla 60 ay; `periyod` sadece 1, 3, 6, 12, 36, 60 olabilir.
 - Fon adları Türkçe büyük harf (İ, Ş, Ğ); aramada `tr_upper()` kullanılıyor.
