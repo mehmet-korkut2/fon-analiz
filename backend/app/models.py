@@ -1,7 +1,8 @@
 """Veritabanı tabloları.
 
 funds ─┬─< prices                 (fonun günlük fiyat geçmişi)
-       └─< portfolio_allocations  (fonun varlık dağılımı)
+       ├─< portfolio_allocations  (fonun varlık dağılımı)
+       └── fund_metrics           (önceden hesaplanmış metrikler, 1:1)
 users ───< risk_profiles          (kullanıcının risk anketi sonuçları)
 """
 from datetime import date, datetime
@@ -44,6 +45,9 @@ class Fund(Base):
     allocations: Mapped[list["PortfolioAllocation"]] = relationship(
         back_populates="fund", cascade="all, delete-orphan"
     )
+    metrics: Mapped["FundMetrics | None"] = relationship(
+        back_populates="fund", cascade="all, delete-orphan", uselist=False
+    )
 
 
 class Price(Base):
@@ -79,6 +83,34 @@ class PortfolioAllocation(Base):
     ratio: Mapped[float] = mapped_column(Float)  # yüzde, 0-100
 
     fund: Mapped[Fund] = relationship(back_populates="allocations")
+
+
+class FundMetrics(Base):
+    """Her fon için önceden hesaplanmış performans metrikleri.
+
+    Fiyatlar her güncellendiğinde yeniden hesaplanır; API bu tabloyu okur,
+    böylece liste sayfası 1000+ fonun metriklerini anında gösterebilir.
+    Getiriler ve oranlar ondalık kesirdir (0.25 = %25).
+    """
+
+    __tablename__ = "fund_metrics"
+
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"), primary_key=True)
+    as_of: Mapped[date] = mapped_column(Date)  # hesaplamada kullanılan son fiyat tarihi
+    last_price: Mapped[float] = mapped_column(Float)
+    daily_change: Mapped[float | None] = mapped_column(Float)  # bir önceki işlem gününe göre
+    ret_1m: Mapped[float | None] = mapped_column(Float, index=True)
+    ret_3m: Mapped[float | None] = mapped_column(Float)
+    ret_6m: Mapped[float | None] = mapped_column(Float)
+    ret_1y: Mapped[float | None] = mapped_column(Float, index=True)
+    ret_ytd: Mapped[float | None] = mapped_column(Float)  # yılbaşından bu yana
+    volatility_1y: Mapped[float | None] = mapped_column(Float)  # yıllıklandırılmış
+    sharpe_1y: Mapped[float | None] = mapped_column(Float, index=True)
+    max_drawdown_1y: Mapped[float | None] = mapped_column(Float)  # negatif sayı, ör. -0.12
+    data_points: Mapped[int] = mapped_column(Integer)  # son 1 yıldaki fiyat sayısı
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    fund: Mapped[Fund] = relationship(back_populates="metrics")
 
 
 class User(Base):

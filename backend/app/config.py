@@ -10,6 +10,11 @@ class Settings(BaseSettings):
     update_hour: int = 21
     update_minute: int = 0
     timezone: str = "Europe/Istanbul"
+    catch_up_on_startup: bool = True  # açılışta veri eskiyse güncellemeyi hemen başlat
+
+    # Sharpe oranı için yıllık risksiz getiri (ör. 0.40 = %40).
+    # Boş bırakılırsa para piyasası fonlarının 1 yıllık medyan getirisi kullanılır.
+    risk_free_rate: float | None = None
 
     model_config = SettingsConfigDict(env_file=".env")
 

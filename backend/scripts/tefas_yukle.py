@@ -1,8 +1,8 @@
 """TEFAS'tan fon listesini ve fiyat geçmişini çekip veritabanına yazar.
 
 Örnekler (backend klasöründe, .venv aktifken):
-    python -m scripts.tefas_yukle --limit 10            # ilk 10 fon, son 12 ay
-    python -m scripts.tefas_yukle --limit 0             # tüm fonlar (~10 dk)
+    python -m scripts.tefas_yukle --limit 10            # ilk 10 fon, son 5 yıl
+    python -m scripts.tefas_yukle --limit 0             # tüm fonlar, son 5 yıl (~15 dk)
     python -m scripts.tefas_yukle --fon TTE --ay 60     # tek fon, son 5 yıl
     python -m scripts.tefas_yukle --tip EMK --limit 20  # emeklilik fonları
 
@@ -22,7 +22,7 @@ def main():
     ap.add_argument("--tip", default="YAT", choices=["YAT", "EMK", "BYF"])
     ap.add_argument("--fon", help="Sadece bu fon kodu (ör. TTE)")
     ap.add_argument("--limit", type=int, default=10, help="En fazla kaç fon (0 = hepsi)")
-    ap.add_argument("--ay", type=int, default=12, help="Kaç aylık geçmiş (1, 3, 6, 12, 36, 60)")
+    ap.add_argument("--ay", type=int, default=60, help="Kaç aylık geçmiş (1, 3, 6, 12, 36, 60). Varsayılan 5 yıl.")
     args = ap.parse_args()
 
     Base.metadata.create_all(bind=engine)

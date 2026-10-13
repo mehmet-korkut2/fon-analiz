@@ -74,9 +74,20 @@ def test_update_failed_when_tefas_down(db_session):
 
 def test_scheduler_registers_weekday_job(monkeypatch):
     monkeypatch.setattr(scheduler.settings, "scheduler_enabled", True)
+    monkeypatch.setattr(scheduler.settings, "catch_up_on_startup", False)
     try:
         scheduler.start()
         nxt = scheduler.next_run()
         assert nxt is not None and "T21:00" in nxt
     finally:
         scheduler.stop()
+
+
+def test_expected_latest_date():
+    from datetime import datetime
+    # Pazartesi 10:00 -> bir önceki iş günü cuma
+    assert scheduler.expected_latest_date(datetime(2026, 10, 12, 10, 0)).isoformat() == "2026-10-09"
+    # Pazartesi 22:00 -> aynı gün
+    assert scheduler.expected_latest_date(datetime(2026, 10, 12, 22, 0)).isoformat() == "2026-10-12"
+    # Pazar -> cuma
+    assert scheduler.expected_latest_date(datetime(2026, 10, 11, 23, 0)).isoformat() == "2026-10-09"

@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Fund, Price
+from app.services import metrics_job
 from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError
 
 log = logging.getLogger(__name__)
@@ -30,6 +31,7 @@ class UpdateResult:
     funds_total: int = 0
     funds_updated: int = 0
     new_prices: int = 0
+    metrics: dict | None = None
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self):
@@ -72,6 +74,7 @@ def run_update(
     limit: int = 0,
     only_code: str | None = None,
     client: TefasClient | None = None,
+    recompute_metrics: bool = True,
 ) -> UpdateResult:
     """Fon listesini yeniler ve her fonun son `months` aylık fiyatlarından eksik olanları ekler."""
     global last_result
@@ -115,6 +118,13 @@ def run_update(
                 result.new_prices += added
                 if i % 50 == 0 or i == len(funds):
                     log.info("[%s/%s] işlendi, şimdiye kadar %s yeni fiyat.", i, len(funds), result.new_prices)
+
+            if recompute_metrics:
+                try:
+                    result.metrics = metrics_job.recompute_all(db)
+                except Exception as e:  # metrik hatası fiyat güncellemesini boşa çıkarmasın
+                    log.exception("Metrik hesaplama başarısız")
+                    result.errors.append(f"metrikler: {e}")
 
         result.status = "partial" if result.errors else "ok"
         return result
