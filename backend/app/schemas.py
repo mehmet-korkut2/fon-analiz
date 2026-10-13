@@ -93,3 +93,57 @@ class RankingsOut(BaseModel):
     category: str | None
     eligible: int  # sıralamaya giren (güncel verili, açık) fon sayısı
     lists: list[RankingList]
+
+
+class SurveyOption(BaseModel):
+    value: int  # puan (0-4); cevap olarak bu gönderilir
+    text: str
+
+
+class SurveyQuestion(BaseModel):
+    id: str
+    topic: str
+    text: str
+    weight: int
+    scored: bool
+    options: list[SurveyOption]
+
+
+class ProfileRuleOut(BaseModel):
+    profile: str
+    label: str
+    min_score: int
+    risk_range: tuple[int, int]
+    max_volatility: float | None
+    description: str
+
+
+class SurveyOut(BaseModel):
+    questions: list[SurveyQuestion]
+    qualified_question: SurveyQuestion
+    max_raw: int
+    profiles: list[ProfileRuleOut]
+
+
+class ProfileIn(BaseModel):
+    answers: dict[str, int]  # soru id -> seçilen cevabın puanı (0-4)
+    qualified: bool = False
+
+
+class CapOut(BaseModel):
+    rule: str
+    max_profile: str
+    message: str
+
+
+class ProfileOut(BaseModel):
+    raw: int
+    score: int
+    profile: str
+    label: str
+    score_profile: str
+    risk_range: tuple[int, int]
+    max_volatility: float | None
+    description: str
+    qualified: bool
+    caps: list[CapOut]
