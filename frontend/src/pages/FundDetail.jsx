@@ -4,21 +4,13 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { getFund, getFundPrices } from '../api/client'
 import RiskBar from '../components/RiskBar'
 import { num, pct, signClass, trDate } from '../format'
+import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
+import { axisDigits, monthTicks } from '../chart'
+import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
 
 const LINE = '#0f7a5c'
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
-
-// [anahtar, kısa ad, uzun ad, API parametresi]; YBB'nin başlangıcı fonun son fiyat tarihinden hesaplanır
-const PERIODS = [
-  ['1A', '1A', '1 ay', { months: 1 }],
-  ['3A', '3A', '3 ay', { months: 3 }],
-  ['6A', '6A', '6 ay', { months: 6 }],
-  ['YBB', 'YBB', 'Yılbaşından bu yana', null],
-  ['1Y', '1Y', '1 yıl', { months: 12 }],
-  ['3Y', '3Y', '3 yıl', { months: 36 }],
-  ['5Y', '5Y', '5 yıl', { months: 60 }],
-]
 
 const FUND_TYPES = { YAT: 'Yatırım fonu', EMK: 'Emeklilik fonu', BYF: 'Borsa yatırım fonu' }
 
@@ -32,18 +24,6 @@ const RETURNS = [
 ]
 
 const fmtPrice = (v) => num(v, v < 100 ? 4 : 2)
-
-// Eksen etiketleri: ondalık sayısı tek tek değere değil, grafiğin aralığına göre (hepsi aynı uzunlukta olsun)
-const axisDigits = (span) => (span < 0.1 ? 3 : span < 1 ? 2 : span < 10 ? 1 : 0)
-
-// Ay başı tikleri: her ayın ilk işlem günü; uzun dönemlerde 3 ya da 6 ayda bir
-function monthTicks(points, months) {
-  const step = months <= 12 ? 1 : months <= 36 ? 3 : 6
-  return points
-    .filter((p, i) => i > 0 && p.date.slice(5, 7) !== points[i - 1].date.slice(5, 7))
-    .filter((p) => (Number(p.date.slice(5, 7)) - 1) % step === 0)
-    .map((p) => p.date)
-}
 
 function MetricCard({ label, value, cls = '', children }) {
   return (
@@ -103,12 +83,15 @@ function PriceChart({ points, months }) {
 export default function FundDetail() {
   const { code } = useParams()
   const [params, setParams] = useSearchParams()
-  const periodKey = PERIODS.some(([k]) => k === params.get('donem')) ? params.get('donem') : '1Y'
+  const period = findPeriod(params.get('donem'))
+  const periodKey = period[0]
   const [fund, setFund] = useState(null)
   const [fundError, setFundError] = useState(null)
   const [prices, setPrices] = useState(null)
   const [pricesError, setPricesError] = useState(null)
   const [loadingPrices, setLoadingPrices] = useState(true)
+  const [compareList, setCompareState] = useState(getCompareList)
+  const updateCompare = (codes) => { setCompareList(codes); setCompareState(codes) }
 
   useEffect(() => {
     let ignore = false
@@ -134,7 +117,7 @@ export default function FundDetail() {
     if (!fund) return
     let ignore = false
     // YBB'de baz geçen yılın son fiyatı (ret_ytd ile aynı); onu da almak için birkaç gün geriden istenir
-    const apiParams = periodKey === 'YBB' ? { start: `${ytdYear - 1}-12-15` } : PERIODS.find(([k]) => k === periodKey)[3]
+    const apiParams = periodKey === 'YBB' ? { start: `${ytdYear - 1}-12-15` } : period[3]
     setLoadingPrices(true)
     getFundPrices(fund.code, apiParams)
       .then((d) => {
@@ -153,7 +136,7 @@ export default function FundDetail() {
       })
       .finally(() => { if (!ignore) setLoadingPrices(false) })
     return () => { ignore = true }
-  }, [fund, periodKey, ytdYear])
+  }, [fund, period, periodKey, ytdYear])
 
   const periodReturn = useMemo(() => {
     if (!prices || prices.length < 2) return null
@@ -171,8 +154,10 @@ export default function FundDetail() {
   if (!fund) return <section className="detail"><p className="muted">Yükleniyor...</p></section>
 
   const m = fund.metrics
-  const period = PERIODS.find(([k]) => k === periodKey)
-  const months = period[3]?.months ?? new Date(fund.price_date || Date.now()).getMonth() + 1
+  const inCompare = compareList.includes(fund.code)
+  const compareFull = compareList.length >= MAX_COMPARE
+  const compareUrl = `/karsilastir?fonlar=${compareList.join(',')}`
+  const months = period[3]?.months ??new Date(fund.price_date || Date.now()).getMonth() + 1
 
   return (
     <section className="detail">
@@ -200,6 +185,38 @@ export default function FundDetail() {
         </div>
       </div>
 
+      <div className="detail-actions">
+        {inCompare ? (
+          <>
+            <Link className="btn btn-primary" to={compareUrl}>Karşılaştır ({compareList.length}) →</Link>
+            <button type="button" className="btn" onClick={() => updateCompare(compareList.filter((c) => c !== fund.code))}>
+              Karşılaştırmadan çıkar
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button" className="btn" disabled={compareFull}
+              onClick={() => updateCompare([...compareList, fund.code])}
+            >
+              + Karşılaştırmaya ekle
+            </button>
+            {compareList.length > 0 && (
+              <span className="muted small">
+                {compareFull ? `Listede zaten ${MAX_COMPARE} fon var. ` : ''}
+                <Link to={compareUrl}>Karşılaştırma listesi ({compareList.length})</Link>
+              </span>
+            )}
+          </>
+        )}
+      </div>
+
+      {fund.is_stale && fund.price_date && (
+        <p className="notice">
+          Bu fonun verisi {trDate(fund.price_date)} tarihinden beri güncellenmiyor. Metrikler o tarihe aittir;
+          fon kategori sıralamasına dahil edilmez.
+        </p>
+      )}
       {!fund.is_active && <p className="notice">Bu fon TEFAS'ta artık işlem görmüyor. Gösterilen veriler son işlem gününe aittir.</p>}
 
       <div className="panel">
@@ -212,7 +229,7 @@ export default function FundDetail() {
             {PERIODS.map(([k, short, long]) => (
               <button
                 key={k} type="button" title={long} aria-pressed={k === periodKey}
-                onClick={() => setParams(k === '1Y' ? {} : { donem: k }, { replace: true })}
+                onClick={() => setParams(k === DEFAULT_PERIOD ? {} : { donem: k }, { replace: true })}
               >
                 {short}
               </button>
@@ -269,7 +286,9 @@ export default function FundDetail() {
             >
               {fund.category_rank_1y
                 ? `1 yıllık getiriye göre ${fund.category} kategorisindeki ${fund.category_size} fon arasında.`
-                : 'Bu fon için kategori sıralaması hesaplanamadı.'}
+                : fund.is_stale
+                  ? 'Verisi güncellenmediği için sıralamaya alınmadı.'
+                  : 'Bu fon için kategori sıralaması hesaplanamadı.'}
             </MetricCard>
           </div>
         </>

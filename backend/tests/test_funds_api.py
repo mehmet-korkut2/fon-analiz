@@ -28,10 +28,17 @@ def client():
         ("PPA", "ÖRNEK PARA PİYASASI FONU", "Para Piyasası", 1, 1.0, 1.6),
         ("PPB", "İKİNCİ PARA PİYASASI", "Para Piyasası", 1, 1.0, 1.7),
     ]
+    # Fiyatı 1 Eylül'de kesilen "eski verili" fonlar: getirileri yüksek ama listede,
+    # sıralamada ve risksiz getiride yer almamalı
+    stale_idx = idx[idx <= "2026-09-01"]
+    stale = [
+        ("HSX", "ESKİ HİSSE FONU", "Hisse Senedi", 7, 1.0, 5.0),
+        ("PPX", "ESKİ PARA PİYASASI FONU", "Para Piyasası", 1, 1.0, 3.0),
+    ]
     with Session() as db:
-        for code, name, cat, risk, a, b in funds:
+        for (code, name, cat, risk, a, b), dates in [(f, idx) for f in funds] + [(f, stale_idx) for f in stale]:
             db.add(Fund(code=code, name=name, category=cat, risk_level=risk, fund_type="YAT"))
-            db.add_all(Price(fund_code=code, date=d.date(), price=float(p)) for d, p in zip(idx, np.linspace(a, b, len(idx))))
+            db.add_all(Price(fund_code=code, date=d.date(), price=float(p)) for d, p in zip(dates, np.linspace(a, b, len(dates))))
         db.add(Fund(code="KPL", name="KAPALI FON", category="Hisse Senedi", is_active=False))
         db.commit()
         recompute_all(db)
@@ -89,8 +96,29 @@ def test_price_history_date_range(client):
     assert client.get("/api/funds/HSA/prices?start=2026-03-31&end=2026-03-01").status_code == 422
 
 
+def test_stale_funds_hidden_by_default(client):
+    assert "HSX" not in [f["code"] for f in client.get("/api/funds?page_size=50").json()["items"]]
+    body = client.get("/api/funds?include_stale=true&page_size=50").json()
+    assert body["total"] == 6
+    stale = {f["code"]: f["is_stale"] for f in body["items"]}
+    assert stale == {"HSA": False, "HSB": False, "PPA": False, "PPB": False, "HSX": True, "PPX": True}
+    # eski fon 3 aylık getiride en yüksek olsa da varsayılan sıralamada başa geçmez
+    assert client.get("/api/funds?include_stale=true&sort=ret_3m").json()["items"][0]["code"] == "HSX"
+    assert client.get("/api/funds?sort=ret_3m").json()["items"][0]["code"] == "HSA"
+
+
+def test_stale_fund_detail_and_category_rank(client):
+    d = client.get("/api/funds/HSX").json()
+    assert d["is_stale"] is True and d["price_date"] == "2026-09-01"
+    assert d["category_rank_1y"] is None  # eski fon sıralanmaz
+    # güncel fonların sırası eski fonu saymaz: HSA, HSX'ten düşük getirili olsa da 1. / 2
+    hsa = client.get("/api/funds/HSA").json()
+    assert hsa["is_stale"] is False and hsa["category_rank_1y"] == 1 and hsa["category_size"] == 2
+
+
 def test_risk_free_rate_is_money_market_median(client):
     # Sharpe = (getiri - rf) / volatilite; rf = PPA ve PPB'nin 1 yıllık getirilerinin medyanı
+    # (eski verili PPX dahil olsaydı medyan değişirdi)
     items = {f["code"]: f["metrics"] for f in client.get("/api/funds?page_size=10").json()["items"]}
     rf = (items["PPA"]["ret_1y"] + items["PPB"]["ret_1y"]) / 2
     hsa = items["HSA"]
@@ -112,3 +140,38 @@ def test_sample_data_when_empty():
         assert body["sample"] is True and len(body["items"]) == 3
     finally:
         app.dependency_overrides.clear()
+
+
+def test_compare_normalized_series(client):
+    body = client.get("/api/compare?funds=hsa,PPA&months=12").json()
+    assert [f["code"] for f in body["funds"]] == ["HSA", "PPA"]
+    first, last = body["points"][0], body["points"][-1]
+    assert first["date"] == body["base_date"] and first["values"] == {"HSA": 100.0, "PPA": 100.0}
+    assert last["date"] == "2026-10-09"
+    # dönem getirisi, metriklerdeki 1 yıllık getiriyle aynı tanım
+    for f in body["funds"]:
+        assert f["period_return"] == pytest.approx(f["metrics"]["ret_1y"], abs=1e-4)
+        assert f["period_return"] == pytest.approx(last["values"][f["code"]] / 100 - 1, abs=1e-4)
+
+
+def test_compare_ytd_base_is_previous_year_end(client):
+    body = client.get("/api/compare?funds=HSA,HSB&start=2025-12-31").json()
+    assert body["base_date"] == "2025-12-31"
+    hsa = next(f for f in body["funds"] if f["code"] == "HSA")
+    assert hsa["period_return"] == pytest.approx(hsa["metrics"]["ret_ytd"], abs=1e-4)
+
+
+def test_compare_stale_fund_line_stops(client):
+    body = client.get("/api/compare?funds=HSA,HSX&months=3").json()
+    hsx = next(f for f in body["funds"] if f["code"] == "HSX")
+    assert hsx["is_stale"] is True
+    after = [p for p in body["points"] if p["date"] > "2026-09-01"]
+    assert after and all(p["values"]["HSX"] is None and p["values"]["HSA"] is not None for p in after)
+
+
+def test_compare_validation(client):
+    assert client.get("/api/compare?funds=HSA").status_code == 422
+    assert client.get("/api/compare?funds=HSA,hsa").status_code == 422  # aynı fon iki kez
+    assert client.get("/api/compare?funds=HSA,HSB,PPA,PPB,HSX").status_code == 422
+    r = client.get("/api/compare?funds=HSA,YOK")
+    assert r.status_code == 404 and "YOK" in r.json()["detail"]

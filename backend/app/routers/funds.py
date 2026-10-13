@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.models import Fund, FundMetrics, Price
 from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, MetricsOut, PricePoint
+from app.services.metrics_job import STALE_AFTER_DAYS
 
 router = APIRouter(prefix="/funds", tags=["funds"])
 
@@ -32,11 +33,23 @@ def tr_upper(s: str) -> str:
     return s.replace("i", "İ").replace("ı", "I").upper()
 
 
-def _to_out(f: Fund) -> FundOut:
+def stale_cutoff(db: Session) -> date | None:
+    """Bu tarihten önce son fiyatı olan fonlar eski verili sayılır."""
+    latest = db.scalar(select(func.max(FundMetrics.as_of)))
+    return latest - timedelta(days=STALE_AFTER_DAYS) if latest else None
+
+
+def is_fresh(cutoff: date | None):
+    """Güncel verili fonlar için SQL koşulu (metriği olmayan fonun da verisi yok sayılır)."""
+    return FundMetrics.as_of >= cutoff if cutoff else FundMetrics.as_of.is_not(None)
+
+
+def fund_out(f: Fund, cutoff: date | None) -> FundOut:
     m = f.metrics
     return FundOut(
         code=f.code, name=f.name, category=f.category, risk_level=f.risk_level,
         price=m.last_price if m else None, price_date=m.as_of if m else None,
+        is_stale=m is None or (cutoff is not None and m.as_of < cutoff),
         metrics=MetricsOut.model_validate(m) if m else None,
     )
 
@@ -52,15 +65,19 @@ def list_funds(
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=200),
     include_inactive: bool = False,
+    include_stale: bool = Query(False, description="Verisi güncellenmeyen fonları da getir"),
     db: Session = Depends(get_db),
 ):
     if db.scalar(select(func.count()).select_from(Fund)) == 0:
         items = [f for f in SAMPLE_FUNDS if not category or f.category == category]
         return FundPage(items=items, total=len(items), page=1, page_size=page_size, sample=True)
 
+    cutoff = stale_cutoff(db)
     stmt = select(Fund).outerjoin(FundMetrics)
     if not include_inactive:
         stmt = stmt.where(Fund.is_active.is_(True))
+    if not include_stale:
+        stmt = stmt.where(is_fresh(cutoff))
     if q:
         # TEFAS fon adları Türkçe büyük harfle; SQLite'ın LIKE'ı Türkçe harfleri
         # büyük/küçük eşleştiremediği için aramayı da Türkçe büyük harfe çeviriyoruz.
@@ -83,15 +100,17 @@ def list_funds(
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
-    items = [_to_out(f) for f in db.scalars(stmt).unique()]
+    items = [fund_out(f, cutoff) for f in db.scalars(stmt).unique()]
     return FundPage(items=items, total=total, page=page, page_size=page_size)
 
 
 @router.get("/categories", response_model=list[CategoryOut])
 def list_categories(db: Session = Depends(get_db)):
+    # Sayılar, listenin varsayılan görünümüyle (eski verili fonlar gizli) tutarlı olsun
     rows = db.execute(
         select(Fund.category, func.count())
-        .where(Fund.category.is_not(None), Fund.is_active.is_(True))
+        .join(FundMetrics)
+        .where(Fund.category.is_not(None), Fund.is_active.is_(True), is_fresh(stale_cutoff(db)))
         .group_by(Fund.category)
         .order_by(func.count().desc())
     ).all()
@@ -103,13 +122,15 @@ def get_fund(code: str, db: Session = Depends(get_db)):
     f = db.get(Fund, code.upper(), options=[joinedload(Fund.metrics)])
     if f is None:
         raise HTTPException(404, f"{code.upper()} kodlu fon bulunamadı.")
-    out = FundDetail(**_to_out(f).model_dump(), fund_type=f.fund_type, is_active=f.is_active)
+    cutoff = stale_cutoff(db)
+    out = FundDetail(**fund_out(f, cutoff).model_dump(), fund_type=f.fund_type, is_active=f.is_active)
 
-    if f.category and f.metrics and f.metrics.ret_1y is not None:
+    # Kategori sırası sadece güncel verili fonlar arasında (eski fonun 1 yıllık getirisi başka döneme ait)
+    if f.category and f.metrics and f.metrics.ret_1y is not None and not out.is_stale:
         peers = (
             select(FundMetrics.ret_1y)
             .join(Fund)
-            .where(Fund.category == f.category, FundMetrics.ret_1y.is_not(None))
+            .where(Fund.category == f.category, FundMetrics.ret_1y.is_not(None), is_fresh(cutoff))
         ).subquery()
         out.category_size = db.scalar(select(func.count()).select_from(peers))
         out.category_rank_1y = 1 + db.scalar(

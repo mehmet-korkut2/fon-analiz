@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { getCategories, getFunds } from '../api/client'
 import RiskBar from '../components/RiskBar'
 import { num, pct } from '../format'
+import { useDebounced } from '../hooks'
 
 const PAGE_SIZE = 25
 
@@ -19,21 +20,13 @@ const COLUMNS = [
 
 const isReturn = (k) => k.startsWith('ret_')
 
-function useDebounced(value, ms = 300) {
-  const [v, setV] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setV(value), ms)
-    return () => clearTimeout(t)
-  }, [value, ms])
-  return v
-}
-
 export default function Funds() {
   const [searchParams] = useSearchParams()
   const [categories, setCategories] = useState([])
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState(searchParams.get('kategori') || '')
   const [risk, setRisk] = useState('')
+  const [showStale, setShowStale] = useState(false)
   const [sort, setSort] = useState({ key: 'ret_1y', order: 'desc' })
   const [page, setPage] = useState(1)
   const [data, setData] = useState(null)
@@ -42,20 +35,20 @@ export default function Funds() {
   const q = useDebounced(query)
 
   useEffect(() => { getCategories().then(setCategories).catch(() => {}) }, [])
-  useEffect(() => { setPage(1) }, [q, category, risk, sort])
+  useEffect(() => { setPage(1) }, [q, category, risk, sort, showStale])
 
   useEffect(() => {
     const [riskMin, riskMax] = risk ? risk.split('-').map(Number) : [undefined, undefined]
     setLoading(true)
     getFunds({
       q: q || undefined, category: category || undefined,
-      risk_min: riskMin, risk_max: riskMax,
+      risk_min: riskMin, risk_max: riskMax, include_stale: showStale || undefined,
       sort: sort.key, order: sort.order, page, page_size: PAGE_SIZE,
     })
       .then((d) => { setData(d); setError(null) })
       .catch(() => setError('Fonlar yüklenemedi. Backend çalışıyor mu?'))
       .finally(() => setLoading(false))
-  }, [q, category, risk, sort, page])
+  }, [q, category, risk, sort, page, showStale])
 
   const toggleSort = (key) =>
     setSort((s) => (s.key === key ? { key, order: s.order === 'desc' ? 'asc' : 'desc' } : { key, order: key === 'code' ? 'asc' : 'desc' }))
@@ -106,6 +99,10 @@ export default function Funds() {
             <option value="6-7">Yüksek risk (6–7)</option>
           </select>
         </label>
+        <label className="check" title="Son fiyatı en güncel tarihten 7 günden eski olan fonlar">
+          <input type="checkbox" checked={showStale} onChange={(e) => setShowStale(e.target.checked)} />
+          Eski verili fonları da göster
+        </label>
       </div>
 
       {error && <p className="error">{error}</p>}
@@ -129,6 +126,9 @@ export default function Funds() {
                 <td className="fund-name">
                   {data.sample ? <span>{f.name}</span> : <Link to={`/fonlar/${f.code}`}>{f.name}</Link>}
                   {f.category && <span className="muted small">{f.category}</span>}
+                  {f.is_stale && f.price_date && (
+                    <span className="stale-badge small">Veri {new Date(f.price_date).toLocaleDateString('tr-TR')} tarihinden beri güncellenmiyor</span>
+                  )}
                 </td>
                 <td><RiskBar level={f.risk_level} /></td>
                 <td className="r num">{f.price != null ? num(f.price, 4) : '–'}</td>

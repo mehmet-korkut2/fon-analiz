@@ -4,8 +4,9 @@ import Home from './pages/Home.jsx'
 import Funds from './pages/Funds.jsx'
 import Doviz from './pages/Doviz.jsx'
 
-// Grafik kütüphanesi (Recharts) büyük; sadece detay sayfası açılınca indirilsin
+// Grafik kütüphanesi (Recharts) büyük; sadece grafikli sayfalar açılınca indirilsin
 const FundDetail = lazy(() => import('./pages/FundDetail.jsx'))
+const Compare = lazy(() => import('./pages/Compare.jsx'))
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <nav>
           <NavLink to="/" end>Ana Sayfa</NavLink>
           <NavLink to="/fonlar">Fonlar</NavLink>
+          <NavLink to="/karsilastir">Karşılaştır</NavLink>
           <NavLink to="/doviz">Döviz ve Altın</NavLink>
         </nav>
       </header>
@@ -24,6 +26,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/fonlar" element={<Funds />} />
             <Route path="/fonlar/:code" element={<FundDetail />} />
+            <Route path="/karsilastir" element={<Compare />} />
             <Route path="/doviz" element={<Doviz />} />
           </Routes>
         </Suspense>

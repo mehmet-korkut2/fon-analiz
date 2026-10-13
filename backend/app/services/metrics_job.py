@@ -22,6 +22,11 @@ log = logging.getLogger(__name__)
 # faizin iyi bir yaklaşığıdır ve veriden otomatik hesaplanır.
 RISK_FREE_CATEGORY = "Para Piyasası"
 
+# Son fiyatı, tüm fonlardaki en son fiyat tarihinden bu kadar günden eski olan fon
+# "eski verili" sayılır (TEFAS'ta fiyatı güncellenmeyen ya da tasfiye edilen fonlar).
+# Bu fonlar listede varsayılan olarak gizlenir, sıralama ve risksiz getiriye girmez.
+STALE_AFTER_DAYS = 7
+
 
 # Metrikler en fazla 1 yıl geriye bakar (yılbaşı getirisi de dahil). Biraz pay bırakıp
 # sadece son ~13 ayı okuyoruz; 5 yıllık verinin tamamını okumaktan çok daha hızlı.
@@ -45,8 +50,11 @@ def estimate_risk_free_rate(db: Session, prices: pd.DataFrame) -> float | None:
     if settings.risk_free_rate is not None:
         return settings.risk_free_rate
     codes = set(db.scalars(select(Fund.code).where(Fund.category == RISK_FREE_CATEGORY)))
+    cutoff = prices["date"].max() - pd.Timedelta(days=STALE_AFTER_DAYS)
     rets = []
     for code, g in prices[prices["code"].isin(codes)].groupby("code"):
+        if g["date"].max() < cutoff:
+            continue  # eski verili fon
         m = compute_fund_metrics(g.set_index("date")["price"])
         if m and m.ret_1y is not None:
             rets.append(m.ret_1y)

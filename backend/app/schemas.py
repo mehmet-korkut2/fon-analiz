@@ -26,6 +26,7 @@ class FundOut(BaseModel):
     risk_level: int | None = None
     price: float | None = None
     price_date: date | None = None
+    is_stale: bool = False  # son fiyatı genel son tarihten STALE_AFTER_DAYS günden eski
     metrics: MetricsOut | None = None
 
 
@@ -52,3 +53,18 @@ class FundDetail(FundOut):
     is_active: bool = True
     category_rank_1y: int | None = None  # kategorisinde 1 yıllık getiriye göre sırası
     category_size: int | None = None
+
+
+class CompareFund(FundOut):
+    period_return: float | None = None  # grafikteki dönemin getirisi
+
+
+class ComparePoint(BaseModel):
+    date: date
+    values: dict[str, float | None]  # fon kodu -> base_date'te 100 olacak şekilde ölçeklenmiş fiyat
+
+
+class CompareOut(BaseModel):
+    funds: list[CompareFund]
+    base_date: date
+    points: list[ComparePoint]

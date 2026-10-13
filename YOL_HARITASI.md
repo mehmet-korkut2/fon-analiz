@@ -39,7 +39,7 @@ Son güncelleme: 13 Ekim 2026
 - [ ] `fund_metrics` tablosu: metrikleri her gece önceden hesapla
 - [ ] Endpoint: fon detay (`GET /api/funds/{kod}`)
 - [ ] Endpoint: fiyat geçmişi (tarih aralığı parametresiyle)
-- [ ] Endpoint: karşılaştırma (`GET /api/compare?funds=A,B,C`)
+- [x] Endpoint: karşılaştırma (`GET /api/compare?funds=A,B,C`)
 - [ ] Endpoint: sıralamalar (en iyi getiri, en düşük risk, en iyi Sharpe)
 - [ ] Fon listesine sayfalama, arama, kategori ve risk filtresi
 - [ ] Metrik testleri (bilinen örnek verilerle)
@@ -50,7 +50,7 @@ Son güncelleme: 13 Ekim 2026
 - [ ] Fon listesi: tablo, filtreler, arama, sıralama, sayfalama
 - [ ] Fon detay sayfası: bilgiler, metrik kartları, metrik açıklamaları
 - [ ] Fiyat grafiği (Recharts) ve dönem seçici
-- [ ] Karşılaştırma sayfası: fon seçimi, 100'den başlayan grafik, metrik tablosu
+- [x] Karşılaştırma sayfası: fon seçimi, 100'den başlayan grafik, metrik tablosu
 - [ ] Sıralamalar sayfası
 - [ ] Taslaklardaki tasarımı uygula (renkler, yazı tipleri, yerleşim)
 - [ ] Yükleme, hata ve boş durum ekranları
@@ -137,3 +137,4 @@ git push
 - TEFAS 2026'da API'sini değiştirdi. Fiyat geçmişi en fazla 5 yıl geriye gidiyor. Portföy dağılımı, yatırımcı sayısı ve fon büyüklüğü artık yayınlanmıyor.
 - Anlık döviz verisi gayriresmi bir kaynaktan (Truncgil Finans) geliyor. Resmi kur için TCMB sekmesi var.
 - Günlük güncelleme sadece backend açıkken çalışıyor.
+- Son fiyatı en güncel tarihten 7 günden eski olan fonlar (ör. TLY) "eski verili" sayılır: listede varsayılan olarak gizlenir, kategori sırasına ve risksiz getiri hesabına girmez.

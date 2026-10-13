@@ -8,6 +8,8 @@ export const getCategories = () => api.get('/funds/categories').then((r) => r.da
 export const getFund = (code) => api.get(`/funds/${code}`).then((r) => r.data)
 // params: { months } ya da { start, end } (YYYY-MM-DD)
 export const getFundPrices = (code, params = { months: 12 }) => api.get(`/funds/${code}/prices`, { params }).then((r) => r.data)
+// codes: ['TTE', 'AFA'], params: { months } ya da { start }
+export const getCompare = (codes, params) => api.get('/compare', { params: { funds: codes.join(','), ...params } }).then((r) => r.data)
 export const getFx = (source = 'canli') => api.get('/fx', { params: { source } }).then((r) => r.data)
 export const getStatus = () => api.get('/status').then((r) => r.data)
 

@@ -101,3 +101,59 @@ a.tag:hover { border-color: #0f7a5c; }
 /* Büyük rakamlarda monospace font virgülü açıyor; tabular-nums yeterli */
 .card-value.num, .panel-value.num, .detail-price-value.num { font-family: inherit; }
 .header { flex-wrap: wrap; row-gap: 8px; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #17211d; cursor: pointer; }
+.stale-badge { align-self: flex-start; padding: 1px 8px; border-radius: 999px; background: #fdf3e2; color: #6b4a0e; }
+
+/* Detay: karşılaştırma butonları */
+.detail-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.btn { font: inherit; font-size: 14px; display: inline-flex; align-items: center; padding: 7px 14px; border: 1px solid #c9d3cf; border-radius: 8px; background: #fff; color: #17211d; cursor: pointer; }
+.btn:hover:not(:disabled) { border-color: #0f7a5c; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-primary { background: #0f7a5c; border-color: #0f7a5c; color: #fff; }
+
+/* Karşılaştır */
+.compare { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.compare h1 { margin: 0; }
+.compare h2 { margin: 8px 0 0; font-size: 18px; }
+.compare .hint { margin: 4px 0 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.chip { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 6px 6px 6px 12px; background: #fff; border: 1px solid #dde4e1; border-radius: 999px; font-size: 14px; }
+.chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; color: #5d6b65; font-size: 13px; }
+.chip-x { font: inherit; font-size: 18px; line-height: 1; width: 26px; height: 26px; border: 0; border-radius: 50%; background: transparent; color: #5d6b65; cursor: pointer; }
+.chip-x:hover { background: #eef2f0; color: #17211d; }
+.swatch { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; }
+.picker { position: relative; flex: 1 1 260px; max-width: 420px; }
+.picker .search input { width: 100%; min-width: 0; box-sizing: border-box; }
+.picker-results { position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; box-shadow: 0 6px 20px rgba(23, 33, 29, .12); }
+.picker-results button { font: inherit; font-size: 14px; display: flex; gap: 10px; align-items: baseline; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: #17211d; text-align: left; cursor: pointer; }
+.picker-results button:hover:not(:disabled) { background: #eef5f2; }
+.picker-results button:disabled { opacity: .5; cursor: default; }
+.picker-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty p { margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; }
+.legend-line { display: inline-block; width: 16px; height: 3px; border-radius: 2px; }
+.tip-row { display: grid; grid-template-columns: 10px auto auto auto; gap: 8px; align-items: center; font-size: 13px; }
+.chart-note { margin: 0; }
+.compare-table { font-size: 14px; min-width: 0; }
+.compare-table th[scope='row'] { font-weight: 500; color: #5d6b65; white-space: nowrap; position: sticky; left: 0; background: #fff; }
+.compare-table thead th { vertical-align: bottom; text-align: right; min-width: 120px; }
+.compare-table thead th:first-child { min-width: 0; }
+.th-fund { display: inline-flex; gap: 6px; align-items: center; font-weight: 700; }
+.th-name { display: block; font-weight: 400; max-width: 200px; margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compare-table td.best { background: #e6f3ee; font-weight: 700; box-shadow: inset 3px 0 0 #0f7a5c; }
+
+@media (max-width: 600px) {
+  .chip-name { display: none; }
+  .picker { max-width: none; }
+}
+/* .sr-only öğeleri absolute; kaydırılan tablonun dışına taşıp sayfayı genişletmesinler */
+.table-wrap { position: relative; }
+.sr-only { white-space: nowrap; margin: -1px; padding: 0; border: 0; }
+.panel-head > div.legend { flex-direction: row; flex: 1 1 260px; gap: 8px 18px; align-items: center; }
+@media (max-width: 600px) {
+  .compare-table th[scope='row'] { white-space: normal; min-width: 96px; max-width: 120px; }
+  .compare-table thead th { min-width: 88px; }
+  .th-name { display: none; }
+  .compare-table th, .compare-table td { padding: 8px; }
+}
