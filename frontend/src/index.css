@@ -187,3 +187,86 @@ a.tag:hover { border-color: #0f7a5c; }
 .notice-closed { background: #fdecea; color: #6e1a13; }
 .notice-closed a { color: #8a1f17; text-decoration: underline; }
 .na-note { cursor: help; color: #5d6b65; text-decoration: underline dotted; }
+
+/* Genel uyarı (her sayfa) */
+.footer { max-width: 1240px; margin: 8px auto 0; padding: 16px 24px 32px; border-top: 1px solid #dde4e1; }
+.footer p { margin: 0; font-size: 13px; line-height: 1.5; color: #5d6b65; }
+.disclaimer { padding: 12px 14px; border-radius: 8px; background: #fdf3e2; color: #6b4a0e; font-size: 14px; line-height: 1.5; }
+.btn-link { font: inherit; background: none; border: 0; padding: 0; color: #0f7a5c; cursor: pointer; text-decoration: underline; }
+
+/* Risk anketi */
+.survey { display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
+.survey h1 { margin: 0; }
+.survey .hint { margin: 4px 0 0; }
+.progress { height: 6px; border-radius: 3px; background: #e5ebe8; overflow: hidden; }
+.progress span { display: block; height: 100%; background: #0f7a5c; transition: width .2s; }
+.question { margin: 0; padding: 16px; border: 1px solid #dde4e1; border-radius: 10px; background: #fff; }
+.question legend { display: flex; flex-direction: column; gap: 6px; padding: 0; margin-bottom: 12px; float: left; width: 100%; }
+.question-text { font-size: 18px; font-weight: 600; line-height: 1.35; }
+.options { clear: both; display: flex; flex-direction: column; gap: 8px; }
+.option { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #dde4e1; border-radius: 8px; cursor: pointer; }
+.option:hover { border-color: #0f7a5c; }
+.option.selected { border-color: #0f7a5c; background: #eef5f2; }
+.option input { accent-color: #0f7a5c; margin: 0; }
+.survey-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.profile-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; border-top: 4px solid #0f7a5c; }
+.profile-dengeli { border-top-color: #c98a1a; }
+.profile-agresif { border-top-color: #b4570e; }
+.profile-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.profile-head > div { display: flex; flex-direction: column; gap: 2px; }
+.profile-label { font-size: 26px; font-weight: 700; }
+.profile-score { align-items: flex-end; font-size: 22px; font-weight: 600; }
+.score-meter { position: relative; height: 8px; border-radius: 4px; background: #e5ebe8; }
+.score-fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: #17211d; }
+.score-mark { position: absolute; top: -3px; width: 2px; height: 14px; background: #fff; box-shadow: 0 0 0 1px #c9d3cf; }
+.score-scale { display: grid; grid-template-columns: 40fr 30fr 30fr; }
+.score-scale span:nth-child(2), .score-scale span:nth-child(3) { padding-left: 4px; }
+.profile-desc { margin: 0; }
+.profile-facts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.caps { padding: 10px 12px; border-radius: 8px; background: #fdf3e2; color: #6b4a0e; }
+.caps p, .caps ul { margin: 0; }
+.caps ul { padding-left: 18px; margin-top: 4px; }
+
+/* Öneriler */
+.recs { display: flex; flex-direction: column; gap: 16px; }
+.recs h1 { margin: 0; }
+.recs > div > .hint { margin: 4px 0 0; }
+.recs h2 { margin: 8px 0 0; font-size: 18px; }
+.recs h3 { margin: 4px 0; font-size: 15px; }
+.recs-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
+.how p { margin: 0; }
+.weights { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.rec-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; }
+.rec-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #fff; border: 1px solid #dde4e1; border-radius: 10px; min-width: 0; }
+.rec-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; }
+.rec-rank { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #17211d; color: #fff; font-size: 13px; }
+.rec-title { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rec-title a { color: #17211d; }
+.rec-title a:hover strong { color: #0f7a5c; }
+.rec-name { font-size: 14px; }
+.rec-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.rec-score { display: flex; flex-direction: column; align-items: flex-end; font-size: 20px; font-weight: 600; }
+.rec-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.rec-metrics div { display: flex; flex-direction: column; gap: 2px; }
+.rec-metrics dt { color: #5d6b65; }
+.rec-metrics dd { margin: 0; font-size: 14px; }
+.comp-bars { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.comp-bars li { display: grid; grid-template-columns: 120px minmax(0, 1fr) 28px; gap: 8px; align-items: center; cursor: help; }
+.comp-label { color: #5d6b65; }
+.comp-track { height: 6px; border-radius: 3px; background: #e5ebe8; overflow: hidden; }
+.comp-track span { display: block; height: 100%; background: #0f7a5c; border-radius: 3px; }
+.comp-val { text-align: right; }
+.rec-why { display: flex; flex-direction: column; gap: 4px; }
+.rec-why ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.45; }
+.rec-caution { margin: 4px 0 0; padding: 6px 10px; border-radius: 6px; background: #fdf3e2; color: #6b4a0e; }
+.perf { display: flex; flex-direction: column; gap: 8px; }
+.legend-dashed { height: 0; background: none !important; border-top: 3px dashed; }
+.perf-stats { font-size: 14px; max-width: 520px; }
+.perf-stats th[scope='row'] { font-weight: 500; color: #5d6b65; }
+.portfolio-table { font-size: 14px; min-width: 0; }
+
+@media (max-width: 600px) {
+  .rec-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .comp-bars li { grid-template-columns: 104px minmax(0, 1fr) 28px; }
+  .footer { padding: 16px; }
+}

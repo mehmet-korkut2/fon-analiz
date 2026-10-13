@@ -11,6 +11,11 @@ export const getFundPrices = (code, params = { months: 12 }) => api.get(`/funds/
 // codes: ['TTE', 'AFA'], params: { months } ya da { start }
 export const getCompare = (codes, params) => api.get('/compare', { params: { funds: codes.join(','), ...params } }).then((r) => r.data)
 export const getRankings = (params) => api.get('/rankings', { params }).then((r) => r.data)
+export const getSurvey = () => api.get('/risk-survey').then((r) => r.data)
+// answers: { soruId: puan }, qualified: nitelikli yatırımcı
+export const postRiskProfile = (answers, qualified) => api.post('/risk-profile', { answers, qualified }).then((r) => r.data)
+export const getRecommendations = (profile, qualified) => api.get('/recommendations', { params: { profile, qualified } }).then((r) => r.data)
+export const getBacktest = (profile, qualified) => api.get('/recommendations/backtest', { params: { profile, qualified } }).then((r) => r.data)
 export const getFx = (source = 'canli') => api.get('/fx', { params: { source } }).then((r) => r.data)
 export const getStatus = () => api.get('/status').then((r) => r.data)
 
