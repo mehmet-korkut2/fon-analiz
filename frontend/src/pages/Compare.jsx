@@ -305,7 +305,9 @@ export default function Compare() {
                             const cls = fmt === 'pct' && key !== 'max_drawdown_1y' ? signClass(v) : key === 'max_drawdown_1y' && v < 0 ? 'down' : ''
                             return (
                               <td key={f.code} className={`r num ${cls}${isBest ? ' best' : ''}`}>
-                                {formatCell(v, fmt)}
+                                {key === 'sharpe_1y' && v == null && f.metrics?.sharpe_note
+                                  ? <span className="na-note" title={f.metrics.sharpe_note}>–*</span>
+                                  : formatCell(v, fmt)}
                                 {isBest && <span className="sr-only"> (en iyi)</span>}
                               </td>
                             )
@@ -324,6 +326,7 @@ export default function Compare() {
                 Vurgulu hücre o satırdaki en iyi değerdir: getiri ve Sharpe'ta en yüksek, volatilite ve risk değerinde en düşük,
                 maksimum düşüşte en küçük kayıp. "En iyi" sadece o metriğe göredir; tek başına bir fonu daha iyi yapmaz.
                 {funds.some(isExcludedFromBest) && ' Verisi güncellenmeyen ve işleme kapatılan fonlar vurgulamaya dahil edilmez.'}
+                {funds.some((f) => f.metrics?.sharpe_note) && " * Sharpe, volatilitesi %5'in altındaki fonlarda anlamlı olmadığı için hesaplanmaz."}
               </p>
             </>
           )}

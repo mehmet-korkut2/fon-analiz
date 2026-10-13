@@ -17,6 +17,7 @@ class MetricsOut(BaseModel):
     ret_3y: float | None = None
     volatility_1y: float | None = None
     sharpe_1y: float | None = None
+    sharpe_note: str | None = None  # Sharpe neden yok (ör. volatilite çok düşük)
     max_drawdown_1y: float | None = None
 
 

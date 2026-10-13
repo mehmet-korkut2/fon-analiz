@@ -45,7 +45,11 @@ def client():
     with Session() as db:
         for (code, name, cat, risk, a, b), dates in [(f, idx) for f in funds + closed] + [(f, stale_idx) for f in stale]:
             db.add(Fund(code=code, name=name, category=cat, risk_level=risk, fund_type="YAT"))
-            db.add_all(Price(fund_code=code, date=d.date(), price=float(p)) for d, p in zip(dates, np.linspace(a, b, len(dates))))
+            prices = np.linspace(a, b, len(dates))
+            if cat == "Hisse Senedi":
+                # hisse fonları dalgalansın (günlük ±%1); para piyasası fonları düz çizgi, volatilitesi ~0
+                prices = prices * (1 + 0.01 * (-1) ** np.arange(len(dates)))
+            db.add_all(Price(fund_code=code, date=d.date(), price=float(p)) for d, p in zip(dates, prices))
         db.add(Fund(code="KPL", name="KAPALI FON", category="Hisse Senedi", is_active=False))
         db.commit()
         apply_status_rules(db)
@@ -233,3 +237,17 @@ def test_spk_closed_fund_detail_note_and_rank(client):
     assert bax["status"] == "islem_kapali" and "tasfiye" not in bax["status_note"]
     # aktif fonun kategori sırasına kapalı fon (BAX, Hisse Senedi) girmez
     assert client.get("/api/funds/HSA").json()["category_size"] == 2
+
+
+def test_no_sharpe_for_near_riskless_funds(client):
+    items = {f["code"]: f["metrics"] for f in client.get("/api/funds?page_size=10").json()["items"]}
+    # para piyasası fonlarının fiyatı düz çizgi: volatilite %5'in altında, Sharpe yok ve nedeni yazıyor
+    for code in ("PPA", "PPB"):
+        assert items[code]["volatility_1y"] < 0.05
+        assert items[code]["sharpe_1y"] is None and "Sharpe anlamlı değil" in items[code]["sharpe_note"]
+    assert items["HSA"]["volatility_1y"] > 0.05 and items["HSA"]["sharpe_1y"] is not None
+    assert items["HSA"]["sharpe_note"] is None
+    # Sharpe sıralamasına sadece Sharpe'ı olan fonlar girer
+    sharpe = next(l for l in client.get("/api/rankings").json()["lists"] if l["key"] == "sharpe")
+    assert [f["code"] for f in sharpe["items"]] == ["HSA", "HSB"]
+

@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import Fund, FundMetrics, Price
 from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, MetricsOut, PricePoint
 from app.services.fund_status import STATUS_ACTIVE, is_tradable
+from app.services.metrics import MIN_VOL_FOR_SHARPE
 from app.services.metrics_job import STALE_AFTER_DAYS
 from app.text import tr_upper
 
@@ -48,8 +49,20 @@ def fund_out(f: Fund, cutoff: date | None) -> FundOut:
         price=m.last_price if m else None, price_date=m.as_of if m else None,
         is_stale=m is None or (cutoff is not None and m.as_of < cutoff),
         status=f.status or STATUS_ACTIVE, status_note=f.status_note, status_source=f.status_source, status_url=f.status_url,
-        metrics=MetricsOut.model_validate(m) if m else None,
+        metrics=metrics_out(m) if m else None,
     )
+
+
+LOW_VOL_SHARPE_NOTE = (
+    f"Volatilite %{MIN_VOL_FOR_SHARPE * 100:g}'in altında; fiyat neredeyse hiç dalgalanmadığı için Sharpe anlamlı değil."
+)
+
+
+def metrics_out(m: FundMetrics) -> MetricsOut:
+    out = MetricsOut.model_validate(m)
+    if out.sharpe_1y is None and out.volatility_1y is not None and out.volatility_1y < MIN_VOL_FOR_SHARPE:
+        out.sharpe_note = LOW_VOL_SHARPE_NOTE
+    return out
 
 
 @router.get("", response_model=FundPage)

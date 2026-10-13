@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.services.metrics import compute_fund_metrics, max_drawdown, total_return
+from app.services.metrics import MIN_VOL_FOR_SHARPE, compute_fund_metrics, max_drawdown, total_return
 
 
 def test_total_return():
@@ -38,6 +38,16 @@ def test_three_year_return():
     assert m.ret_3y == pytest.approx(400 / three_years_ago - 1)
     # 2 yıllık fonun 3 yıllık getirisi yok
     assert compute_fund_metrics(business_series("2024-10-01", "2026-10-09", 100, 200)).ret_3y is None
+
+
+def test_no_sharpe_below_volatility_floor():
+    # para piyasası benzeri fon: fiyat düzgün artıyor, pazartesileri hafta sonu faizi eklenmiş
+    idx = pd.bdate_range("2025-09-01", "2026-10-09")
+    daily = np.where(idx.dayofweek == 0, 0.0039, 0.0013)
+    s = pd.Series(100 * np.cumprod(1 + daily), index=idx)
+    m = compute_fund_metrics(s, risk_free_rate=0.30)
+    assert 0 < m.volatility_1y < MIN_VOL_FOR_SHARPE
+    assert m.ret_1y > 0.30 and m.sharpe_1y is None  # getiri risksizden yüksek ama Sharpe anlamsız
 
 
 def test_young_fund_has_no_long_period_returns():

@@ -186,3 +186,4 @@ a.tag:hover { border-color: #0f7a5c; }
 .closed-badge { align-self: flex-start; padding: 1px 8px; border-radius: 999px; background: #fdecea; color: #8a1f17; }
 .notice-closed { background: #fdecea; color: #6e1a13; }
 .notice-closed a { color: #8a1f17; text-decoration: underline; }
+.na-note { cursor: help; color: #5d6b65; text-decoration: underline dotted; }

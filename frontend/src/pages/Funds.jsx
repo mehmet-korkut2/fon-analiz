@@ -141,7 +141,9 @@ export default function Funds() {
                   const cls = isReturn(k) && v != null ? (v > 0 ? 'up' : v < 0 ? 'down' : '') : k === 'max_drawdown_1y' && v < 0 ? 'down' : ''
                   return (
                     <td key={k} className={`r num ${cls}`}>
-                      {k === 'sharpe_1y' ? num(v) : k === 'volatility_1y' ? (v == null ? '–' : `${num(v * 100, 1)}%`) : pct(v)}
+                      {k === 'sharpe_1y' && v == null && f.metrics?.sharpe_note
+                        ? <span className="na-note" title={f.metrics.sharpe_note}>–*</span>
+                        : k === 'sharpe_1y' ? num(v) : k === 'volatility_1y' ? (v == null ? '–' : `${num(v * 100, 1)}%`) : pct(v)}
                     </td>
                   )
                 })}
@@ -150,6 +152,13 @@ export default function Funds() {
           </tbody>
         </table>
       </div>
+
+      {data?.items.some((f) => f.metrics?.sharpe_note) && (
+        <p className="hint small">
+          * Sharpe, 1 yıllık volatilitesi %5'in altındaki fonlarda (çoğunlukla para piyasası benzeri fonlar) hesaplanmaz:
+          fiyat neredeyse hiç dalgalanmadığı için oran anlamsız büyük çıkar.
+        </p>
+      )}
 
       <div className="pager">
         <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>← Önceki</button>

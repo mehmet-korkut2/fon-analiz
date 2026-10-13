@@ -46,6 +46,7 @@ npm run lint
 - TEFAS fiyat geçmişi en fazla 60 ay; `periyod` sadece 1, 3, 6, 12, 36, 60 olabilir.
 - Fon adları Türkçe büyük harf (İ, Ş, Ğ); aramada `tr_upper()` kullanılıyor.
 - Metrikler ondalık kesir olarak saklanır (0.25 = %25). Sharpe için risksiz getiri: para piyasası fonlarının 1 yıllık medyan getirisi.
+- 1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe hesaplanmaz (`MIN_VOL_FOR_SHARPE`), API `sharpe_note` döner. Bu fonlar para piyasası benzeri: fiyat neredeyse doğrusal, volatilitenin çoğu pazartesiye yansıyan hafta sonu faizi. TEFAS fiyatları her gün değişiyor; "fiyatı seyrek güncellenen fon" sorunu veride yok (incelendi, 13.10.2026).
 - Kullanıcıya yatırım tavsiyesi verilmez; arayüzde uyarı metinleri korunmalı.
 - `funds.status`: SPK Bülteni 2026/60 ile 7 şirketin (Tera, Pusula, Hedef, Atlas, A1 Capital, Pardus, Bulls) fonları `islem_kapali`, tasfiye listesindekiler (`app/data/spk_2026_60_tasfiye.txt`) `islem_kapali_tasfiye`. Bu fonlar ve eski verili fonlar (son fiyatı 7 günden eski) listede varsayılan olarak gizli; sıralamaya ve risksiz getiriye girmez. TEFAS'ın `tefasDurum` alanı bu fonlar için `true` geliyor, kullanılamıyor.
 - Fiyat verisi değiştirilmez. Tek günlük sıçrayıp ertesi gün geri dönen fiyatlar sadece metrik hesabında yok sayılır (`data_quality.drop_one_day_glitches`).

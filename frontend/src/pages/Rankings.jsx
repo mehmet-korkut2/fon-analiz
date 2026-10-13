@@ -24,7 +24,7 @@ const LISTS = {
   },
   sharpe: {
     title: () => 'En yüksek Sharpe oranı (1 yıl)',
-    desc: 'Alınan her birim risk için risksiz getirinin (para piyasası fonlarının medyanı) en çok üstüne çıkan fonlar.',
+    desc: "Alınan her birim risk için risksiz getirinin (para piyasası fonlarının medyanı) en çok üstüne çıkan fonlar. Volatilitesi %5'in altındaki fonlar (çoğunlukla para piyasası benzeri) dahil değildir; onlarda Sharpe anlamlı değil.",
     fmt: (v) => num(v),
   },
 }

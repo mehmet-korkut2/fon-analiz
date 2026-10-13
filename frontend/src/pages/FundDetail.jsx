@@ -289,8 +289,12 @@ export default function FundDetail() {
               Fiyatın yıllık ne kadar dalgalandığı. Yükseldikçe fiyat daha sert iner çıkar, risk artar.
             </MetricCard>
             <MetricCard label="Sharpe oranı" value={num(m.sharpe_1y)}>
-              Alınan her birim risk için risksiz getirinin (para piyasası fonlarının medyanı) ne kadar üstüne çıkıldığı.
-              Yüksek olması daha iyidir; 0'ın altı, fonun risksiz getiriyi bile geçemediğini gösterir.
+              {m.sharpe_note ?? (
+                <>
+                  Alınan her birim risk için risksiz getirinin (para piyasası fonlarının medyanı) ne kadar üstüne çıkıldığı.
+                  Yüksek olması daha iyidir; 0'ın altı, fonun risksiz getiriyi bile geçemediğini gösterir.
+                </>
+              )}
             </MetricCard>
             <MetricCard label="Maksimum düşüş" value={pct(m.max_drawdown_1y)} cls={m.max_drawdown_1y < 0 ? 'down' : ''}>
               Bir zirveden sonra görülen en büyük kayıp. Kötü senaryoda ne kadar değer kaybedilebildiğini gösterir.

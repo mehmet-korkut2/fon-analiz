@@ -9,6 +9,10 @@ Tanımlar (rapor için):
 - 3 yıllık getiri  : toplam getiri, yıllıklandırılmaz (3 yılda %100 = 2 kat)
 - Volatilite       : günlük getirilerin standart sapması × √252 (yıllıklandırılmış)
 - Sharpe oranı     : (1 yıllık getiri - risksiz getiri) / 1 yıllık volatilite
+                     Volatilite %5'in altındaysa hesaplanmaz: para piyasası benzeri fonlarda fiyat
+                     neredeyse doğrusal artar, ölçülen "volatilite" büyük ölçüde hafta sonu faizinin
+                     pazartesiye yansımasından gelir ve payda sıfıra yaklaştığı için oran şişer
+                     (ör. %1,8 volatiliteyle Sharpe 6,9). Eşik verilere bakılarak seçildi.
 - Maksimum düşüş   : 1 yıl içinde bir zirveden sonraki en büyük yüzde kayıp
 """
 from __future__ import annotations
@@ -22,6 +26,7 @@ import pandas as pd
 
 TRADING_DAYS = 252
 MIN_POINTS_FOR_RISK = 60  # volatilite ve Sharpe için en az ~3 aylık veri
+MIN_VOL_FOR_SHARPE = 0.05  # bunun altındaki volatilitede Sharpe anlamlı değil (yukarıdaki açıklama)
 START_TOLERANCE_DAYS = 7  # dönem başında bu kadar gün içinde fiyat yoksa fon o dönem için çok yeni
 
 
@@ -120,7 +125,7 @@ def compute_fund_metrics(prices: pd.Series, risk_free_rate: float | None = None)
     if len(window) >= MIN_POINTS_FOR_RISK:
         vol = _clean(annual_volatility(window))
         mdd = _clean(max_drawdown(window))
-        if ret_1y is not None and vol and risk_free_rate is not None:
+        if ret_1y is not None and vol is not None and vol >= MIN_VOL_FOR_SHARPE and risk_free_rate is not None:
             sharpe = _clean((ret_1y - risk_free_rate) / vol)
 
     return FundMetricValues(
