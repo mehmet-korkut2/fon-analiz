@@ -59,7 +59,7 @@ Son güncelleme: 13 Ekim 2026
 - [ ] Favori fonlar
 - [ ] Kullanıcı girişi (opsiyonel, zaman kalırsa)
 
-## 5. Risk profili ve öneri
+## 5. Risk profili ve öneri ✅
 
 - [x] Anket sorularını ve puanlamayı kesinleştir (7 soru + nitelikli yatırımcı sorusu; ayrıntı `docs/oneri_sistemi.md`)
 - [x] Endpoint: `POST /api/risk-profile` (puan ve profil: temkinli / dengeli / agresif)
@@ -67,7 +67,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] Öneri algoritması: risk değeri + Sharpe + getiri ağırlıklı puan
 - [x] Endpoint: `GET /api/recommendations`
 - [x] Öneri sayfası ve yasal uyarı metni
-- [x] Profile göre örnek portföy ve geçmiş performansı (gerçek geriye dönük test dahil)
+- [x] Profile göre örnek portföy ve geçmiş performansı (kayan pencereli geriye dönük test: son 3 yılda her ay seçim, 12 ay tutma)
 - [x] Farklı profillerle test et, ağırlıkları ayarla (4 örnek kişi ve ağırlık duyarlılık analizi; ağırlıklar bilinçli olarak optimize edilmedi)
 
 ## 6. ML tahmin modülü
