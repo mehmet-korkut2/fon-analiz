@@ -70,18 +70,18 @@ Son güncelleme: 13 Ekim 2026
 - [x] Profile göre örnek portföy ve geçmiş performansı (kayan pencereli geriye dönük test: son 3 yılda her ay seçim, 12 ay tutma)
 - [x] Farklı profillerle test et, ağırlıkları ayarla (4 örnek kişi ve ağırlık duyarlılık analizi; ağırlıklar bilinçli olarak optimize edilmedi)
 
-## 6. ML tahmin modülü
+## 6. ML tahmin modülü ✅
 
-- [ ] Kaynak araştırması: ARIMA, Prophet, LSTM
-- [ ] Veri hazırlığı, zamana göre eğitim/test ayrımı
-- [ ] Referans model: hareketli ortalama, naive tahmin (RMSE, MAE)
-- [ ] ARIMA veya Prophet
-- [ ] LSTM
-- [ ] Model karşılaştırma tablosu (rapora girecek)
-- [ ] `forecasts` tablosu ve gece toplu tahmin
-- [ ] Endpoint: `GET /api/funds/{kod}/forecast`
-- [ ] Fon detayında tahmin çizgisi ve güven aralığı
-- [ ] "Yatırım tavsiyesi değildir" uyarısı
+- [x] Kaynak araştırması: ARIMA, Prophet, LSTM
+- [x] Veri hazırlığı, zamana göre eğitim/test ayrımı (walk-forward: ayar 10.2023–09.2024, test 10.2024–09.2026)
+- [x] Referans model: hareketli ortalama, naive tahmin (RMSE, MAE) (sıfır, drift, momentum)
+- [x] ARIMA veya Prophet (ARIMA, 40 fonluk örnek)
+- [x] LSTM: değerlendirildi, kapsam dışı bırakıldı (gerekçe: `docs/rapor/06_ml_tahmin.md`, 6.8)
+- [x] Model karşılaştırma tablosu (rapora girecek) (`docs/rapor/06_ml_tahmin.md`; LightGBM drift'i geçemedi)
+- [x] `forecasts` tablosu ve gece toplu tahmin
+- [x] Endpoint: `GET /api/funds/{kod}/forecast`
+- [x] Fon detayında tahmin çizgisi ve güven aralığı (geçmiş eğilime dayalı tahmin + konformal %80 aralık)
+- [x] "Yatırım tavsiyesi değildir" uyarısı
 
 > Zaman sıkışırsa en kolay sadeleştirilecek kısım bu aşama. Basit bir model de yeterli.
 
