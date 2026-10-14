@@ -125,3 +125,46 @@ def test_conformal_intervals_use_only_past_errors():
     assert first["lo"].isna().all()  # ilk ayda bilinen geçmiş hata yok
     later = iv[iv["date"] == origins[-1]]
     assert later["lo"].notna().all() and (later["lo"] <= later["pred_excess"]).all() and (later["hi"] >= later["pred_excess"]).all()
+
+
+def test_lightgbm_walk_forward_does_not_see_test_targets():
+    from app.ml.models import LightGBM
+
+    panel = synthetic_panel()
+    data = build_dataset(panel, month_starts(panel))
+    origins = sorted(data["date"].unique())[-3:]
+    params = dict(n_estimators=20, min_child_samples=5, num_leaves=4)
+    a = E.walk_forward(data, origins, LightGBM(**params))
+    # t'de henüz bilinmeyen bütün gerçekleşmeler (hedefi t'de ya da sonra biten satırlar, t'nin kendi
+    # satırları dahil) bozulduğunda t'deki tahmin aynı kalmalı
+    t = origins[-1]
+    tampered = data.copy()
+    unknown = tampered["end"] >= t
+    tampered.loc[unknown, ["y", "y_excess"]] = 99.0
+    b = E.walk_forward(tampered, [t], LightGBM(**params))
+    assert a.loc[a["date"] == t, "pred_excess"].tolist() == pytest.approx(b["pred_excess"].tolist())
+    # bilinen bir gerçekleşme değişirse (hedefi t'den önce biten satır) tahmin değişebilir: test anlamlı
+    known = tampered.copy()
+    known.loc[known["end"] < t, "y_excess"] *= -1
+    c_ = E.walk_forward(known, [t], LightGBM(**params))
+    assert c_["pred_excess"].tolist() != pytest.approx(b["pred_excess"].tolist())
+    assert a["pred_raw"].tolist() == pytest.approx((a["mm_level"] + a["pred_excess"]).tolist())
+    # aynı tohum: aynı sonuç
+    c = E.walk_forward(data, origins, LightGBM(**params))
+    assert a["pred_excess"].tolist() == pytest.approx(c["pred_excess"].tolist())
+    m = LightGBM(**params).fit(E.train_rows(data, origins[-1]))
+    assert m.importance().sum() == pytest.approx(1)
+
+
+def test_arima_order_and_forecast():
+    from app.ml.models import ARIMA_ORDERS, arima_forecast, select_arima_order
+
+    panel = synthetic_panel()
+    t = pd.Timestamp("2025-03-03")
+    order = select_arima_order(panel, "EQ1", t)
+    assert order in ARIMA_ORDERS
+    f = arima_forecast(panel, "EQ1", t, order, HORIZON)
+    assert np.isfinite(f) and -0.5 < f < 0.5
+    # düzgün büyüyen PP fonu: tahmin, günlük büyümenin 21 günlük karşılığına yakın
+    mm = arima_forecast(panel, "MM1", t, (0, 0, 0), HORIZON)
+    assert mm == pytest.approx(1.0015 ** HORIZON - 1, rel=0.05)

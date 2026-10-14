@@ -101,8 +101,8 @@ def summarize(preds: pd.DataFrame, by_group: bool = True) -> pd.DataFrame:
             dir_excess=((g["pred_excess"] > 0) == (g["y_excess"] > 0)).mean(),
             ic=g.groupby("date").apply(_ic, include_groups=False).mean(),
         )
-        if not by_group:
-            row["top10"] = g.groupby("date").apply(_top, include_groups=False).mean()
+        # ilk 10: her ay tahmini en yüksek 10 fon (grup bazında: grubun içinden)
+        row["top10"] = g.groupby("date").apply(_top, include_groups=False).mean()
         if "lo" in g and g["lo"].notna().any():
             m = g["lo"].notna()
             row["coverage"] = ((g.loc[m, "y_excess"] >= g.loc[m, "lo"]) & (g.loc[m, "y_excess"] <= g.loc[m, "hi"])).mean()
