@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getRecommendations } from '../api/client'
 import Disclaimer from '../components/Disclaimer'
 import PerfChart from '../components/PerfChart'
+import PortfolioPlanner from '../components/PortfolioPlanner'
 import ProfileSummary from '../components/ProfileSummary'
 import RiskBar from '../components/RiskBar'
 import RollingBacktest from '../components/RollingBacktest'
@@ -181,6 +182,8 @@ export default function Recommendations() {
             )}
             <PortfolioTable funds={data.portfolio} showReturn={Boolean(data.performance)} />
           </div>
+
+          <PortfolioPlanner funds={data.portfolio} forecast={data.portfolio_forecast} performance={data.performance} />
 
           <h2>Geriye dönük test</h2>
           <div className="panel">

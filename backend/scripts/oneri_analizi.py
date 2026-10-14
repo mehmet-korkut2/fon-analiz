@@ -90,10 +90,10 @@ def sensitivity_section(df, rf):
 
 
 PERSONAS = {
-    "Ayşe, 26, uzun vadeli birikim": dict(vade=4, kayip=3, davranis=3, hedef=3, gelir=3, birikim=2, deneyim=2),
-    "Mehmet, 58, emekliliğe 2 yıl": dict(vade=1, kayip=1, davranis=1, hedef=1, gelir=3, birikim=4, deneyim=1),
-    "Zeynep, 40, orta yol": dict(vade=3, kayip=2, davranis=2, hedef=2, gelir=3, birikim=3, deneyim=2),
-    "Can, 30, birikimi yok ama riskli": dict(vade=4, kayip=4, davranis=4, hedef=4, gelir=2, birikim=0, deneyim=3),
+    "Ayşe, 26, uzun vadeli birikim": dict(vade=4, kayip=3, davranis=3, hedef=3, gelir=3, birikim=2, birikim_payi=3, deneyim=2),
+    "Mehmet, 58, emekliliğe 2 yıl": dict(vade=1, kayip=1, davranis=1, hedef=1, gelir=3, birikim=4, birikim_payi=2, deneyim=1),
+    "Zeynep, 40, orta yol": dict(vade=3, kayip=2, davranis=2, hedef=2, gelir=3, birikim=3, birikim_payi=2, deneyim=2),
+    "Can, 30, birikimi yok ama riskli": dict(vade=4, kayip=4, davranis=4, hedef=4, gelir=2, birikim=0, birikim_payi=1, deneyim=3),
 }
 
 

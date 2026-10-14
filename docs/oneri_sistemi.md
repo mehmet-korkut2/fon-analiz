@@ -15,7 +15,7 @@ Kod: `backend/app/services/risk_survey.py` (anket), `backend/app/services/recomm
 
 ## 1. Risk anketi
 
-Anket 7 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur. Her cevap 0–4 puan alır ve sorunun ağırlığıyla çarpılır.
+Anket 8 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur. Her cevap 0–4 puan alır ve sorunun ağırlığıyla çarpılır.
 
 | # | Konu | Soru | Cevaplar (0 → 4 puan) | Ağırlık |
 |---|---|---|---|---|
@@ -25,12 +25,13 @@ Anket 7 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur. Her cevap 
 | 4 | Hedef | Bu yatırımdan beklentin ne? | Anaparayı korumak · Enflasyon kadar · Enflasyonun biraz üstü · Belirgin büyüme · En yüksek getiri | ×2 |
 | 5 | Gelir durumu | Düzenli gelirin ne kadar istikrarlı? | Yok · Düzensiz · Düzenli ama değişken · Düzenli · Düzenli ve artıyor | ×1 |
 | 6 | Birikim | Bu yatırım dışında kaç aylık giderini karşılayacak birikimin var? | Yok · 3 aydan az · 3–6 ay · 6–12 ay · 12 aydan fazla | ×1 |
-| 7 | Deneyim | Daha önce hangi ürünlere yatırım yaptın? | Hiç/mevduat · Para piyasası, borçlanma · Karma, değişken · Hisse fonu, hisse · Türev, kaldıraçlı | ×1 |
+| 7 | Birikim payı | Yatıracağın tutar toplam birikiminin ne kadarı? | Neredeyse tamamı (%75+) · Yarıdan fazlası (%50–75) · Yaklaşık yarısı (%25–50) · Küçük bir kısmı (%10–25) · Çok küçük bir kısmı (%10'dan az) | ×2 |
+| 8 | Deneyim | Daha önce hangi ürünlere yatırım yaptın? | Hiç/mevduat · Para piyasası, borçlanma · Karma, değişken · Hisse fonu, hisse · Türev, kaldıraçlı | ×1 |
 | – | Nitelikli yatırımcı | SPK tanımına göre nitelikli yatırımcı mısın? | Hayır / bilmiyorum · Evet | puana girmez |
 
-**Ağırlıkların gerekçesi.** Risk taşıma *kapasitesini* en çok belirleyen iki etken vade ve kayıp toleransıdır; bu yüzden ×3. Davranış sorusu, yatırımcının söylediği tolerans ile düşüş anındaki gerçek tepkisi arasındaki farkı yakalamak için, hedef sorusu ise risk *isteğini* ölçmek için ×2'dir. Gelir, birikim ve deneyim profili destekleyen ama tek başına belirlemeyen etkenlerdir (×1).
+**Ağırlıkların gerekçesi.** Risk taşıma *kapasitesini* en çok belirleyen iki etken vade ve kayıp toleransıdır; bu yüzden ×3. Davranış sorusu, yatırımcının söylediği tolerans ile düşüş anındaki gerçek tepkisi arasındaki farkı yakalamak için, hedef sorusu ise risk *isteğini* ölçmek için ×2'dir. **Birikim payı** (sonradan eklendi) risk taşıma *kapasitesini* ölçer: aynı %20'lik kayıp, birikimin küçük bir kısmında katlanılabilir, neredeyse tamamında katlanılamaz. Vade ve kayıp toleransı kadar doğrudan belirleyici olmadığı için ×3 değil; ama gelir, birikim ve deneyim gibi destekleyici sorulardan daha güçlü bir kapasite göstergesi olduğu için ×2. Gelir, birikim ve deneyim profili destekleyen ama tek başına belirlemeyen etkenlerdir (×1).
 
-**Puan ve profil.** Ham puan en fazla 4 × (3+3+2+2+1+1+1) = 52'dir ve 0–100'e ölçeklenir.
+**Puan ve profil.** Ham puan en fazla 4 × (3+3+2+2+1+1+2+1) = 60'tır ve 0–100'e ölçeklenir (birikim payı sorusundan önce 52 idi; profil eşikleri değişmedi).
 
 | Puan | Profil | TEFAS risk değeri | Fonun 1 yıllık volatilitesi | Aday havuzu* |
 |---|---|---|---|---|
@@ -44,7 +45,7 @@ Aralıklar bilinçli olarak örtüşür (2–3 ve 4–5): sınırdaki bir fon ik
 
 **Sınırlayıcı kurallar.** Toplam puan yüksek olsa bile:
 - vade 1 yıldan kısaysa ya da kayıp toleransı "hiç" ise profil en fazla **temkinli**,
-- acil durum birikimi yoksa profil en fazla **dengeli** olur.
+- acil durum birikimi yoksa ya da yatırılacak tutar birikimin neredeyse tamamıysa (%75+) profil en fazla **dengeli** olur. İkincisinin gerekçesi: büyük bir kayıp toplam birikimi telafisi zor biçimde etkiler; bu kişiye en riskli fonları önermek, puanı ne olursa olsun uygun değildir.
 
 Toplama dayalı puanlarda bir sorudaki düşük cevap diğerlerinin yüksekliğiyle telafi edilebilir; oysa 6 ay sonra parasına ihtiyacı olan biri, kayıp toleransı ne kadar yüksek olursa olsun hisse fonuna uygun değildir. Uygulanan sınır, sonuç ekranında gerekçesiyle gösterilir.
 
@@ -197,12 +198,14 @@ Kotayla listeye giren fonlar: **FFH** (QNB Portföy Çoklu Varlık Katılım; ri
 
 ### 6.5 Örnek kişiler
 
+Puanlar 8 soruluk ankete göredir (birikim payı sorusu eklendikten sonra; profiller değişmedi).
+
 | Kişi | Puan | Profil | Öneri sayfasındaki ilk 5 | Not |
 |---|---|---|---|---|
 | Ayşe, 26, uzun vadeli birikim | 77 | Agresif | KNJ, CKL, OPF, KTJ, GBG | – |
-| Mehmet, 58, emekliliğe 2 yıl | 35 | Temkinli | RBP, EIL, OSD, OLE, NSP | – |
-| Zeynep, 40, orta yol | 60 | Dengeli | EIL, NBO, OLE, PLR, NJR | Kota fonları FFH ve IDY 9. ve 10. sırada; örnek portföy EIL, NBO, FFH, IDY |
-| Can, 30, birikimi yok ama riskli | 87 | Dengeli | EIL, NBO, OLE, PLR, NJR | Puana göre agresif; acil durum birikimi olmadığı için dengeliye indi |
+| Mehmet, 58, emekliliğe 2 yıl | 37 | Temkinli | RBP, EIL, OSD, OLE, NSP | – |
+| Zeynep, 40, orta yol | 58 | Dengeli | EIL, NBO, OLE, PLR, NJR | Kota fonları FFH ve IDY 9. ve 10. sırada; örnek portföy EIL, NBO, FFH, IDY |
+| Can, 30, birikimi yok ama riskli | 78 | Dengeli | EIL, NBO, OLE, PLR, NJR | Puana göre agresif; acil durum birikimi olmadığı için dengeliye indi |
 
 ## 7. Sınırlamalar
 

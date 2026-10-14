@@ -103,21 +103,21 @@ Son 3 yılda her ayın ilk işlem günü o güne kadarki veriyle seçim, 12 ay t
 
 ### Mehmet, 58, emekliliğe 2 yıl
 
-- Puan 35/100 → puana göre temkinli, sonuç **temkinli** (sınır: yok)
+- Puan 37/100 → puana göre temkinli, sonuç **temkinli** (sınır: yok)
 - İlk 5 öneri: RBP (Para Piyasası, risk 1), EIL (Para Piyasası, risk 2), OSD (Borçlanma Araçları, risk 1), OLE (Fon Sepeti, risk 2), NSP (Katılım, risk 1)
 - Örnek portföy: RBP, OSD, OLE
 - Kayan pencereli test (temkinli): 12/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%0,9
 
 ### Zeynep, 40, orta yol
 
-- Puan 60/100 → puana göre dengeli, sonuç **dengeli** (sınır: yok)
+- Puan 58/100 → puana göre dengeli, sonuç **dengeli** (sınır: yok)
 - İlk 5 öneri: EIL (Para Piyasası, risk 2), NBO (Fon Sepeti, risk 2), OLE (Fon Sepeti, risk 2), FFH (Katılım, risk 4), IDY (Değişken, risk 4)
 - Örnek portföy: EIL, NBO, FFH, IDY
 - Kayan pencereli test (dengeli): 5/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%11,0
 
 ### Can, 30, birikimi yok ama riskli
 
-- Puan 87/100 → puana göre agresif, sonuç **dengeli** (sınır: Acil durum birikimi yok: beklenmedik bir ihtiyaçta fonu düşük fiyattan satmak gerekebilir.)
+- Puan 78/100 → puana göre agresif, sonuç **dengeli** (sınır: Acil durum birikimi yok: beklenmedik bir ihtiyaçta fonu düşük fiyattan satmak gerekebilir.)
 - İlk 5 öneri: EIL (Para Piyasası, risk 2), NBO (Fon Sepeti, risk 2), OLE (Fon Sepeti, risk 2), FFH (Katılım, risk 4), IDY (Değişken, risk 4)
 - Örnek portföy: EIL, NBO, FFH, IDY
 - Kayan pencereli test (dengeli): 5/24 dönemde para piyasası medyanını geçti, ortalama fazla getiri -%11,0

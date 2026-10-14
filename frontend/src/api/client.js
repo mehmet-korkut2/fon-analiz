@@ -16,6 +16,8 @@ export const getSurvey = () => api.get('/risk-survey').then((r) => r.data)
 export const postRiskProfile = (answers, qualified) => api.post('/risk-profile', { answers, qualified }).then((r) => r.data)
 export const getRecommendations = (profile, qualified) => api.get('/recommendations', { params: { profile, qualified } }).then((r) => r.data)
 export const getBacktest = (profile, qualified) => api.get('/recommendations/backtest', { params: { profile, qualified } }).then((r) => r.data)
+export const getForecast = (code) => api.get(`/funds/${code}/forecast`).then((r) => r.data)
+export const getMlPerformance = () => api.get('/ml/performance').then((r) => r.data)
 export const getFx = (source = 'canli') => api.get('/fx', { params: { source } }).then((r) => r.data)
 export const getStatus = () => api.get('/status').then((r) => r.data)
 

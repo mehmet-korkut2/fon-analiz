@@ -1,9 +1,9 @@
 """Risk anketi: sorular, puanlama ve profile geçiş.
 
-Her cevap 0-4 puan alır ve sorunun ağırlığıyla çarpılır. Ham puan (en fazla 52) 0-100'e
+Her cevap 0-4 puan alır ve sorunun ağırlığıyla çarpılır. Ham puan (en fazla 60) 0-100'e
 ölçeklenir. Puan profile çevrildikten sonra sınırlayıcı kurallar uygulanır: kısa vade, kayıp
 toleransının olmaması ya da acil durum birikiminin olmaması, toplam puan yüksek olsa bile profili
-aşağı çeker. Gerekçeler ve kaynaklar için docs/oneri_sistemi.md.
+aşağı çeker (birikimin neredeyse tamamını yatırmak da dahil). Gerekçeler: docs/oneri_sistemi.md.
 
 "Nitelikli yatırımcı" sorusu puana girmez; sadece serbest fonların öneriye alınıp alınmayacağını
 belirler (serbest fonlar yalnızca nitelikli yatırımcılara satılabilir).
@@ -56,6 +56,9 @@ QUESTIONS = (
              ("Düzenli gelirim yok", "Düzensiz", "Düzenli ama değişken", "Düzenli", "Düzenli ve artıyor")),
     Question("birikim", "Birikim", "Bu yatırım dışında kaç aylık giderini karşılayacak birikimin var?", 1,
              ("Yok", "3 aydan az", "3-6 ay", "6-12 ay", "12 aydan fazla")),
+    Question("birikim_payi", "Birikim payı", "Yatıracağın tutar toplam birikiminin ne kadarı?", 2,
+             ("Neredeyse tamamı (%75'ten fazla)", "Yarıdan fazlası (%50-75)", "Yaklaşık yarısı (%25-50)",
+              "Küçük bir kısmı (%10-25)", "Çok küçük bir kısmı (%10'dan az)")),
     Question("deneyim", "Deneyim", "Daha önce hangi ürünlere yatırım yaptın?", 1,
              ("Hiç ya da sadece mevduat", "Para piyasası, borçlanma araçları fonu", "Karma, değişken fon",
               "Hisse senedi fonu ya da hisse senedi", "Türev ürünler, kaldıraçlı işlemler")),
@@ -68,7 +71,7 @@ QUALIFIED_QUESTION = Question(
     0, ("Hayır / bilmiyorum", "Evet"), scored=False,
 )
 
-MAX_RAW = sum(4 * q.weight for q in QUESTIONS)  # 52
+MAX_RAW = sum(4 * q.weight for q in QUESTIONS)  # 60
 
 
 @dataclass
@@ -127,6 +130,8 @@ def evaluate(answers: dict[str, int], qualified: bool = False) -> ProfileResult:
         caps.append(Cap("kayip", TEMKINLI, "Kayıp toleransı yok: değer kaybedebilecek fonlar uygun değil."))
     if answers["birikim"] == 0:
         caps.append(Cap("birikim", DENGELI, "Acil durum birikimi yok: beklenmedik bir ihtiyaçta fonu düşük fiyattan satmak gerekebilir."))
+    if answers["birikim_payi"] == 0:
+        caps.append(Cap("birikim_payi", DENGELI, "Birikiminin neredeyse tamamını yatırıyorsun: büyük bir kayıp toplam birikimini telafisi zor biçimde etkiler."))
 
     profile = score_profile
     for cap in caps:

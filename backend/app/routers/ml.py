@@ -26,8 +26,9 @@ def fund_forecast(code: str, db: Session = Depends(get_db)):
     if rep:
         v = next((v for v in rep.payload.get("verdicts", []) if v["group"] == f.risk_group), None)
         if v:
-            model_note = (f"LightGBM bu risk grubunda {'referansı geçti' if v['success'] else 'basit referansı (drift) geçemedi'}: "
-                          f"{v['months']} test ayının {v['wins']}'inde daha isabetliydi.")
+            # sayıya göre değişen ek ("9'unda", "4'ünde") yerine ek gerektirmeyen biçim
+            model_note = (f"LightGBM bu risk grubunda {'referansı geçti' if v['success'] else 'basit referansı (drift) geçemedi'} "
+                          f"(daha isabetli olduğu ay: {v['wins']} / {v['months']}).")
     return ForecastOut(
         code=code, as_of=f.as_of, horizon_days=f.horizon_days, method=f.method,
         method_label="Geçmiş eğilime dayalı tahmin", pred_return=f.pred_return, lo=f.lo, hi=f.hi,

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { getFund, getFundPrices } from '../api/client'
+import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { getForecast, getFund, getFundPrices } from '../api/client'
+import ForecastCard from '../components/ForecastCard'
 import RiskBar from '../components/RiskBar'
 import { num, pct, signClass, trDate } from '../format'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
@@ -10,6 +11,7 @@ import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
 import { isClosed } from '../fundStatus'
 
 const LINE = '#0f7a5c'
+const FORECAST = '#2a78d6' // tahmin: fiyattan ayrı bir renk (kategorik paletin 1. rengi)
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
 
@@ -40,22 +42,59 @@ function MetricCard({ label, value, cls = '', children }) {
 function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
   const p = payload[0].payload
+  const isForecast = p.price == null && p.fc != null
   return (
     <div className="chart-tip">
       <span className="muted small">{trDate(p.date, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-      <strong className="num">{fmtPrice(p.price)} TL</strong>
+      {isForecast ? (
+        <>
+          <span className="small">Geçmiş eğilime dayalı tahmin</span>
+          <strong className="num">{fmtPrice(p.fc)} TL</strong>
+          <span className="muted small num">%80 aralık: {fmtPrice(p.band[0])} – {fmtPrice(p.band[1])}</span>
+        </>
+      ) : (
+        <strong className="num">{fmtPrice(p.price)} TL</strong>
+      )}
     </div>
   )
 }
 
-function PriceChart({ points, months }) {
+// Son tarihten sonraki n iş günü (hafta sonu atlanır; resmi tatiller bilinmediği için dahil)
+function nextBusinessDays(lastIso, n) {
+  const out = []
+  const d = new Date(`${lastIso}T00:00:00Z`)
+  while (out.length < n) {
+    d.setUTCDate(d.getUTCDate() + 1)
+    const wd = d.getUTCDay()
+    if (wd !== 0 && wd !== 6) out.push(d.toISOString().slice(0, 10))
+  }
+  return out
+}
+
+// Tahmin konisi: çizgi son fiyattan doğrusal ilerler; bant, zamanın kareköküyle genişleyip 21. günde
+// konformal %10-90 aralığına ulaşır (ara günler yaklaşık).
+function withForecast(points, f) {
+  if (!f || !points.length) return points
+  const last = points[points.length - 1]
+  const base = last.price
+  const h = f.horizon_days
+  const future = nextBusinessDays(last.date, h).map((date, i) => {
+    const k = (i + 1) / h
+    const mid = f.pred_return * k
+    return { date, fc: base * (1 + mid), band: [base * (1 + mid + (f.lo - f.pred_return) * Math.sqrt(k)), base * (1 + mid + (f.hi - f.pred_return) * Math.sqrt(k))] }
+  })
+  return [...points.slice(0, -1), { ...last, fc: base, band: [base, base] }, ...future]
+}
+
+function PriceChart({ points, months, forecast }) {
   const daily = months <= 1 // 1 ayda ay başı tiki tek kalır; günlük tikler kullanılır
   const tickFmt = (d) => trDate(d, daily ? { day: 'numeric', month: 'short' } : { month: 'short', year: '2-digit' })
-  const values = points.map((p) => p.price)
+  const data = useMemo(() => withForecast(points, forecast), [points, forecast])
+  const values = data.flatMap((p) => [p.price, ...(p.band ?? [])]).filter((v) => v != null)
   const digits = axisDigits(Math.max(...values) - Math.min(...values))
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <AreaChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+      <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id="priceFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={LINE} stopOpacity={0.14} />
@@ -64,7 +103,7 @@ function PriceChart({ points, months }) {
         </defs>
         <CartesianGrid vertical={false} stroke={GRID} />
         <XAxis
-          dataKey="date" tickFormatter={tickFmt} minTickGap={daily ? 48 : 24} ticks={daily ? undefined : monthTicks(points, months)}
+          dataKey="date" tickFormatter={tickFmt} minTickGap={daily ? 48 : 24} ticks={daily ? undefined : monthTicks(data, months)}
           tick={{ fontSize: 12, fill: INK_MUTED }} tickLine={false} axisLine={{ stroke: GRID }}
         />
         <YAxis
@@ -75,9 +114,12 @@ function PriceChart({ points, months }) {
         <Tooltip content={<ChartTooltip />} cursor={{ stroke: INK_MUTED, strokeDasharray: '3 3' }} />
         <Area
           type="linear" dataKey="price" stroke={LINE} strokeWidth={2} fill="url(#priceFill)"
-          dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false}
+          dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} connectNulls={false}
         />
-      </AreaChart>
+        {/* Recharts 2, Fragment içindeki serileri görmez: her seri ayrı koşulla */}
+        {forecast && <Area type="linear" dataKey="band" stroke="none" fill={FORECAST} fillOpacity={0.16} isAnimationActive={false} activeDot={false} />}
+        {forecast && <Line type="linear" dataKey="fc" stroke={FORECAST} strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />}
+      </ComposedChart>
     </ResponsiveContainer>
   )
 }
@@ -92,6 +134,8 @@ export default function FundDetail() {
   const [prices, setPrices] = useState(null)
   const [pricesError, setPricesError] = useState(null)
   const [loadingPrices, setLoadingPrices] = useState(true)
+  const [forecast, setForecast] = useState(null)
+  const [forecastMissing, setForecastMissing] = useState(null)
   const [compareList, setCompareState] = useState(getCompareList)
   const updateCompare = (codes) => { setCompareList(codes); setCompareState(codes) }
 
@@ -107,6 +151,20 @@ export default function FundDetail() {
       })
     return () => { ignore = true }
   }, [code])
+
+  useEffect(() => {
+    if (!fund?.code) return
+    let ignore = false
+    setForecast(null)
+    setForecastMissing(null)
+    getForecast(fund.code)
+      .then((d) => { if (!ignore) setForecast(d) })
+      .catch((e) => {
+        if (ignore) return
+        setForecastMissing(e.response?.status === 404 ? (e.response.data?.detail || 'Bu fon için tahmin yok.') : 'Tahmin yüklenemedi.')
+      })
+    return () => { ignore = true }
+  }, [fund?.code])
 
   useEffect(() => {
     if (fund?.code) document.title = `${fund.code} · Fon Analiz`
@@ -253,10 +311,16 @@ export default function FundDetail() {
         </div>
         {pricesError && <p className="error">{pricesError}</p>}
         <div className={`chart${loadingPrices ? ' is-loading' : ''}`}>
-          {prices && prices.length > 1 && <PriceChart points={prices} months={months} />}
+          {prices && prices.length > 1 && <PriceChart points={prices} months={months} forecast={forecast} />}
           {prices && prices.length <= 1 && !pricesError && <p className="muted chart-empty">Bu dönem için fiyat verisi yok.</p>}
           {!prices && <p className="muted chart-empty">Yükleniyor...</p>}
         </div>
+        {forecast && prices && prices.length > 1 && (
+          <p className="muted small chart-note">
+            <span className="legend-line legend-dashed" style={{ borderColor: FORECAST }} /> Kesikli çizgi: geçmiş eğilime dayalı
+            1 aylık tahmin; açık alan: %80 aralık (ara günlerdeki genişlik yaklaşık).
+          </p>
+        )}
         {prices && prices.length > 0 && (
           <details className="price-table">
             <summary>Fiyatları tablo olarak göster ({prices.length} gün)</summary>
@@ -273,6 +337,8 @@ export default function FundDetail() {
           </details>
         )}
       </div>
+
+      <ForecastCard forecast={forecast} unavailable={forecastMissing} />
 
       {m ? (
         <>
