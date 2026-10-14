@@ -8,7 +8,8 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
 
 - Windows, PowerShell. Python 3.13, Node.js 24.
 - Backend sanal ortamı: `backend\.venv` (komutlardan önce `backend\.venv\Scripts\activate`).
-- Veritabanı: yerelde SQLite (`backend\fon.db`, git'e girmez). Canlıda PostgreSQL olacak.
+- Veritabanı: yerelde SQLite (`backend\fon.db`, git'e girmez).
+- **Yayın yok:** Uygulama yayına alınmayacak; sunumda kendi bilgisayarında çalışacak. PostgreSQL, Render/Vercel, gece işini sunucuya taşıma, alan adı ve Alembic `YOL_HARITASI.md`'de "Gelecek çalışmalar"da. Öncelik: tek tıkla başlatma, internetsiz çalışma (döviz ve KAP için son bilinen veri), sunum öncesi veritabanı yedeği/geri yükleme.
 
 ## Yapı
 
@@ -57,4 +58,4 @@ npm run lint
 
 ## Sıradaki işler
 
-5. ve 6. aşamalar (öneri sistemi, ML tahmin) tamamlandı. Sırada 7. aşama (yayın, kullanıcı testi, rapor, sunum) ve 3. aşamada kalanlar (kıyaslama: BIST 100, enflasyon, beta; Alembic). Ayrıntı için `YOL_HARITASI.md`.
+5. ve 6. aşamalar (öneri sistemi, ML tahmin) tamamlandı. Sırada 7. aşama (yerel sunum hazırlığı, kullanıcı testi, rapor, sunum) ve 3. aşamada kalan kıyaslama (BIST 100, enflasyon, beta). Ayrıntı için `YOL_HARITASI.md`.

@@ -44,7 +44,6 @@ Son güncelleme: 13 Ekim 2026
 - [x] Endpoint: sıralamalar (en iyi getiri, en düşük risk, en iyi Sharpe)
 - [x] Fon listesine sayfalama, arama, kategori ve risk filtresi
 - [x] Metrik testleri (bilinen örnek verilerle)
-- [ ] Alembic migration'larına geçiş
 
 ## 4. Frontend
 
@@ -88,17 +87,28 @@ Son güncelleme: 13 Ekim 2026
 ## 7. Test, yayın, rapor, sunum
 
 - [ ] Uçtan uca test, hata düzeltme
-- [ ] Veritabanı: Supabase veya Neon (PostgreSQL)
-- [ ] Backend: Render
-- [ ] Frontend: Vercel
-- [ ] Günlük güncellemeyi Render Cron Job veya GitHub Actions'a taşı (ücretsiz Render sunucusu uykuya geçer)
-- [ ] Alan adı (GitHub Student Pack ile ücretsiz)
+- [ ] Tek tıkla başlatma: backend + frontend + tarayıcı birlikte açılsın
+- [ ] İnternetsiz çalışma: döviz ve KAP için son bilinen veri gösterilsin (sunumda bağlantı olmayabilir)
+- [ ] Sunum öncesi veritabanı yedeği ve geri yükleme komutu
 - [ ] Kullanıcı testi: 3–5 kişiye kullandır
 - [ ] Rapor: giriş, literatür, yöntem, ML sonuçları, sonuç, kaynakça
 - [ ] Sunum slaytları (10–15 slayt)
 - [ ] Demo videosu (canlı demo bozulursa diye)
 - [ ] Prova ve olası sorular
 - [ ] README ve kod düzeni, teslim
+
+> Uygulama yayına alınmayacak; sunumda kendi bilgisayarımda çalışacak. Yayınla ilgili maddeler aşağıda "Gelecek çalışmalar"da.
+
+## Gelecek çalışmalar
+
+Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işleri:
+
+- [ ] Veritabanı: Supabase veya Neon (PostgreSQL)
+- [ ] Backend: Render
+- [ ] Frontend: Vercel
+- [ ] Günlük güncellemeyi Render Cron Job veya GitHub Actions'a taşı (ücretsiz Render sunucusu uykuya geçer)
+- [ ] Alan adı (GitHub Student Pack ile ücretsiz)
+- [ ] Alembic migration'larına geçiş
 
 ---
 
