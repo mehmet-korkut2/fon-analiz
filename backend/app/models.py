@@ -172,3 +172,33 @@ class BacktestWindow(Base):
     data_as_of: Mapped[date | None] = mapped_column(Date)  # hesaplamada kullanılan son fiyat tarihi
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
+
+
+class Forecast(Base):
+    """Sitede gösterilen 1 aylık tahmin (geçmiş eğilim = drift) ve konformal %80 aralık. Her gece
+    yenilenir, sadece en son tarih tutulur (app/ml/job.py). Ham getiri, ondalık kesir."""
+
+    __tablename__ = "forecasts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"), index=True)
+    as_of: Mapped[date] = mapped_column(Date)  # tahminin yapıldığı son fiyat tarihi
+    horizon_days: Mapped[int] = mapped_column(Integer)  # işlem günü
+    method: Mapped[str] = mapped_column(String(20))  # drift
+    pred_return: Mapped[float] = mapped_column(Float)
+    lo: Mapped[float] = mapped_column(Float)  # %10 dilimi
+    hi: Mapped[float] = mapped_column(Float)  # %90 dilimi
+    risk_group: Mapped[str] = mapped_column(String(12))
+    coverage: Mapped[float | None] = mapped_column(Float)  # bu risk grubunda aralığın test dönemi kapsama oranı
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class MlReport(Base):
+    """ML walk-forward değerlendirme raporu (app/ml/report.build_report çıktısı, JSON)."""
+
+    __tablename__ = "ml_reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    data_as_of: Mapped[date] = mapped_column(Date)
+    payload: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

@@ -1,21 +1,11 @@
 # ML tahmin modülü: walk-forward değerlendirme çıktısı
 
-Veri: 47 aybaşı (01.11.2022 – 01.09.2026), 28,286 örnek, 910 fon. Hedef: 21 işlem günlük getiri.  
-Ayar dönemi: 12 ay (10.2023 – 09.2024). Test dönemi: 24 ay (10.2024 – 09.2026), 17,261 tahmin.
+Veri tarihi 2026-10-13. 47 aybaşı (2022-11-01 – 2026-09-01), 28.286 örnek, 910 fon. Hedef: 21 işlem günlük getiri.  
+Ayar dönemi: 12 ay (2023-10-02 – 2024-09-02). Test dönemi: 24 ay (2024-10-01 – 2026-09-01), 17.261 tahmin.
 
-## 1. LightGBM hiperparametre ayarı (sadece ayar dönemi)
+## 1. LightGBM hiperparametreleri (sadece ayar dönemi)
 
-Seçim ölçütü: ayar dönemindeki aylık fazla getiri MAE'sinin ortalaması. En iyi 5 aday:
-
-| num_leaves | min_child_samples | n_estimators | Fazla MAE |
-|---|---|---|---|
-| 15 | 100 | 150 | %3,281 |
-| 7 | 100 | 150 | %3,288 |
-| 7 | 100 | 400 | %3,305 |
-| 15 | 100 | 400 | %3,319 |
-| 31 | 100 | 150 | %3,342 |
-
-Seçilen: {'num_leaves': 15, 'min_child_samples': 100, 'n_estimators': 150}. Diğer parametreler: objective=l1, learning_rate=0,03, subsample=0,8, colsample=0,8.
+Kullanılan: {'num_leaves': 15, 'min_child_samples': 100, 'n_estimators': 150}; objective=l1, learning_rate=0,03, subsample=0,8, colsample=0,8.
 
 ## 2. Test dönemi: genel sonuçlar
 
@@ -108,7 +98,7 @@ Aylık MAE farkı: LightGBM eksi referans (negatif: LightGBM daha iyi).
 | 08.2026 | %2,98 | %2,95 | %5,33 | %4,99 | %10,42 | %4,03 | %5,33 | %4,43 | %3,17 |
 | 09.2026 | %6,75 | %5,86 | %7,69 | %5,37 | -%13,92 | -%43,05 | -%23,49 | -%3,32 | %2,88 |
 
-## 6. Özellik önemi (son test ayında eğitilen model, kazanç payı)
+## 6. Özellik önemi (son test ayında eğitilen LightGBM, kazanç payı)
 
 | Özellik | Pay |
 |---|---|
@@ -127,9 +117,18 @@ Aylık MAE farkı: LightGBM eksi referans (negatif: LightGBM daha iyi).
 | rank_ret_1m | %1,8 |
 | dist_high_12m | %1,1 |
 
-## 7. ARIMA (40 fonluk tabakalı örnek)
+## 7. Sitede gösterilen tahmin: drift ve konformal %80 aralık (ham getiri)
 
-Aynı 40 fon ve 24 test ayında karşılaştırma (ilk 10 bu küçük örnekte anlamlı olmadığından gösterilmez):
+| Risk grubu | Hata %10 dilimi | Hata %90 dilimi | Hata sayısı | Test dönemi kapsamı |
+|---|---|---|---|---|
+| Risk 1-2 | -%0,69 | %0,97 | 4.775 | %73,4 |
+| Risk 3-4 | -%3,48 | %2,97 | 3.642 | %75,0 |
+| Risk 5-7 | -%8,70 | %8,67 | 16.248 | %75,7 |
+| Risk değeri yok | -%4,59 | %3,05 | 3.621 | %82,6 |
+
+## 8. ARIMA (40 fonluk tabakalı örnek)
+
+Aynı fonlar ve test aylarında karşılaştırma (ilk 10 bu küçük örnekte anlamlı olmadığından gösterilmez):
 
 | Model | Örnek | MAE | RMSE | Fazla MAE | Fazla RMSE | Ham yön | PP üstü/altı yönü | Sıralama korel. |
 |---|---|---|---|---|---|---|---|---|
@@ -140,4 +139,53 @@ Aynı 40 fon ve 24 test ayında karşılaştırma (ilk 10 bu küçük örnekte a
 | Sıfır getiri | 960 | %3,62 | %4,61 | %3,76 | %4,72 | – | %70,9 | – |
 
 Seçilen mertebeler: (0,0,1) 9 fon, (1,0,0) 7 fon, (0,0,0) 6 fon, (2,0,0) 5 fon, (2,0,1) 4 fon, (1,0,1) 4 fon, (1,0,2) 3 fon, (2,0,2) 1 fon, (0,0,2) 1 fon
+
+## 9. KEŞİF VARYANTI (test sonuçları görüldükten sonra tanımlandı)
+
+Hedef: fonun aynı ay içindeki fazla getiri yüzdelik sırası. Ay içinde bütün fonlar için aynı olan özellikler (mm_ret_1m, mm_ret_12m) çıkarıldı. Hiperparametreler asıl modelinkiyle aynı, yeniden ayar yapılmadı. Sıra tahmini MAE için son eğitim ayının fazla getiri dağılımına çevrildi; asıl ölçüt sıralama korelasyonu ve ilk 10. Bu bölüm sitedeki kararı değiştirmez.
+
+| Model | Örnek | MAE | RMSE | Fazla MAE | Fazla RMSE | Ham yön | PP üstü/altı yönü | Sıralama korel. | İlk 10 (aylık) | %80 aralık kapsamı |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Drift (son 1 yılın aylık ortalaması) | 17.261 | %3,71 | %7,34 | %3,65 | %7,31 | %76,0 | %64,5 | 0,155 | %4,10 | %77,0 |
+| Momentum (son 1 ay devam eder) | 17.261 | %4,90 | %9,47 | %4,91 | %9,44 | %70,3 | %59,6 | 0,140 | %7,37 | %75,8 |
+| LightGBM, ay içi sıra hedefi (keşif) | 17.261 | %4,16 | %7,54 | %4,06 | %7,48 | %71,4 | %60,2 | 0,109 | %6,97 | %73,1 |
+| LightGBM (tüm fonlarda ortak) | 17.261 | %3,91 | %7,49 | %3,88 | %7,46 | %74,8 | %59,6 | 0,054 | %7,57 | %75,1 |
+
+**Risk 1-2**
+
+| Model | Örnek | MAE | RMSE | Fazla MAE | Fazla RMSE | Ham yön | PP üstü/altı yönü | Sıralama korel. | İlk 10 (aylık) | %80 aralık kapsamı |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Drift (son 1 yılın aylık ortalaması) | 2.911 | %0,49 | %0,81 | %0,32 | %0,73 | %99,1 | %74,5 | 0,530 | %3,64 | %80,2 |
+| LightGBM, ay içi sıra hedefi (keşif) | 2.911 | %1,29 | %1,89 | %1,13 | %1,76 | %95,7 | %60,9 | 0,465 | %3,64 | %69,4 |
+| Momentum (son 1 ay devam eder) | 2.911 | %0,54 | %1,01 | %0,55 | %1,00 | %98,6 | %61,0 | 0,460 | %3,51 | %70,0 |
+| LightGBM (tüm fonlarda ortak) | 2.911 | %0,51 | %0,84 | %0,40 | %0,78 | %99,2 | %66,7 | 0,458 | %3,44 | %77,7 |
+
+**Risk 3-4**
+
+| Model | Örnek | MAE | RMSE | Fazla MAE | Fazla RMSE | Ham yön | PP üstü/altı yönü | Sıralama korel. | İlk 10 (aylık) | %80 aralık kapsamı |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Drift (son 1 yılın aylık ortalaması) | 2.163 | %2,02 | %3,03 | %1,97 | %2,98 | %87,8 | %60,3 | 0,103 | %3,15 | %73,0 |
+| LightGBM, ay içi sıra hedefi (keşif) | 2.163 | %2,59 | %3,69 | %2,49 | %3,58 | %82,8 | %58,2 | 0,084 | %3,24 | %68,1 |
+| Momentum (son 1 ay devam eder) | 2.163 | %2,70 | %3,98 | %2,68 | %3,93 | %81,0 | %54,8 | 0,052 | %2,67 | %73,8 |
+| LightGBM (tüm fonlarda ortak) | 2.163 | %2,22 | %3,34 | %2,21 | %3,28 | %86,9 | %57,7 | 0,022 | %2,81 | %69,8 |
+
+**Risk 5-7**
+
+| Model | Örnek | MAE | RMSE | Fazla MAE | Fazla RMSE | Ham yön | PP üstü/altı yönü | Sıralama korel. | İlk 10 (aylık) | %80 aralık kapsamı |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Momentum (son 1 ay devam eder) | 9.997 | %7,11 | %11,96 | %7,10 | %11,93 | %58,0 | %56,6 | 0,111 | %7,74 | %77,0 |
+| Drift (son 1 yılın aylık ortalaması) | 9.997 | %5,36 | %9,29 | %5,32 | %9,26 | %64,7 | %58,7 | 0,070 | %4,51 | %76,0 |
+| LightGBM, ay içi sıra hedefi (keşif) | 9.997 | %5,64 | %9,41 | %5,57 | %9,36 | %60,5 | %57,2 | 0,018 | %7,67 | %74,0 |
+| LightGBM (tüm fonlarda ortak) | 9.997 | %5,62 | %9,44 | %5,59 | %9,41 | %63,0 | %53,8 | -0,002 | %7,58 | %74,1 |
+
+**Risk değeri yok**
+
+| Model | Örnek | MAE | RMSE | Fazla MAE | Fazla RMSE | Ham yön | PP üstü/altı yönü | Sıralama korel. | İlk 10 (aylık) | %80 aralık kapsamı |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Drift (son 1 yılın aylık ortalaması) | 2.190 | %2,15 | %4,57 | %2,14 | %4,55 | %84,8 | %82,1 | 0,214 | %2,66 | %81,7 |
+| Momentum (son 1 ay devam eder) | 2.190 | %2,81 | %6,09 | %2,88 | %6,09 | %77,8 | %76,4 | 0,104 | %2,45 | %79,6 |
+| LightGBM (tüm fonlarda ortak) | 2.190 | %2,30 | %4,83 | %2,34 | %4,81 | %84,1 | %78,9 | 0,029 | %1,98 | %81,3 |
+| LightGBM, ay içi sıra hedefi (keşif) | 2.190 | %2,72 | %5,00 | %2,63 | %4,93 | %77,7 | %74,7 | 0,011 | %1,80 | %78,6 |
+
+Özellik önemi: ret_1m %14,4, ret_6m %13,0, rank_ret_12m %12,4, ret_12m %10,7, vol_3m %9,3, ret_3m %8,5
 

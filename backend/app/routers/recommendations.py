@@ -6,7 +6,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.models import BacktestWindow, Fund
+from app.ml.features import HORIZON
+from app.models import BacktestWindow, Forecast, Fund
 from app.routers.funds import fund_out, stale_cutoff
 from app.schemas import (
     BacktestOut,
@@ -14,6 +15,7 @@ from app.schemas import (
     BacktestWindowOut,
     PerformanceOut,
     PerfPoint,
+    PortfolioForecast,
     PortfolioFund,
     RecommendationItem,
     RecommendationsOut,
@@ -43,13 +45,37 @@ def _perf(p: R.Performance | None) -> PerformanceOut | None:
     )
 
 
-def _portfolio(rec: R.Recommendation, perf: R.Performance | None) -> list[PortfolioFund]:
+def _portfolio(rec: R.Recommendation, perf: R.Performance | None, forecasts: dict | None = None) -> list[PortfolioFund]:
     n = len(rec.portfolio)
-    return [
-        PortfolioFund(code=r.code, name=r.name, category=r.category, weight=1 / n,
-                      period_return=perf.funds.get(r.code) if perf else None)
-        for r in rec.portfolio.itertuples()
-    ]
+    forecasts = forecasts or {}
+    out = []
+    for r in rec.portfolio.itertuples():
+        f = forecasts.get(r.code)
+        out.append(PortfolioFund(code=r.code, name=r.name, category=r.category, weight=1 / n,
+                                 period_return=perf.funds.get(r.code) if perf else None,
+                                 pred_return=f.pred_return if f else None, lo=f.lo if f else None, hi=f.hi if f else None))
+    return out
+
+
+def _portfolio_forecast(funds: list[PortfolioFund], perf: R.Performance | None) -> PortfolioForecast | None:
+    """Beklenen getiri: fonların drift tahminlerinin ağırlıklı ortalaması. %80 aralık: portföyün son 1 yıldaki
+    21 işlem günlük getirilerinin ortalamadan sapmalarının %10 ve %90 dilimleri (fonlar arasındaki ilişkiyi
+    de yansıtır). Performans serisi yoksa fon aralıklarının ağırlıklı toplamı (daha geniş, tutucu)."""
+    if not funds or any(f.pred_return is None for f in funds):
+        return None
+    exp = sum(f.weight * f.pred_return for f in funds)
+    s = perf.series["portfolio"] if perf is not None else None
+    if s is not None and len(s) > HORIZON + 20:
+        r = (s / s.shift(HORIZON) - 1).dropna()
+        dev = r - r.mean()
+        return PortfolioForecast(expected_return=exp, lo=exp + float(dev.quantile(0.10)), hi=exp + float(dev.quantile(0.90)),
+                                 horizon_days=HORIZON, interval_method=(
+                                     "Aralığın genişliği, bu dağılımın son 1 yıldaki 21 işlem günlük getirilerinin "
+                                     "dağılımından (fonlar arasındaki ilişki dahil) hesaplandı."))
+    return PortfolioForecast(expected_return=exp, lo=sum(f.weight * f.lo for f in funds), hi=sum(f.weight * f.hi for f in funds),
+                             horizon_days=HORIZON, interval_method=(
+                                 "Aralık, fonların tek tek aralıklarının ağırlıklı toplamı: hepsinin aynı anda iyi ya da "
+                                 "kötü gittiği varsayımıyla, gerçek aralıktan geniştir."))
 
 
 @router.get("", response_model=RecommendationsOut)
@@ -78,12 +104,15 @@ def recommendations(
     if not rec.portfolio.empty and rec.as_of:
         start = (pd.Timestamp(rec.as_of) - pd.DateOffset(months=12)).date()
         perf = R.performance(db, list(rec.portfolio["code"]), start, rec.as_of, R.money_market_codes(db))
+    forecasts = {f.fund_code: f for f in db.scalars(select(Forecast).where(Forecast.fund_code.in_(list(rec.portfolio["code"]))))}
+    port = _portfolio(rec, perf, forecasts)
     rule = PROFILE_RULES[profile]
     return RecommendationsOut(
         profile=profile, label=PROFILE_LABELS[profile], qualified=qualified, as_of=rec.as_of,
         risk_free_rate=rec.risk_free_rate, pool_size=rec.pool_size, risk_range=rule.risk_range,
         max_volatility=rule.max_volatility, weights=R.WEIGHTS[profile], ra_mode=R.RA_MODE[profile],
-        category_limit=R.CATEGORY_LIMIT, items=items, portfolio=_portfolio(rec, perf), performance=_perf(perf),
+        category_limit=R.CATEGORY_LIMIT, items=items, portfolio=port, performance=_perf(perf),
+        portfolio_forecast=_portfolio_forecast(port, perf),
     )
 
 

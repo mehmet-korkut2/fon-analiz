@@ -32,6 +32,7 @@ class UpdateResult:
     funds_updated: int = 0
     new_prices: int = 0
     metrics: dict | None = None
+    ml: dict | None = None
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self):
@@ -133,6 +134,13 @@ def run_update(
                 except Exception as e:
                     log.exception("Geriye dönük test başarısız")
                     result.errors.append(f"geriye dönük test: {e}")
+                try:
+                    from app.ml import job as ml_job  # lightgbm yüklemesi sadece burada
+
+                    result.ml = ml_job.run(db)  # ~15 sn; ayda bir ~2 dk (değerlendirme raporu)
+                except Exception as e:
+                    log.exception("ML işi başarısız")
+                    result.errors.append(f"ML: {e}")
 
         result.status = "partial" if result.errors else "ok"
         return result

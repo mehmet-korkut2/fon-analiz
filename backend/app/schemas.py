@@ -189,6 +189,18 @@ class PortfolioFund(BaseModel):
     category: str | None
     weight: float
     period_return: float | None = None  # performans dönemindeki getirisi
+    pred_return: float | None = None  # 1 aylık drift tahmini (forecasts tablosu)
+    lo: float | None = None  # %80 aralık
+    hi: float | None = None
+
+
+class PortfolioForecast(BaseModel):
+    """Portföyün 1 aylık beklenen getirisi (fonların drift tahminlerinin ağırlıklı ortalaması) ve %80 aralık."""
+    expected_return: float
+    lo: float
+    hi: float
+    horizon_days: int
+    interval_method: str  # aralığın nasıl hesaplandığı (kullanıcıya gösterilir)
 
 
 class RecommendationsOut(BaseModel):
@@ -206,6 +218,7 @@ class RecommendationsOut(BaseModel):
     items: list[RecommendationItem]
     portfolio: list[PortfolioFund]
     performance: PerformanceOut | None
+    portfolio_forecast: PortfolioForecast | None = None
 
 
 class BacktestWindowOut(BaseModel):
@@ -237,3 +250,25 @@ class BacktestOut(BaseModel):
     data_as_of: date | None
     summary: BacktestSummary | None  # tablo boşsa (henüz hesaplanmadıysa) None
     windows: list[BacktestWindowOut]
+
+
+class ForecastOut(BaseModel):
+    code: str
+    as_of: date
+    horizon_days: int
+    method: str  # drift
+    method_label: str
+    pred_return: float
+    lo: float  # %80 aralığın alt ucu
+    hi: float
+    risk_group: str
+    risk_group_label: str
+    coverage: float | None  # aralığın test dönemindeki kapsama oranı (bu risk grubunda)
+    note: str  # "Bu bir ML tahmini değildir; ..."
+    model_note: str | None = None  # LightGBM'in bu risk grubundaki sonucu
+
+
+class MlPerformanceOut(BaseModel):
+    created_at: str
+    data_as_of: date
+    report: dict  # app/ml/report.build_report çıktısı

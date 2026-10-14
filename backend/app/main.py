@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import scheduler
 from app.config import settings
 from app.database import init_db
-from app.routers import compare, funds, fx, rankings, recommendations, risk, status
+from app.routers import compare, funds, fx, ml, rankings, recommendations, risk, status
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -35,6 +35,7 @@ app.include_router(compare.router, prefix="/api")
 app.include_router(rankings.router, prefix="/api")
 app.include_router(risk.router, prefix="/api")
 app.include_router(recommendations.router, prefix="/api")
+app.include_router(ml.router, prefix="/api")
 app.include_router(fx.router, prefix="/api")
 app.include_router(status.router, prefix="/api")
 

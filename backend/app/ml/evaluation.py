@@ -35,15 +35,18 @@ def walk_forward(data: pd.DataFrame, origins: list[pd.Timestamp], model: Model) 
     return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 
-def add_intervals(preds: pd.DataFrame, history: pd.DataFrame | None = None, q=INTERVAL, min_n: int = 50) -> pd.DataFrame:
+def add_intervals(preds: pd.DataFrame, history: pd.DataFrame | None = None, q=INTERVAL, min_n: int = 50,
+                  scale: str = "excess") -> pd.DataFrame:
     """Konformal aralık: t'deki tahminin etrafına, t'den ÖNCE gerçekleşmiş (hedef penceresi t'den önce
     biten) tahmin hatalarının risk grubuna göre %10 ve %90 dilimleri eklenir. `history`: aynı modelin
-    ayar dönemindeki tahminleri (ilk test aylarında yeterli hata birikmesi için)."""
+    ayar dönemindeki tahminleri (ilk test aylarında yeterli hata birikmesi için). `scale`: "excess" (fazla
+    getiri, model karşılaştırması) ya da "raw" (ham getiri, sitede gösterilen tahmin)."""
     preds = preds.copy()
     preds["lo"] = np.nan
     preds["hi"] = np.nan
     pool = pd.concat([history, preds]) if history is not None else preds
-    pool = pool.assign(resid=pool["y_excess"] - pool["pred_excess"])
+    y, pred = ("y", "pred_raw") if scale == "raw" else ("y_excess", "pred_excess")
+    pool = pool.assign(resid=pool[y] - pool[pred])
     for t in preds["date"].unique():
         known = pool[pool["end"] < t]  # bir tahminin hatası, hedef penceresi bittikten sonra bilinir
         for g in RISK_GROUPS:
@@ -54,9 +57,15 @@ def add_intervals(preds: pd.DataFrame, history: pd.DataFrame | None = None, q=IN
                 continue
             lo, hi = r.quantile(q[0]), r.quantile(q[1])
             m = (preds["date"] == t) & (preds["risk_group"] == g)
-            preds.loc[m, "lo"] = preds.loc[m, "pred_excess"] + lo
-            preds.loc[m, "hi"] = preds.loc[m, "pred_excess"] + hi
+            preds.loc[m, "lo"] = preds.loc[m, pred] + lo
+            preds.loc[m, "hi"] = preds.loc[m, pred] + hi
     return preds
+
+
+def coverage(preds: pd.DataFrame, scale: str = "excess") -> float:
+    y, _ = ("y", "pred_raw") if scale == "raw" else ("y_excess", "pred_excess")
+    m = preds["lo"].notna()
+    return float(((preds.loc[m, y] >= preds.loc[m, "lo"]) & (preds.loc[m, y] <= preds.loc[m, "hi"])).mean()) if m.any() else float("nan")
 
 
 def _top(g: pd.DataFrame, n: int = TOP_N) -> float:

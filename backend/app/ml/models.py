@@ -72,24 +72,30 @@ class LightGBM(Model):
         self.params = {**LGBM_DEFAULTS, **params}
         self.booster = None
 
+    @property
+    def features(self) -> list[str]:
+        from app.ml.features import FEATURES
+
+        return FEATURES
+
+    def target(self, train: pd.DataFrame) -> pd.Series:
+        y = train["y_excess"]
+        return y.clip(y.quantile(TARGET_CLIP[0]), y.quantile(TARGET_CLIP[1]))
+
     def fit(self, train: pd.DataFrame) -> "LightGBM":
         # LightGBM'in kendi arayüzü (lgb.train): sklearn arayüzü scikit-learn bağımlılığı istiyor
         import lightgbm as lgb
 
-        from app.ml.features import CATEGORICAL, FEATURES
+        from app.ml.features import CATEGORICAL
 
-        y = train["y_excess"]
-        lo, hi = y.quantile(TARGET_CLIP[0]), y.quantile(TARGET_CLIP[1])
         p = dict(self.params)
         rounds = p.pop("n_estimators")
-        ds = lgb.Dataset(train[FEATURES], y.clip(lo, hi), categorical_feature=CATEGORICAL, free_raw_data=False)
+        ds = lgb.Dataset(train[self.features], self.target(train), categorical_feature=CATEGORICAL, free_raw_data=False)
         self.booster = lgb.train(p, ds, num_boost_round=rounds)
         return self
 
     def predict_excess(self, test: pd.DataFrame) -> pd.Series:
-        from app.ml.features import FEATURES
-
-        return pd.Series(self.booster.predict(test[FEATURES]), index=test.index)
+        return pd.Series(self.booster.predict(test[self.features]), index=test.index)
 
     def predict(self, train, test):
         self.fit(train)
@@ -97,10 +103,42 @@ class LightGBM(Model):
         return pd.DataFrame({"pred_raw": test["mm_level"] + ex, "pred_excess": ex}, index=test.index)
 
     def importance(self) -> pd.Series:
+        imp = self.booster.feature_importance(importance_type="gain")
+        return pd.Series(imp, index=self.features).sort_values(ascending=False) / imp.sum()
+
+
+# Asıl LightGBM'in ayar döneminde seçilen hiperparametreleri (scripts/ml_degerlendir, 14.10.2026).
+# Aylık yeniden değerlendirme yeniden ayar yapmaz; ayar dönemi sabittir.
+BEST_PARAMS = {"num_leaves": 15, "min_child_samples": 100, "n_estimators": 150}
+
+# Ay içinde bütün fonlar için aynı değeri alan özellikler (keşif varyantında çıkarılır)
+MONTH_CONSTANT = ["mm_ret_1m", "mm_ret_12m"]
+
+
+class LightGBMRank(LightGBM):
+    """KEŞİF VARYANTI (test sonuçları görüldükten sonra tanımlandı): hedef, fonun aynı ay içindeki
+    fazla getiri yüzdelik sırası; ay içinde sabit özellikler çıkarılır. Hiperparametreler asıl
+    modelinkiyle aynı (yeniden ayar yok). Sıra tahmini, MAE hesaplanabilsin diye son eğitim ayının
+    fazla getiri dağılımının ilgili dilimine çevrilir; asıl ölçüt sıralama metrikleridir."""
+    name, label = "lightgbm_sira", "LightGBM, ay içi sıra hedefi (keşif)"
+
+    @property
+    def features(self) -> list[str]:
         from app.ml.features import FEATURES
 
-        imp = self.booster.feature_importance(importance_type="gain")
-        return pd.Series(imp, index=FEATURES).sort_values(ascending=False) / imp.sum()
+        return [f for f in FEATURES if f not in MONTH_CONSTANT]
+
+    def target(self, train: pd.DataFrame) -> pd.Series:
+        return train.groupby("date")["y_excess"].rank(pct=True)
+
+    def predict(self, train, test):
+        import numpy as np
+
+        self.fit(train)
+        score = self.predict_excess(test).clip(0, 1)
+        last = train.loc[train["date"] == train["date"].max(), "y_excess"]
+        ex = pd.Series(np.quantile(last, score), index=test.index)
+        return pd.DataFrame({"pred_raw": test["mm_level"] + ex, "pred_excess": ex}, index=test.index)
 
 
 # --- ARIMA: fon bazında, günlük log getiriler üzerinde ------------------------------------
