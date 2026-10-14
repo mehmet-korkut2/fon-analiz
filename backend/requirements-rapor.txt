@@ -1,0 +1,4 @@
+# Yalnızca rapor üretimi için (scripts/rapor_gorselleri, scripts/rapor_olustur)
+matplotlib==3.11.2
+python-docx==1.2.0
+pywin32==312; sys_platform == "win32"
