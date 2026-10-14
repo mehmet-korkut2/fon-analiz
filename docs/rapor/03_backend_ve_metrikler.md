@@ -6,7 +6,7 @@ Bu aşamada, toplanan fiyatlardan fonların performans ve risk metriklerini hesa
 
 ## 3.2 API
 
-FastAPI [2] ile şu uç noktaları sunduk (`app/routers/`):
+FastAPI [1] ile şu uç noktaları sunduk (`app/routers/`):
 
 | Uç nokta | İşlev |
 |---|---|
@@ -32,7 +32,7 @@ Bütün oranlar ondalık kesir olarak saklanır (0,25 = %25). Tanımlar (`app/se
 | Dönem getirisi (1, 3, 6 ay, 1 yıl, 3 yıl) | Son fiyat / dönem başındaki (ya da öncesindeki son) fiyat − 1; dönem başında 7 günden eski fiyat varsa hesaplanmaz |
 | Yılbaşından bu yana | Son fiyat / önceki yılın son fiyatı − 1 |
 | Volatilite (1 yıl) | Günlük getirilerin standart sapması × √252 |
-| Sharpe oranı (1 yıl) [13] | (1 yıllık getiri − risksiz getiri) / 1 yıllık volatilite |
+| Sharpe oranı (1 yıl) [20] | (1 yıllık getiri − risksiz getiri) / 1 yıllık volatilite |
 | Maksimum düşüş (1 yıl) | Bir zirveden sonraki en büyük yüzde kayıp |
 
 3 yıllık getiri yıllıklandırılmadan, toplam getiri olarak gösterilir. Metrikler her gece bütün fonlar için yeniden hesaplanıp `fund_metrics` tablosuna yazılır. Bu işlem 1.071 fon için yaklaşık 8,5 saniye sürmektedir. Bu sayede liste sayfası binden fazla fonun metriklerini veritabanından tek sorguyla okuyabilmektedir.
@@ -89,7 +89,7 @@ Sıralamalar sayfasında en yüksek Sharpe oranları gerçek dışı görünüyo
 - **%8 ve %10:** İlk 10'u değiştirmiyor, yalnızca daha fazla fonu dışarıda bırakıyordu.
 - **%5:** Doğal kırılma noktası.
 
-Bu yüzden **1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe oranını hesaplamamaya** karar verdik. %5, SPK/ESMA risk göstergesi yönteminde 3. risk sınıfının üst sınırıdır [14].
+Bu yüzden **1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe oranını hesaplamamaya** karar verdik. %5, SPK/ESMA risk göstergesi yönteminde 3. risk sınıfının üst sınırıdır [21].
 
 - **Etkisi:** 318 fon Sharpe değeri almıyor. Bunların 164'ü serbest, 49'u katılım, 46'sı para piyasası fonu.
 - **Arayüzde:** Bu fonlarda Sharpe yerine "volatilite çok düşük, Sharpe anlamlı değil" notu gösteriliyor.

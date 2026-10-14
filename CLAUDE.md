@@ -9,7 +9,7 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
 - Windows, PowerShell. Python 3.13, Node.js 24.
 - Backend sanal ortamı: `backend\.venv` (komutlardan önce `backend\.venv\Scripts\activate`).
 - Veritabanı: yerelde SQLite (`backend\fon.db`, git'e girmez).
-- **Yayın yok:** Uygulama yayına alınmayacak; sunumda kendi bilgisayarında çalışacak. PostgreSQL, Render/Vercel, gece işini sunucuya taşıma, alan adı ve Alembic `YOL_HARITASI.md`'de "Gelecek çalışmalar"da. Öncelik: tek tıkla başlatma, internetsiz çalışma (döviz ve KAP için son bilinen veri), sunum öncesi veritabanı yedeği/geri yükleme.
+- **Yayın yok:** Uygulama yayına alınmayacak; sunumda kendi bilgisayarında çalışacak. PostgreSQL, Render/Vercel, gece işini sunucuya taşıma, alan adı ve Alembic `YOL_HARITASI.md`'de "Gelecek çalışmalar"da. Öncelik: tek tıkla başlatma, internetsiz çalışma (döviz için son bilinen veri), sunum öncesi veritabanı yedeği/geri yükleme.
 
 ## Yapı
 
@@ -52,6 +52,7 @@ npm run lint
 - Metrikler ondalık kesir olarak saklanır (0.25 = %25). Sharpe için risksiz getiri: para piyasası fonlarının 1 yıllık medyan getirisi.
 - 1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe hesaplanmaz (`MIN_VOL_FOR_SHARPE`), API `sharpe_note` döner. Bu fonlar para piyasası benzeri: fiyat neredeyse doğrusal, volatilitenin çoğu pazartesiye yansıyan hafta sonu faizi. TEFAS fiyatları her gün değişiyor; "fiyatı seyrek güncellenen fon" sorunu veride yok (incelendi, 13.10.2026).
 - Kullanıcıya yatırım tavsiyesi verilmez; arayüzde uyarı metinleri korunmalı.
+- KAP verisi (bildirimler, portföy dağılım raporları, KAP'ın fon listesi) saklanmaz ve uygulamada gösterilmez: KAP'ın kullanım koşulu MKK'nın yazılı izni olmadan kopyalamayı ve "ileride kullanılmak üzere saklamayı" yasaklıyor. Fon detayında yalnızca KAP'ın yatırım fonları listesine bağlantı var (`KAP_FUNDS_URL`).
 - Her iş bittiğinde ilgili rapor bölümünü (`docs/rapor/NN_*.md`) da güncelle: birinci çoğul şahıs, sayılar gerçek veriden, emin olunmayan yer `[DOLDUR: ...]`. Görseller `python -m scripts.rapor_gorselleri`, Word/PDF `python -m scripts.rapor_olustur` (Word gerekir; bağımlılıklar `requirements-rapor.txt`).
 - `funds.status`: SPK Bülteni 2026/60 ile 7 şirketin (Tera, Pusula, Hedef, Atlas, A1 Capital, Pardus, Bulls) fonları `islem_kapali`, tasfiye listesindekiler (`app/data/spk_2026_60_tasfiye.txt`) `islem_kapali_tasfiye`. Bu fonlar ve eski verili fonlar (son fiyatı 7 günden eski) listede varsayılan olarak gizli; sıralamaya ve risksiz getiriye girmez. TEFAS'ın `tefasDurum` alanı bu fonlar için `true` geliyor, kullanılamıyor.
 - Fiyat verisi değiştirilmez. Tek günlük sıçrayıp ertesi gün geri dönen fiyatlar sadece metrik hesabında yok sayılır (`data_quality.drop_one_day_glitches`).

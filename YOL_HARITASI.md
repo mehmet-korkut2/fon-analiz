@@ -28,7 +28,7 @@ Son güncelleme: 13 Ekim 2026
 - [ ] Emeklilik (EMK) fonlarını ekle: `python -m scripts.tefas_yukle --tip EMK --limit 0`
 - [x] Veri doğrulama: 5 fonun fiyatı TEFAS sitesiyle birebir eşleşti
 - [x] Şüpheli fiyat sıçramaları için karar ver: SPK kararı ile işaretlendi (SPK Bülteni 2026/60, `python -m scripts.fon_durumu_isaretle`)
-- [ ] Portföy dağılımı kararı: TEFAS artık bu veriyi vermiyor. Başka kaynak (ör. KAP aylık raporları) bul ya da özelliği çıkar
+- [x] Portföy dağılımı kararı: özellik çıkarıldı. KAP raporları teknik olarak sınırda uygun (%73) ama KAP kullanım koşulu veriyi saklamayı yazılı izne bağlıyor; KAP verisi saklanmaz/gösterilmez, fon detayında sadece KAP bağlantısı var (`docs/rapor/02_veri_toplama.md`, 2.8)
 - [x] Backend açılışında eksik günleri otomatik tamamla (bilgisayar 21:00'de kapalıysa)
 - [ ] Ara değerlendirme: danışmana ilerlemeyi göster
 
@@ -88,7 +88,7 @@ Son güncelleme: 13 Ekim 2026
 
 - [ ] Uçtan uca test, hata düzeltme
 - [ ] Tek tıkla başlatma: backend + frontend + tarayıcı birlikte açılsın
-- [ ] İnternetsiz çalışma: döviz ve KAP için son bilinen veri gösterilsin (sunumda bağlantı olmayabilir)
+- [ ] İnternetsiz çalışma: döviz için son bilinen veri gösterilsin (sunumda bağlantı olmayabilir)
 - [ ] Sunum öncesi veritabanı yedeği ve geri yükleme komutu
 - [ ] Kullanıcı testi: 3–5 kişiye kullandır
 - [ ] Rapor: giriş, literatür, yöntem, ML sonuçları, sonuç, kaynakça

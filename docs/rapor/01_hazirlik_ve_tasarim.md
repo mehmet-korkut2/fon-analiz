@@ -25,13 +25,13 @@ TEFAS'ta binden fazla yatırım fonu işlem görmektedir. Fonların resmî sayfa
 
 ## 1.3 Yöntem ve araçlar
 
-**Teknoloji.** Backend Python 3.13 ile FastAPI [2] ve SQLAlchemy 2.0 [4] üzerine kuruldu; veri işleme için pandas [6], zamanlanmış görevler için APScheduler kullanıldı. Veritabanı yerelde SQLite'tır. Frontend React 19 [3] ve Vite ile yazıldı; grafikler için Recharts [5] kullanıldı. Testler pytest ile, ön yüz kod denetimi ESLint ile yapıldı.
+**Teknoloji.** Backend Python 3.13 ile FastAPI [1] ve SQLAlchemy 2.0 [2] üzerine kuruldu; veri işleme için pandas [3], zamanlanmış görevler için APScheduler kullanıldı. Veritabanı yerelde SQLite'tır. Frontend React 19 [4] ve Vite ile yazıldı; grafikler için Recharts [5] kullanıldı. Testler pytest ile, ön yüz kod denetimi ESLint ile yapıldı.
 
 **Geliştirme süreci.** İşleri yedi aşamalı bir yol haritasına (`YOL_HARITASI.md`) böldük ve her aşamayı küçük, test edilebilir adımlarla ilerlettik. Her anlamlı adım ayrı bir git commit'i olarak kaydedildi; bu raporun geriye dönük bölümleri bu kayıtlara dayanmaktadır.
 
-**Yapay zekâ araçlarının kullanımı.** Geliştirmede Anthropic'in Claude modelini ve komut satırı aracı Claude Code'u [1] kullandık. Kodun büyük bölümü, analiz betikleri ve bu raporun ilk taslakları Claude Code ile, bizim yönlendirmemizle yazıldı. Bu süreçte şu ilkeleri uyguladık:
+**Yapay zekâ araçlarının kullanımı.** Geliştirmede Anthropic'in Claude modelini ve komut satırı aracı Claude Code'u [6] kullandık. Kodun büyük bölümü, analiz betikleri ve bu raporun ilk taslakları Claude Code ile, bizim yönlendirmemizle yazıldı. Bu süreçte şu ilkeleri uyguladık:
 
-- **Kararlar bize aittir.** Kapsam, yöntem ve tasarım kararlarını biz verdik. Örnekler: hedef değişkenin fiyat değil getiri olması, SPK kararıyla kapatılan fonların veriden silinmeyip işaretlenmesi, Sharpe için %5 volatilite eşiği, dengeli profilde riskli fon kotası, başarısız modelin tahminlerinin sitede gösterilmemesi ve uygulamanın yayına alınmaması. Claude seçenekleri, gerekçeleri ve veriden elde ettiği sayıları sundu; seçimi biz yaptık.
+- **Kararlar bize aittir.** Kapsam, yöntem ve tasarım kararlarını biz verdik. Örnekler: hedef değişkenin fiyat değil getiri olması, SPK kararıyla kapatılan fonların veriden silinmeyip işaretlenmesi, Sharpe için %5 volatilite eşiği, dengeli profilde riskli fon kotası, başarısız modelin tahminlerinin sitede gösterilmemesi, uygulamanın yayına alınmaması ve KAP'ın kullanım koşulu nedeniyle KAP verisinin hiç kullanılmaması. Claude seçenekleri, gerekçeleri ve veriden elde ettiği sayıları sundu; seçimi biz yaptık.
 - **Çıktılar doğrulandı.** Her değişiklikten sonra otomatik testler (`pytest`; şu an 90 test), ön yüz için `npm run lint` ve `npm run build` çalıştırıldı. Veri iddiaları kaynağa karşı doğrulandı: TEFAS'tan yeniden çekilen fiyatlar veritabanıyla gün gün karşılaştırıldı, SPK kararı bülten ve haber kaynaklarıyla kontrol edildi.
 - **Ölçümler gerçek ortamda yapıldı.** Arayüz değişiklikleri tarayıcıda ekran görüntüsü ve sayfa genişliği ölçümüyle kontrol edildi.
 - **Hatalar kayıt altına alındı.** Yapay zekânın yaptığı hatalar düzeltilip commit geçmişine işlendi. Örnekler: bağımlılıkların yanlış dosyaya yazılması, Türkçe eklerin sayıya göre yanlış çekimlenmesi, doğrulanmamış bir literatür iddiası.
@@ -71,7 +71,7 @@ Henüz bir migration aracına (Alembic) geçmediğimiz için, mevcut tablolara s
 
 ## 1.7 Proje takvimi
 
-Git kayıtlarına göre kodlama 11.10.2026'da proje iskeletiyle başladı; veri toplama aynı gün, metrikler ve ön yüz sayfaları 13.10.2026'da, risk anketi ve öneri sistemi 13.10.2026'da, makine öğrenmesi modülü 14.10.2026'da tamamlandı. [DOLDUR: Git kaydından önceki hazırlık süreci (proje fikri, tanıtım yazısı, mimari diyagram, taslaklar) ve tarihleri.]
+Git kayıtlarına göre kodlama 11.10.2026'da proje iskeletiyle başladı; veri toplama aynı gün, metrikler ve ön yüz sayfaları 13.10.2026'da, risk anketi ve öneri sistemi 13.10.2026'da, makine öğrenmesi modülü 14.10.2026'da tamamlandı. Aynı gün uygulamanın yayına alınmama kararını aldık; raporu ve rapor üretme betiğini hazırladık; KAP fizibilite denemesini ve veri kaynaklarının kullanım koşulları incelemesini yaptık (Bölüm 2.8 ve 2.9). [DOLDUR: Git kaydından önceki hazırlık süreci (proje fikri, tanıtım yazısı, mimari diyagram, taslaklar) ve tarihleri.]
 
 ## 1.8 Kısıtlar
 

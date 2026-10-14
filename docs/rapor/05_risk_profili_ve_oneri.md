@@ -16,7 +16,7 @@ Anket 8 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur (`app/servi
 | Hedef | ×2 | Risk isteğini ölçer |
 | Birikim payı (yatırılacak tutar birikimin ne kadarı?) | ×2 | Kapasite: aynı kayıp birikimin küçük bir kısmında katlanılabilir, tamamında katlanılamaz |
 | Gelir istikrarı, acil durum birikimi, deneyim | ×1 | Destekleyici etkenler |
-| Nitelikli yatırımcı | puana girmez | Serbest fonlar yalnızca nitelikli yatırımcıya satılabilir [15]; "Evet" ise serbest fonlar da önerilir |
+| Nitelikli yatırımcı | puana girmez | Serbest fonlar yalnızca nitelikli yatırımcıya satılabilir [22]; "Evet" ise serbest fonlar da önerilir |
 
 **Profil eşikleri ve risk aralıkları:**
 
@@ -26,7 +26,7 @@ Anket 8 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur (`app/servi
 | 40–69 | Dengeli | 2–5 | en fazla %15 | 163 fon |
 | 70–100 | Agresif | 4–7 | sınır yok | 382 fon |
 
-Volatilite sınırı, TEFAS risk değerinin güncel olmadığı durumlara karşı ikinci bir kontroldür. %5 ve %15, SPK/ESMA risk göstergesi yönteminde 3. ve 5. risk sınıflarının üst sınırlarıdır [14].
+Volatilite sınırı, TEFAS risk değerinin güncel olmadığı durumlara karşı ikinci bir kontroldür. %5 ve %15, SPK/ESMA risk göstergesi yönteminde 3. ve 5. risk sınıflarının üst sınırlarıdır [21].
 
 **Sınırlayıcı kurallar.** Toplama dayalı bir puanda bir sorudaki düşük cevap, diğerlerinin yüksekliğiyle telafi edilebilir. Bu yüzden puandan bağımsız şu kuralları koyduk:
 

@@ -21,7 +21,7 @@ Backend'de 90 otomatik test bulunmaktadır (Bölüm 3.6). Ön yüz her değişik
 Uygulamayı şimdilik yayına almama, sunumda geliştiricinin bilgisayarında çalıştırma kararı aldık. Bu karar doğrultusunda planlanan işler:
 
 - **Tek tıkla başlatma:** backend, frontend ve tarayıcının tek komutla açılması. [DOLDUR]
-- **İnternetsiz çalışma:** döviz ve KAP verileri için son bilinen değerlerin gösterilmesi. [DOLDUR]
+- **İnternetsiz çalışma:** döviz kurları için son bilinen değerlerin gösterilmesi. [DOLDUR]
 - **Veritabanı yedeği ve geri yükleme komutu.** [DOLDUR]
 
 ## 7.5 Kullanıcı testi

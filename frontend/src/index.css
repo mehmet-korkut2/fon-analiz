@@ -11,6 +11,7 @@ a { color: #0f7a5c; text-decoration: none; }
 .main { max-width: 960px; margin: 0 auto; padding: 24px; }
 .status { font-weight: 600; }
 .hint { color: #5d6b65; }
+.kap-link { margin: 24px 0 0; }
 table { width: 100%; border-collapse: collapse; background: #fff; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #dde4e1; }
 

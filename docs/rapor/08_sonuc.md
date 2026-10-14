@@ -22,8 +22,10 @@ Yol haritasında "Gelecek çalışmalar" başlığına aldığımız işler:
 - Gece güncellemesinin sunucuya taşınması (zamanlanmış görev).
 - Alan adı.
 - Şema değişiklikleri için Alembic'e geçiş.
+- KAP portföy dağılım raporlarından fonların varlık dağılımı: MKK'dan yazılı izin alınırsa (Bölüm 2.8).
+- Yayına alma ya da ticari kullanım durumunda TEFAS verisi için resmî kaynağa (Borsa İstanbul veri yayın ürünleri) geçilmesi (Bölüm 2.9).
 
-[DOLDUR: KAP portföy dağılımı (fizibilite sonucuna göre), kullanıcı girişi ve favoriler, BIST 100 / enflasyon / mevduat kıyası, LSTM (Bölüm 6.8).]
+[DOLDUR: kullanıcı girişi ve favoriler, BIST 100 / enflasyon / mevduat kıyası, LSTM (Bölüm 6.8).]
 
 ## 8.5 Kişisel değerlendirme
 

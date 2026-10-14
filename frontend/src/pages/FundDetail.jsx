@@ -15,6 +15,9 @@ const FORECAST = '#2a78d6' // tahmin: fiyattan ayrı bir renk (kategorik paletin
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
 
+// KAP'ın fon sayfası adresi KAP'ın kendi fon kimliğini istiyor; KAP verisi saklanmadığı için
+// (kullanım koşulu, docs/rapor/02_veri_toplama.md 2.8) yatırım fonları listesine yönlendiriyoruz.
+const KAP_FUNDS_URL = 'https://www.kap.org.tr/tr/YatirimFonlari/YF'
 const FUND_TYPES = { YAT: 'Yatırım fonu', EMK: 'Emeklilik fonu', BYF: 'Borsa yatırım fonu' }
 
 // [alan, başlık, açıklama]
@@ -382,6 +385,11 @@ export default function FundDetail() {
       ) : (
         <p className="muted">Bu fon için henüz metrik hesaplanmadı.</p>
       )}
+
+      <p className="small kap-link">
+        <a href={KAP_FUNDS_URL} target="_blank" rel="noopener noreferrer">Bu fonun KAP bildirimlerini görüntüle ↗</a>
+        <span className="muted"> KAP'ın yatırım fonları listesi açılır; arama kutusuna {fund.code} yazarak fonu bulabilirsiniz.</span>
+      </p>
 
       <p className="hint">
         Veriler TEFAS'tan alınır. Geçmiş performans gelecekteki sonuçların göstergesi değildir. Bu site yatırım tavsiyesi vermez.

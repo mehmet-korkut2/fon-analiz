@@ -423,8 +423,16 @@ def main(argv=None):
         sys.exit(f"{docx} yazılamadı; Word'de açıksa kapatın.")
     print(f"docx: {docx}")
 
-    if word_ile_guncelle(docx, None if args.no_pdf else pdf):
-        if not args.no_pdf:
+    pdf_yaz = not args.no_pdf
+    if pdf_yaz and pdf.exists():
+        try:
+            pdf.open("ab").close()
+        except PermissionError:
+            print(f"{pdf} bir görüntüleyicide açık; PDF üretilmedi, kapatıp yeniden çalıştırın.")
+            pdf_yaz = False
+
+    if word_ile_guncelle(docx, pdf if pdf_yaz else None):
+        if pdf_yaz:
             print(f"pdf:  {pdf}")
     else:
         guncelleme_iste(docx)

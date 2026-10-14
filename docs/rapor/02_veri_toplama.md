@@ -15,7 +15,7 @@ Değişikliğin bizi doğrudan etkileyen sonuçları:
 
 - **Kaldırılan alanlar:** Portföy dağılımı, yatırımcı sayısı ve fon büyüklüğü artık yayımlanmıyor. Veritabanında bu alanlar boş kalabiliyor; varlık dağılımı özelliği şimdilik uygulanmadı (Bölüm 2.8).
 - **Sınırlı fiyat geçmişi:** En fazla 60 ay geriye gidiyor ve dönem parametresi yalnızca 1, 3, 6, 12, 36 ve 60 ay olabiliyor. İstemci, istenen süreyi bunlardan en yakın büyüğüne yuvarlıyor.
-- **Resmî olmayan erişim:** Uç noktalar resmî ve belgelenmiş bir API değil, sitenin kullandığı adresler. Siteyi yormamak için istekler arasında 0,5 saniye bekliyor, hata durumunda üç kez ve artan aralıklarla yeniden deniyoruz.
+- **Resmî olmayan erişim:** Uç noktalar resmî ve belgelenmiş bir API değil, sitenin kullandığı adresler; TEFAS dışarıya API sunmadığını belirtmektedir (Bölüm 2.9). Siteyi yormamak için istekler arasında 0,5 saniye bekliyor, hata durumunda üç kez ve artan aralıklarla yeniden deniyoruz.
 
 ## 2.3 Veri yükleme ve günlük güncelleme
 
@@ -95,11 +95,95 @@ Bu karar üzerine şunları yaptık:
 
 ## 2.8 Portföy dağılımı ve KAP
 
-TEFAS'ın portföy dağılımını yayımlamayı bırakması nedeniyle fonların varlık dağılımını gösteren özellik uygulanamadı. Alternatif kaynak olarak Kamuyu Aydınlatma Platformu'ndaki (KAP) aylık portföy dağılım raporlarının kullanılabilirliği değerlendirilmektedir. [DOLDUR: KAP fizibilite sonucu ve KAP bildirimleri entegrasyonu; erişimin resmî olmayan yoldan yapıldığı ve kısıtları.]
+TEFAS portföy dağılımını yayımlamayı bıraktığı için fonların varlık dağılımını gösteremiyorduk. Alternatif kaynak olarak Kamuyu Aydınlatma Platformu'nda (KAP) [13] yayımlanan "Portföy Dağılım Raporu" bildirimlerini değerlendirdik. Fizibilite denemesini 14.10.2026'da yaptık ve süreyi en fazla iki saatle sınırladık.
 
-## 2.9 Kısıtlar
+**Erişim.** KAP'ın resmî ve belgelenmiş bir API'sini bulamadık. Denemede, TEFAS'ta olduğu gibi sitenin kendi kullandığı adresleri kullandık ve istekler arasında en az bir saniye bekledik:
 
-- TEFAS ve Truncgil erişimi resmî ve belgelenmiş bir API'ye değil, sitelerin kullandığı adreslere dayanır; bu adresler önceden haber verilmeden değişebilir.
+- **Fon listesi:** 2.145 yatırım fonunu, TEFAS kodlarıyla birlikte veriyor.
+- **Bildirim sorgusu:** Tarih aralığı ve fon türüyle sorgulanıyor. Sonuçlar 2.000 kayıtta kesiliyor; bütün yatırım fonları için bu, yaklaşık iki günlük bildirime denk geldi.
+- **Ek dosyalar:** PDF olarak bildirilen dosyalar, başına 27 baytlık bir Java nesne başlığı eklenmiş biçimde iniyor; başlık atılınca geçerli PDF elde ediliyor.
+
+Bu adresler belgelenmemiştir, önceden haber verilmeden değişebilir. Denemenin sonunda KAP'ın güvenlik duvarı bağlantıyı kesmeye başladı.
+
+**Örneklem ve sonuç.** 12–14.10.2026 arasında yayımlanan 391 portföy dağılım raporundan, 15 farklı portföy yönetim şirketinden birer raporu rastgele seçtik (seçim tohumu sabit). Her raporda varlık sınıflarını ve yüzdelerini, yazının sayfadaki konumuna göre çıkardık. Çıkarımın doğruluğunu, yüzdelerin toplamının %100 olup olmadığıyla sınadık.
+
+**Tablo 2.1** KAP portföy dağılım raporu örneklemi
+
+| Fon | Şirket | Dönem | Biçim | Kalıp | Yüzde toplamı |
+|---|---|---|---|---|---|
+| HVT | Allbatross | Eylül 2026 | Metinli PDF | A: harfli form | %100,0 |
+| OUD | Osmanlı | 40. hafta | Metinli PDF | A | %100,0 |
+| DKR | Deniz | 40. hafta | Metinli PDF | A | %100,0 |
+| BHE | Ak | 40. hafta | Metinli PDF | A | %100,0 |
+| IAR | İstanbul | 40. hafta | Metinli PDF (2 ek) | A | %100,0 |
+| FDV | Azimut | 40. hafta | Metinli PDF | A | %100,0 |
+| ICV | TEB | 40. hafta | Metinli PDF (Excel'den) | A | %100,0 |
+| PKP | Ata | 40. hafta | Metinli PDF | B: "Kalem : %x" listesi | %100,0 |
+| RIA | Rota | 40. hafta | Metinli PDF (Excel'den) | B | %100,0 |
+| PJP | Perform | 40. hafta | Metinli PDF | B | %99,99 (bir ara toplam satırı dışlanınca) |
+| ZCD | Ziraat | 40. hafta | Düz metin PDF | C: sabit genişlikli metin | %100,0 |
+| YBH | Yapı Kredi | 40. hafta | Metinli PDF | Kendine özgü (etiket ve değer ayrı satırlarda) | Çıkarılamadı |
+| IOG | İş | 40. hafta | Metin katmanı olmayan PDF (yazılar çizim olarak) | OCR gerekir | Çıkarılamadı |
+| NKH | Neo | 40. hafta | Ek yok | Rapor yok | – |
+| BIK | Bulls | 40. hafta | Ek yok | Rapor yok | – |
+
+Örneklemde taranmış PDF ya da Excel eki çıkmadı; eklerin hepsi PDF'ti. Ek dosyası olmayan iki bildirimde, paylarını yalnızca nitelikli yatırımcılara satan fonların portföy dağılım raporu hazırlama yükümlülüğünden muaf olduğu belirtiliyordu [14].
+
+Önceden belirlediğimiz karar ölçütü şuydu: raporların en az %70'i üç ya da daha az kalıba indirgenebilmeli ve bunlardan varlık sınıfları ile yüzdeler güvenilir biçimde çıkarılabilmelidir. 15 raporun 11'i (%73) üç kalıba indirgendi ve yüzde toplamları tuttu; yani teknik ölçüt sınırda karşılandı. Ancak bu oran iyimser olabilir:
+
+- **Örneklem dar bir dönemden geldi.** 2.000 kayıt sınırı nedeniyle örneklem iki günlük bir pencereden alındı; raporların çoğu haftalık serbest fon raporuydu.
+- **Kalıpların zaman içinde sabit kalıp kalmadığı sınanmadı.** Her şirketten yalnızca bir rapora bakıldı.
+- **Kapsam fon sayısına göre daha düşük olabilir.** Kalıplara girmeyen İş ve Yapı Kredi, en çok fonu olan şirketler arasındadır.
+
+**Kullanım koşulu.** KAP'ın "Telif Hakkı ve Çekince İhbarı" metni şöyledir [15]:
+
+> "Kullanıcılar bilgi ve dokümanları, sadece bilgi edinme amacıyla kullanabilir. Burada mevcut bulunan bilgiler, MKK'nın önceden yazılı olarak izni alınmadan kısmen veya tamamen kopya edilemez, uygulamaya konulamaz, dağıtılamaz, kiralanamaz, çoğaltılamaz, alt lisansla kullandırılamaz, değiştirilemez, ileride kullanılmak üzere saklanamaz."
+
+**Karar.** Portföy dağılımı özelliğini **uygulamadık**. Teknik ölçüt sınırda karşılansa da, raporlardan çıkarılan verileri veritabanında saklamak bu koşuldaki "ileride kullanılmak üzere saklanamaz" yasağına doğrudan girmektedir. Aynı gerekçeyle KAP bildirimlerini (başlık, tarih, tür) çekip saklama ve uygulamada gösterme planından da vazgeçtik. Uygulama hiçbir KAP verisini saklamaz ve göstermez. Fon detay sayfasında yalnızca "Bu fonun KAP bildirimlerini görüntüle" bağlantısı vardır.
+
+**Bağlantı neden doğrudan fonun sayfasına gitmiyor?** KAP'ta bir fonun sayfasının adresi fon kodunu değil, KAP'ın kendi fon kimliğini içerir. Bu kimlik yalnızca KAP'ın fon listesinden öğrenilebiliyor; o listeyi saklamamaya karar verdiğimiz için kimliği de bilemiyoruz. Bu nedenle bağlantı KAP'ın yatırım fonları listesine gider. Kullanıcı orada arama kutusuna fon kodunu yazarak fonu bulur. Fizibilite denemesi sırasında indirilen dosyalar yalnızca geçici çalışma klasöründe tutuldu, projeye eklenmedi.
+
+MKK'dan yazılı izin alınması durumunda A, B ve C kalıpları için bir ayrıştırıcı yazılabilir; bu, gelecek çalışmalara bırakılmıştır (Bölüm 8.4).
+
+## 2.9 Kaynakların kullanım koşulları
+
+KAP'taki kısıtı gördükten sonra aynı kontrolü bütün veri kaynaklarımız için yaptık (14.10.2026). Her kaynağın kullanım koşulunu aradık ve verinin saklanması ve uygulamada gösterilmesi hakkında ne dediğine baktık.
+
+**TCMB.** Kullanım Şartları metni [16] şöyledir:
+
+> "TCMB internet sitesi, hiçbir kişi ve/veya kuruluşa herhangi bir konuda herhangi bir taahhüdü içermemektedir. Sitede yer alan bilgiler, kaynak gösterilmek suretiyle yayımlanabilir; ancak bu bilgilerin ticari amaçlarla kullanımı TCMB'nin yazılı iznine tabidir."
+>
+> "Site içerisindeki bilgilerin bir kısmı doğrudan, bir kısmı da diğer kaynaklardan sağlanarak TCMB tarafından yayınlanmakta olup, telif hakkı ve diğer her türlü hakkı TCMB'ye aittir."
+
+Bilgiler kaynak gösterilerek yayımlanabilir; yalnızca ticari kullanım yazılı izne bağlıdır. Saklama hakkında bir hüküm yoktur. Projemiz ticari değildir ve döviz sayfasında kaynak belirtilmektedir.
+
+**TEFAS (Takasbank).** Sitede ayrı bir kullanım koşulları sayfası bulamadık; alt menüde yalnızca kişisel verilerin korunması ve çerez metinleri vardır. Bağlayıcı metin, her sayfada yer alan "Çekince Bildirimi"dir [17]:
+
+> "Bu sitede yer alan içeriklerin bir kısmı Takasbank'tan, bir kısmı ise diğer kaynaklardan sağlanarak Takasbank tarafından yayınlanmaktadır. Burada yer alan yatırım bilgi, yorum ve tavsiyeleri yatırım danışmanlığı kapsamında değildir. […] Takasbank, bu sitede yer alan bilgilerin; doğru, yeterli, eksiksiz ve güncel olduğunu garanti etmemektedir. […] Bu sitede yer alan bilgileri kullananlar; bilgilerdeki virüs, eksiklik ve/veya hatalardan dolayı Takasbank'ın sorumlu olmadığını kabul ederler."
+
+Sıkça sorulan sorularda API ile erişim sorusuna verilen cevap ise şöyledir [18]:
+
+> "TEFAS Fon Bilgilendirme Platformu'nda yer alan veriler, çekince bildirimi kapsamında finsansal okur yazarlığın artırılması amacıyla paylaşılmaktadır. Bu kapsamda API paylaşımı yapılmamaktadır. Bununla birlikte; Borsa İstanbul tarafından dağıtımı yapılan verilere ilişkin olarak Borsamız "Pazarlama ve Satış Direktörlüğü"nün ilgili birimiyle (vyk-marketing@borsaistanbul.com) adresi üzerinden iletişime geçebilirsiniz."
+
+Saklamayı ya da göstermeyi yasaklayan bir hüküm yoktur. Ancak TEFAS dışarıya API sunmadığını açıkça belirtmektedir. Kullandığımız JSON adresleri sitenin kendi iç adresleridir; bu kullanım ne izinli ne de yasak olarak tanımlanmıştır. Verilerin paylaşılma amacının "finansal okuryazarlığın artırılması" olarak tanımlanması, projemizin eğitim amacıyla uyumludur.
+
+**Truncgil Finans.** Hiçbir kullanım koşulu bulamadık. Ürün sayfasındaki "Terms of Use" ve "Privacy Policy" bağlantıları boştur. API belgesinde [19] lisans ya da koşul alanı yoktur; tek kısıt, bir uç nokta için belirtilen "30 saniyede 2 istek" sınırıdır. Ürün sayfasında API'nin anahtarsız ve açık olduğu belirtilmektedir. Kullanımı kısıtlayan bir metin yoktur, ama açık bir izin de verilmemiştir. Kaynak, verinin doğruluğu için de hiçbir taahhütte bulunmamaktadır. Bu nedenle bu kurlar arayüzde resmî TCMB kurlarından ayrı bir sekmede, kaynağı belirtilerek gösterilmektedir.
+
+**Tablo 2.2** Veri kaynaklarının kullanım koşulları
+
+| Kaynak | Göstermek | Saklamak | Not | Projedeki kullanım |
+|---|---|---|---|---|
+| KAP | MKK'nın yazılı izni gerekli | Açıkça yasak | Resmî API yok | Kullanılmıyor; yalnızca bağlantı |
+| TCMB | Kaynak göstererek serbest | Hüküm yok | Ticari kullanım yazılı izne bağlı | Gösterge kurları, kaynak belirtilerek |
+| TEFAS | Açık yasak yok | Açık yasak yok | Dış API sunulmuyor; iç adresler kullanılıyor | Fon listesi ve fiyatlar |
+| Truncgil | Koşul yok | Koşul yok | Hiçbir taahhüt yok | Anlık kurlar, ayrı sekmede |
+
+**Değerlendirme.** Bu inceleme sonucunda kod değişikliği yapmadık. KAP dışındaki kaynaklarda kullanımımızı açıkça yasaklayan bir hüküm bulunmamaktadır. Ancak TEFAS ve Truncgil erişimi açık bir izne değil, yasak bulunmamasına dayanmaktadır. Uygulama yayına alınacak ya da ticari amaçla kullanılacak olursa TEFAS verisi için Borsa İstanbul'un veri yayın ürünleri, KAP verisi için MKK'nın yazılı izni gerekecektir.
+
+## 2.10 Kısıtlar
+
+- TEFAS erişimi resmî bir API'ye değil, sitenin kendi kullandığı adreslere dayanır; TEFAS dışarıya API sunmadığını belirtmektedir (Bölüm 2.9). Bu adresler önceden haber verilmeden değişebilir. Truncgil'in kullanım koşulu yoktur.
 - Fiyat geçmişi beş yılla sınırlıdır.
 - Fonların kategori ve risk değerinin geçmişteki hâlleri saklanmamaktadır; yalnızca güncel değerler bilinmektedir.
 - SPK kararları elle izlenmekte ve işlenmektedir.
+- Fonların portföy dağılımı gösterilmemektedir; KAP verisi kullanım koşulu nedeniyle saklanmamaktadır (Bölüm 2.8).

@@ -6,12 +6,12 @@ Bu aşamada, backend'in sunduğu verileri kullanıcıya anlaşılır, karşıla�
 
 ## 4.2 Sayfalar
 
-Ön yüz React 19 [3] ve Vite ile yazılmış tek sayfalık bir uygulamadır; grafikler Recharts [5] ile çizilir.
+Ön yüz React 19 [4] ve Vite ile yazılmış tek sayfalık bir uygulamadır; grafikler Recharts [5] ile çizilir.
 
 | Sayfa | İçerik |
 |---|---|
 | Fonlar | Arama, kategori ve risk süzgeci, metriğe göre sıralama, sayfalama; eski verili ve işleme kapatılan fonları gösterme seçeneği (Şekil 4.1) |
-| Fon detayı | Fiyat grafiği ve dönem seçici (1 ay – 5 yıl, yılbaşından bu yana), getiri ve risk kartları, kategori sırası, SPK uyarısı, 1 aylık tahmin konisi ve yatırım hesaplayıcı (Şekil 4.2) |
+| Fon detayı | Fiyat grafiği ve dönem seçici (1 ay – 5 yıl, yılbaşından bu yana), getiri ve risk kartları, kategori sırası, SPK uyarısı, 1 aylık tahmin konisi, yatırım hesaplayıcı ve KAP'ın fon listesine bağlantı (Şekil 4.2; KAP verisi saklanmaz, bkz. Bölüm 2.8) |
 | Karşılaştır | En fazla 4 fon; 100'den başlayan grafik, logaritmik ölçek seçeneği, satırdaki en iyi değeri vurgulayan metrik tablosu (Şekil 4.3) |
 | Sıralamalar | En yüksek getiri (dönem seçilebilir), en düşük volatilite, en yüksek Sharpe; kategori süzgeci |
 | Risk anketi | Sorular tek tek, ilerleme çubuğu; sonuç kartı |
