@@ -1,3 +1,0 @@
-lightgbm==4.7.0
-statsmodels==0.15.0
-scipy==1.18.1
