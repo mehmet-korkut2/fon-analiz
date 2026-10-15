@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { getForecast, getFund, getFundPrices } from '../api/client'
+import { getForecast, getFund, getFundPrices, getTechnical } from '../api/client'
 import ForecastCard from '../components/ForecastCard'
 import RiskBar from '../components/RiskBar'
+import TechnicalSummary from '../components/TechnicalSummary'
 import { num, pct, signClass, trDate } from '../format'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
 import { axisDigits, monthTicks } from '../chart'
@@ -12,6 +13,11 @@ import { isClosed } from '../fundStatus'
 
 const LINE = '#0f7a5c'
 const FORECAST = '#2a78d6' // tahmin: fiyattan ayrı bir renk (kategorik paletin 1. rengi)
+// Hareketli ortalamalar: fiyat ve tahminden ayrışan iki renk (doğrulayıcıdan geçti); 200 günlük ayrıca noktalı
+const MA = {
+  ma50: { color: '#c24a1a', label: '50 günlük ortalama', dash: undefined },
+  ma200: { color: '#a83e8c', label: '200 günlük ortalama', dash: '2 3' },
+}
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
 
@@ -42,7 +48,7 @@ function MetricCard({ label, value, cls = '', children }) {
   )
 }
 
-function ChartTooltip({ active, payload }) {
+function ChartTooltip({ active, payload, shown }) {
   if (!active || !payload?.length) return null
   const p = payload[0].payload
   const isForecast = p.price == null && p.fc != null
@@ -56,7 +62,14 @@ function ChartTooltip({ active, payload }) {
           <span className="muted small num">%80 aralık: {fmtPrice(p.band[0])} – {fmtPrice(p.band[1])}</span>
         </>
       ) : (
-        <strong className="num">{fmtPrice(p.price)} TL</strong>
+        <>
+          <strong className="num">{fmtPrice(p.price)} TL</strong>
+          {Object.entries(MA).filter(([k]) => shown?.[k] && p[k] != null).map(([k, s]) => (
+            <span key={k} className="small num">
+              <span className="legend-line" style={{ background: s.color }} /> {s.label}: {fmtPrice(p[k])}
+            </span>
+          ))}
+        </>
       )}
     </div>
   )
@@ -89,11 +102,21 @@ function withForecast(points, f) {
   return [...points.slice(0, -1), { ...last, fc: base, band: [base, base] }, ...future]
 }
 
-function PriceChart({ points, months, forecast }) {
+// Ortalama serisini fiyat noktalarına tarihe göre ekler (tek günlük hatalı fiyat günlerinde ortalama boş kalır)
+function withMa(points, series) {
+  if (!series?.length) return points
+  const byDate = new Map(series.map((s) => [s.date, s]))
+  return points.map((p) => {
+    const s = byDate.get(p.date)
+    return s ? { ...p, ma50: s.ma50, ma200: s.ma200 } : p
+  })
+}
+
+function PriceChart({ points, months, forecast, ma, shown }) {
   const daily = months <= 1 // 1 ayda ay başı tiki tek kalır; günlük tikler kullanılır
   const tickFmt = (d) => trDate(d, daily ? { day: 'numeric', month: 'short' } : { month: 'short', year: '2-digit' })
-  const data = useMemo(() => withForecast(points, forecast), [points, forecast])
-  const values = data.flatMap((p) => [p.price, ...(p.band ?? [])]).filter((v) => v != null)
+  const data = useMemo(() => withForecast(withMa(points, ma), forecast), [points, ma, forecast])
+  const values = data.flatMap((p) => [p.price, ...(p.band ?? []), shown.ma50 && p.ma50, shown.ma200 && p.ma200]).filter((v) => v != null && v !== false)
   const digits = axisDigits(Math.max(...values) - Math.min(...values))
   return (
     <ResponsiveContainer width="100%" height={320}>
@@ -114,7 +137,7 @@ function PriceChart({ points, months, forecast }) {
           tickFormatter={(v) => num(v, digits)}
           tick={{ fontSize: 12, fill: INK_MUTED }} tickLine={false} axisLine={false}
         />
-        <Tooltip content={<ChartTooltip />} cursor={{ stroke: INK_MUTED, strokeDasharray: '3 3' }} />
+        <Tooltip content={<ChartTooltip shown={shown} />} cursor={{ stroke: INK_MUTED, strokeDasharray: '3 3' }} />
         <Area
           type="linear" dataKey="price" stroke={LINE} strokeWidth={2} fill="url(#priceFill)"
           dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} connectNulls={false}
@@ -122,6 +145,8 @@ function PriceChart({ points, months, forecast }) {
         {/* Recharts 2, Fragment içindeki serileri görmez: her seri ayrı koşulla */}
         {forecast && <Area type="linear" dataKey="band" stroke="none" fill={FORECAST} fillOpacity={0.16} isAnimationActive={false} activeDot={false} />}
         {forecast && <Line type="linear" dataKey="fc" stroke={FORECAST} strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />}
+        {shown.ma50 && <Line type="linear" dataKey="ma50" stroke={MA.ma50.color} strokeWidth={1.5} dot={false} activeDot={false} isAnimationActive={false} connectNulls />}
+        {shown.ma200 && <Line type="linear" dataKey="ma200" stroke={MA.ma200.color} strokeWidth={2} strokeDasharray={MA.ma200.dash} dot={false} activeDot={false} isAnimationActive={false} connectNulls />}
       </ComposedChart>
     </ResponsiveContainer>
   )
@@ -139,6 +164,8 @@ export default function FundDetail() {
   const [loadingPrices, setLoadingPrices] = useState(true)
   const [forecast, setForecast] = useState(null)
   const [forecastMissing, setForecastMissing] = useState(null)
+  const [tech, setTech] = useState(null)
+  const [shownMa, setShownMa] = useState({ ma50: false, ma200: false })
   const [compareList, setCompareState] = useState(getCompareList)
   const updateCompare = (codes) => { setCompareList(codes); setCompareState(codes) }
 
@@ -182,6 +209,10 @@ export default function FundDetail() {
     // YBB'de baz geçen yılın son fiyatı (ret_ytd ile aynı); onu da almak için birkaç gün geriden istenir
     const apiParams = periodKey === 'YBB' ? { start: `${ytdYear - 1}-12-15` } : period[3]
     setLoadingPrices(true)
+    // Ortalamalar aynı dönem için; başarısız olursa grafik ortalamasız çizilir
+    getTechnical(fund.code, apiParams)
+      .then((d) => { if (!ignore) setTech(d) })
+      .catch(() => { if (!ignore) setTech(null) })
     getFundPrices(fund.code, apiParams)
       .then((d) => {
         if (ignore) return
@@ -314,7 +345,7 @@ export default function FundDetail() {
         </div>
         {pricesError && <p className="error">{pricesError}</p>}
         <div className={`chart${loadingPrices ? ' is-loading' : ''}`}>
-          {prices && prices.length > 1 && <PriceChart points={prices} months={months} forecast={forecast} />}
+          {prices && prices.length > 1 && <PriceChart points={prices} months={months} forecast={forecast} ma={tech?.series} shown={shownMa} />}
           {prices && prices.length <= 1 && !pricesError && <p className="muted chart-empty">Bu dönem için fiyat verisi yok.</p>}
           {!prices && <p className="muted chart-empty">Yükleniyor...</p>}
         </div>
@@ -322,6 +353,27 @@ export default function FundDetail() {
           <p className="muted small chart-note">
             <span className="legend-line legend-dashed" style={{ borderColor: FORECAST }} /> Kesikli çizgi: geçmiş eğilime dayalı
             1 aylık tahmin; açık alan: %80 aralık (ara günlerdeki genişlik yaklaşık).
+          </p>
+        )}
+        {tech && prices && prices.length > 1 && (
+          <div className="ma-toggles" role="group" aria-label="Hareketli ortalamalar">
+            {Object.entries(MA).map(([k, s]) => (
+              <label key={k} className="ma-toggle small">
+                <input type="checkbox" checked={shownMa[k]} onChange={(e) => setShownMa({ ...shownMa, [k]: e.target.checked })} />
+                <span className="legend-line" style={s.dash ? { borderTop: `3px dotted ${s.color}`, height: 0 } : { background: s.color }} />
+                {s.label}
+              </label>
+            ))}
+            {shownMa.ma200 && tech.series.every((p) => p.ma200 == null) && (
+              <span className="muted small">200 günlük ortalama için yeterli geçmiş yok.</span>
+            )}
+          </div>
+        )}
+        {tech && <TechnicalSummary summary={tech.summary} />}
+        {tech && (
+          <p className="muted small chart-note">
+            Teknik göstergeler geçmiş fiyat hareketini özetler; testlerimizde gelecekteki getiriyi tahmin etmede basit
+            ortalamadan daha iyi sonuç vermedi.
           </p>
         )}
         {prices && prices.length > 0 && (

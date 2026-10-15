@@ -251,3 +251,23 @@ def test_no_sharpe_for_near_riskless_funds(client):
     sharpe = next(l for l in client.get("/api/rankings").json()["lists"] if l["key"] == "sharpe")
     assert [f["code"] for f in sharpe["items"]] == ["HSA", "HSB"]
 
+
+
+def test_technical_indicators(client):
+    body = client.get("/api/funds/HSA/technical?months=3").json()
+    s = body["summary"]
+    assert s["as_of"] == "2026-10-09"
+    assert s["trend"] == "ustunde"  # fiyatı sürekli yükselen fon
+    assert s["ma50"] > s["ma200"]
+    r = s["range_52w"]
+    assert r["full"] is True and r["low"] < s["price"] <= r["high"]
+    assert 0.9 < r["position"] <= 1
+    # seri grafik dönemiyle aynı günlerden başlar; ortalamalar dönem başında da dolu
+    prices = client.get("/api/funds/HSA/prices?months=3").json()
+    assert body["series"][0]["date"] == prices[0]["date"]
+    assert len(body["series"]) == len(prices)
+    assert body["series"][0]["ma200"] is not None
+
+
+def test_technical_404(client):
+    assert client.get("/api/funds/YOK/technical").status_code == 404

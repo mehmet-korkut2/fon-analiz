@@ -54,6 +54,36 @@ class PricePoint(BaseModel):
     price: float
 
 
+class MaPoint(BaseModel):
+    date: date
+    ma50: float | None = None
+    ma200: float | None = None
+
+
+class Range52w(BaseModel):
+    high: float
+    high_date: date
+    low: float
+    low_date: date
+    position: float | None = None  # 0 = 52 haftalık dip, 1 = zirve
+    full: bool  # fon 52 haftadan yeniyse False
+    since: date
+
+
+class TechnicalSummary(BaseModel):
+    as_of: date
+    price: float
+    ma50: float | None = None
+    ma200: float | None = None
+    trend: str | None = None  # ustunde / altinda / esit; 200 gün dolmadıysa boş
+    range_52w: Range52w
+
+
+class TechnicalOut(BaseModel):
+    summary: TechnicalSummary
+    series: list[MaPoint]
+
+
 class FundDetail(FundOut):
     fund_type: str | None = None
     is_active: bool = True

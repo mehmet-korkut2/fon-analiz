@@ -22,6 +22,7 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
   - `app/services/risk_survey.py` + `recommender.py`: risk anketi, öneri puanlaması (dengeli profilde riskli fon kotası), örnek portföy, kayan pencereli geriye dönük test (yöntem ve gerekçeler: `docs/oneri_sistemi.md`). Geriye dönük test ~1 dk sürer; gece güncellemesinden sonra hesaplanıp `backtest_windows` tablosuna yazılır, API oradan okur
   - `app/services/fund_status.py`, `data_quality.py`: SPK kararıyla kapatılan fonlar, fiyat sıçramaları
   - `app/ml/`: 1 aylık getiri tahmini (features, models, evaluation, report, job). LightGBM drift'i geçemedi; sitede ML tahmini değil, drift + konformal %80 aralık gösterilir (`forecasts` her gece, `ml_reports` 28 günde bir). Ayrıntı: `docs/ml_tahmin.md`, rapor bölümü `docs/rapor/06_ml_tahmin.md`
+  - `app/services/technical.py`: 50/200 günlük ortalama, trend, 52 haftalık aralık (`/api/funds/{kod}/technical`)
   - `app/services/fx.py`: TCMB today.xml (resmi) + Truncgil v4 (anlık)
   - `app/scheduler.py`: APScheduler, hafta içi 21:00; açılışta veri eskiyse günceller
   - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `geriye_donuk_test`, `oneri_analizi`, `ml_degerlendir`

@@ -7,10 +7,11 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import Fund, FundMetrics, Price
-from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, MetricsOut, PricePoint
+from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, MetricsOut, PricePoint, TechnicalOut
 from app.services.fund_status import STATUS_ACTIVE, is_tradable
 from app.services.metrics import MIN_VOL_FOR_SHARPE
 from app.services.metrics_job import STALE_AFTER_DAYS
+from app.services.technical import RANGE_DAYS, WARMUP_DAYS, technical
 from app.text import tr_upper
 
 router = APIRouter(prefix="/funds", tags=["funds"])
@@ -175,3 +176,26 @@ def get_prices(
         stmt = stmt.where(Price.date <= end)
     rows = db.execute(stmt.order_by(Price.date)).all()
     return [PricePoint(date=d, price=p) for d, p in rows]
+
+
+@router.get("/{code}/technical", response_model=TechnicalOut)
+def get_technical(
+    code: str,
+    months: int = Query(12, ge=1, le=60, description="Ortalama serisi kaç aylık (start verilmezse); prices ile aynı"),
+    start: date | None = Query(None, description="Seri başlangıcı; verilirse months yok sayılır"),
+    db: Session = Depends(get_db),
+):
+    """50/200 günlük hareketli ortalama serisi (grafik dönemi için) ve son güne ait özet.
+
+    Özet (trend, 52 haftalık aralık) dönemden bağımsız, her zaman son fiyat gününe göredir.
+    """
+    code = code.upper()
+    last = db.scalar(select(func.max(Price.date)).where(Price.fund_code == code))
+    if last is None:
+        raise HTTPException(404, f"{code} için fiyat verisi yok.")
+    since = start or last - timedelta(days=round(months * 30.44))
+    load_from = min(since, last - timedelta(days=RANGE_DAYS)) - timedelta(days=WARMUP_DAYS)
+    rows = db.execute(
+        select(Price.date, Price.price).where(Price.fund_code == code, Price.date >= load_from).order_by(Price.date)
+    ).all()
+    return technical([(d, p) for d, p in rows], since)

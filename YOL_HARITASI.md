@@ -50,6 +50,8 @@ Son güncelleme: 13 Ekim 2026
 - [x] Fon listesi: tablo, filtreler, arama, sıralama, sayfalama
 - [x] Fon detay sayfası: bilgiler, metrik kartları, metrik açıklamaları
 - [x] Fiyat grafiği (Recharts) ve dönem seçici
+- [x] Teknik göstergeler: 50/200 günlük hareketli ortalama (açılıp kapatılabilir), 200 günlüğe göre trend etiketi, 52 haftalık aralık (`GET /api/funds/{kod}/technical`, `docs/rapor/04_frontend.md` 4.4)
+- [ ] Yönetim ücreti: TEFAS'ta yok (15.10.2026 incelemesi: `fonBilgiGetir`, `fonProfilBilgiGetir` ücret alanı içermiyor); kaynak kararı bekliyor, KAP kullanılmayacak
 - [x] Karşılaştırma sayfası: fon seçimi, 100'den başlayan grafik, metrik tablosu
 - [x] Sıralamalar sayfası
 - [ ] Taslaklardaki tasarımı uygula (renkler, yazı tipleri, yerleşim)

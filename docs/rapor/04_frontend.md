@@ -11,7 +11,7 @@ Bu aşamada, backend'in sunduğu verileri kullanıcıya anlaşılır, karşıla�
 | Sayfa | İçerik |
 |---|---|
 | Fonlar | Arama, kategori ve risk süzgeci, metriğe göre sıralama, sayfalama; eski verili ve işleme kapatılan fonları gösterme seçeneği (Şekil 4.1) |
-| Fon detayı | Fiyat grafiği ve dönem seçici (1 ay – 5 yıl, yılbaşından bu yana), getiri ve risk kartları, kategori sırası, SPK uyarısı, 1 aylık tahmin konisi, yatırım hesaplayıcı ve KAP'ın fon listesine bağlantı (Şekil 4.2; KAP verisi saklanmaz, bkz. Bölüm 2.8) |
+| Fon detayı | Fiyat grafiği ve dönem seçici (1 ay – 5 yıl, yılbaşından bu yana), 50 ve 200 günlük hareketli ortalama, trend etiketi ve 52 haftalık aralık (Bölüm 4.4), getiri ve risk kartları, kategori sırası, SPK uyarısı, 1 aylık tahmin konisi, yatırım hesaplayıcı ve KAP'ın fon listesine bağlantı (Şekil 4.2; KAP verisi saklanmaz, bkz. Bölüm 2.8) |
 | Karşılaştır | En fazla 4 fon; 100'den başlayan grafik, logaritmik ölçek seçeneği, satırdaki en iyi değeri vurgulayan metrik tablosu (Şekil 4.3) |
 | Sıralamalar | En yüksek getiri (dönem seçilebilir), en düşük volatilite, en yüksek Sharpe; kategori süzgeci |
 | Risk anketi | Sorular tek tek, ilerleme çubuğu; sonuç kartı |
@@ -36,13 +36,29 @@ Bu aşamada, backend'in sunduğu verileri kullanıcıya anlaşılır, karşıla�
 - **Performans:** Grafik kütüphanesi büyük olduğu için grafikli sayfaları yalnızca açıldıklarında yükledik (lazy loading). İlk açılışta indirilen paket 700 kB'tan 297 kB'a indi.
 - **Tarayıcıda saklama:** Risk profili ve karşılaştırma listesi tarayıcıda (`localStorage`) saklanır. Gizli pencerede erişilemezse sayfa yine çalışır, yalnızca hatırlamaz.
 
-## 4.4 Mobil uyum
+## 4.4 Teknik göstergeler
+
+Fon detayındaki fiyat grafiğine üç basit teknik gösterge ekledik:
+
+- **50 ve 200 günlük hareketli ortalama:** Son 50 ve 200 işlem gününün basit ortalaması. Grafikte iki ayrı çizgi olarak gösterilir ve kullanıcı her birini ayrı ayrı açıp kapatabilir; varsayılan olarak kapalıdır. Ortalamalar, grafikte seçilen dönemin başında da dolu olsun diye dönem başından 320 gün öncesinden itibaren hesaplanır. Pencere dolmadan (ör. 200 işlem gününden kısa geçmişi olan fonlarda) değer üretilmez.
+- **Trend etiketi:** Son fiyat 200 günlük ortalamanın üstündeyse "Fiyat 200 günlük ortalamanın üstünde", altındaysa "altında" yazılır. Etiket yalnızca renkle değil, ok işareti (▲/▼) ve metinle de ayrışır.
+- **52 haftalık aralık:** Son 52 haftanın en yüksek ve en düşük fiyatı, tarihleriyle birlikte. Son fiyatın bu aralıktaki yeri bir çubuk üzerinde ve yüzde olarak (%0 en düşük, %100 en yüksek) gösterilir. Fon 52 haftadan yeniyse başlık "… tarihinden beri aralık" olur.
+
+Göstergeler backend'de hesaplanır (`app/services/technical.py`, `GET /api/funds/{kod}/technical`). Metriklerde olduğu gibi, tek gün sıçrayıp ertesi gün geri dönen hatalı fiyatlar hesaptan önce çıkarılır (Bölüm 3); fiyat verisi değiştirilmez. Trend ve 52 haftalık aralık grafikte seçilen dönemden bağımsızdır, her zaman son fiyat gününe göre hesaplanır.
+
+14.10.2026 verisiyle fiyatı güncel ve işlemde olan 954 fonun 624'ünde fiyat 200 günlük ortalamanın üstünde, 260'ında altındadır; 70 fonun 200 günlük ortalama için yeterli geçmişi yoktur. En az 52 haftalık geçmişi olan 842 fonda son fiyatın aralıktaki yerinin medyanı %89'dur ve 412 fon aralığın üst %10'luk kısmındadır. Bu, fon fiyatlarının yüksek enflasyon ortamında çoğunlukla yükselme eğiliminde olmasıyla uyumludur; "zirveye yakın" olmak tek başına bir sinyal değildir.
+
+Göstergelerin altında şu not yer alır: "Teknik göstergeler geçmiş fiyat hareketini özetler; testlerimizde gelecekteki getiriyi tahmin etmede basit ortalamadan daha iyi sonuç vermedi." Bu not, Bölüm 6'daki değerlendirmeye dayanır: geçmiş getiri (momentum) ve 1 yıllık zirveye uzaklık gibi fiyat hareketinden türetilen özellikleri kullanan LightGBM modeli ve momentum referansı, fonun geçmiş ortalama getirisinin sürmesi varsayımını (drift) hiçbir risk grubunda geçemedi. 200 günlük ortalamanın üstünde/altında olma bilgisi modelde ayrı bir özellik olarak denenmedi. [DOLDUR: gerekirse 200 günlük ortalama özelliği de modelde denenip sonuç buraya eklenecek.] RSI ve MACD gibi daha karmaşık göstergeler aynı nedenle eklenmedi.
+
+Grafik renkleri: 50 günlük ortalama turuncu (#c24a1a) düz çizgi, 200 günlük ortalama mor (#a83e8c) noktalı çizgidir. Fiyat (yeşil) ve tahmin (mavi) çizgileriyle birlikte dört renk, Bölüm 4.3'teki doğrulama betiğinden geçti (renk körlüğü simülasyonunda en küçük fark ΔE 6,5; bu nedenle 200 günlük ortalama ayrıca noktalı çizilir ve her çizginin lejantı vardır).
+
+## 4.5 Mobil uyum
 
 Arayüzü telefon genişliklerinde (360 ve 390 px) tarayıcının geliştirici protokolüyle açıp her sayfada yatay taşma olup olmadığını ölçtük; bütün sayfalarda sayfa genişliği ekran genişliğine eşittir. Geniş tablolar kendi kutuları içinde yatay kaydırılır.
 
 ![Şekil 4.4 Fon detay sayfası, 390 px genişlik](gorseller/sekil_4_4_mobil.png)
 
-## 4.5 Karşılaşılan sorunlar ve çözümleri
+## 4.6 Karşılaşılan sorunlar ve çözümleri
 
 | Sorun | Neden | Çözüm |
 |---|---|---|
@@ -53,7 +69,7 @@ Arayüzü telefon genişliklerinde (360 ve 390 px) tarayıcının geliştirici p
 | "%76'ini", "9'inde" gibi yanlış Türkçe ekler | Ekler sayıya göre değişiyor (%76'sını, 9'unda) | Metinler ek gerektirmeyen biçime çevrildi ("içerme oranı: %76", "9 / 24") |
 | Büyük rakamlarda virgül etrafında boşluk | Eşit genişlikli yazı tipi | Büyük değerlerde normal yazı tipi + eşit genişlikli rakamlar |
 
-## 4.6 Kısıtlar
+## 4.7 Kısıtlar
 
 - Kullanıcı girişi ve favori fonlar uygulanmadı; profil ve karşılaştırma listesi tarayıcıya bağlıdır.
 - Koyu tema yoktur.

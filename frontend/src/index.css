@@ -321,3 +321,13 @@ a.tag:hover { border-color: #0f7a5c; }
 .imp-track { height: 8px; border-radius: 4px; background: #e5ebe8; overflow: hidden; }
 .imp-track span { display: block; height: 100%; background: #2a78d6; border-radius: 4px; }
 .importance li > span:last-child { text-align: right; }
+
+/* Teknik göstergeler (fon detayı) */
+.ma-toggles { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+.ma-toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.tech { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; padding-top: 12px; border-top: 1px solid #e5ebe8; }
+.tech-item { display: flex; flex-direction: column; gap: 6px; }
+.tech-trend { font-size: 16px; }
+.range-track { position: relative; height: 6px; margin: 8px 6px; border-radius: 3px; background: #e5ebe8; }
+.range-dot { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: #17211d; border: 2px solid #fff; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px #17211d; }
+.range-ends { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
