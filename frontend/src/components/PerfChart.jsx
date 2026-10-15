@@ -2,11 +2,12 @@ import { useMemo } from 'react'
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { monthTicks } from '../chart'
 import { num, pct, signClass, trDate } from '../format'
+import { C } from '../theme'
 
-const GRID = '#e5ebe8'
-const INK_MUTED = '#5d6b65'
-const PORTFOLIO = '#2a78d6' // kategorik paletin 1. rengi
-const BENCHMARK = '#8a948f' // kıyas: nötr gri, kesikli
+const GRID = C.grid
+const INK_MUTED = C.axis
+const PORTFOLIO = 'var(--series-1)' // kategorik paletin 1. rengi
+const BENCHMARK = C.neutral // kıyas: nötr gri, kesikli
 
 function Tip({ active, payload, label }) {
   if (!active || !payload?.length) return null
@@ -57,7 +58,7 @@ export default function PerfChart({ perf, height = 260 }) {
           <ReferenceLine y={100} stroke={INK_MUTED} strokeDasharray="3 3" />
           <Tooltip content={<Tip />} cursor={{ stroke: INK_MUTED, strokeDasharray: '3 3' }} />
           <Line type="linear" dataKey="benchmark" stroke={BENCHMARK} strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
-          <Line type="linear" dataKey="portfolio" stroke={PORTFOLIO} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+          <Line type="linear" dataKey="portfolio" stroke={PORTFOLIO} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: C.surface, strokeWidth: 2 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
       <table className="perf-stats">

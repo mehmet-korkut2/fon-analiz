@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getMlPerformance } from '../api/client'
 import { num, trDate } from '../format'
+import { C, SERIES } from '../theme'
 
-const GRID = '#e5ebe8'
-const INK_MUTED = '#5d6b65'
+const GRID = C.grid
+const INK_MUTED = C.axis
 // Renk modele bağlı (kategorik palet, renk körlüğü kontrolünden geçti)
-const COLORS = { lightgbm: '#2a78d6', drift: '#eb6834', momentum: '#1baf7a', sifir: '#eda100' }
+const COLORS = { lightgbm: SERIES[0], drift: SERIES[1], momentum: SERIES[2], sifir: SERIES[3] }
 const SHORT = { lightgbm: 'LightGBM', drift: 'Drift', momentum: 'Momentum', sifir: 'Sıfır', lightgbm_sira: 'LightGBM sıra (keşif)', arima: 'ARIMA' }
 const GROUPS = { '1-2': 'Risk 1–2', '3-4': 'Risk 3–4', '5-7': 'Risk 5–7', bilinmiyor: 'Risk değeri yok' }
 
@@ -78,11 +79,11 @@ function MonthlyChart({ monthly }) {
           <Tooltip
             formatter={(v, name) => [p(v), SHORT[name]]}
             labelFormatter={(d) => trDate(d, { month: 'long', year: 'numeric' })}
-            contentStyle={{ borderRadius: 8, borderColor: '#dde4e1', fontSize: 13 }}
+            contentStyle={{ borderRadius: 8, borderColor: 'var(--line)', background: 'var(--surface)', color: 'var(--ink)', fontSize: 13 }}
           />
           {models.map((m) => (
             <Line key={m} type="linear" dataKey={m} stroke={COLORS[m]} strokeWidth={2} dot={false} isAnimationActive={false}
-              activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} />
+              activeDot={{ r: 4, stroke: C.surface, strokeWidth: 2 }} />
           ))}
         </LineChart>
       </ResponsiveContainer>

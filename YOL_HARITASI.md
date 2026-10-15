@@ -56,7 +56,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] KAP bağlantısı TEFAS'ın `kapLink`'inden; fon detayındaki bağlantı doğrudan fonun KAP sayfasına gider
 - [x] Karşılaştırma sayfası: fon seçimi, 100'den başlayan grafik, metrik tablosu
 - [x] Sıralamalar sayfası
-- [ ] Taslaklardaki tasarımı uygula (renkler, yazı tipleri, yerleşim)
+- [x] Taslaklardaki tasarımı uygula (renkler, yazı tipleri, yerleşim): CSS değişkenleri, Fraunces / IBM Plex (projeye gömülü), yeni ana sayfa, 7 bölmeli risk çubuğu, koyu tema, odak halkası ve "İçeriğe geç". Önce/sonra görüntüleri `docs/rapor/gorseller/tasarim/`
 - [x] Yükleme, hata ve boş durum ekranları
 - [x] Mobil uyum
 - [ ] Favori fonlar

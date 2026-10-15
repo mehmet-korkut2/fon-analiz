@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getBacktest } from '../api/client'
 import { num, pct, signClass, trDate } from '../format'
+import { C } from '../theme'
 
-const GRID = '#e5ebe8'
-const INK_MUTED = '#5d6b65'
-const UP = '#0f7a5c'
-const DOWN = '#b3261e'
+const GRID = C.grid
+const INK_MUTED = C.axis
+const UP = C.up
+const DOWN = C.down
 
 const month = (d) => trDate(d, { month: 'short', year: '2-digit' })
 const pts = (v) => `${v >= 0 ? '+' : '-'}${num(Math.abs(v) * 100, 1)} puan`

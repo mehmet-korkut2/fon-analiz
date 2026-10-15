@@ -114,7 +114,7 @@ export default function Recommendations() {
         <Disclaimer />
         <div className="panel empty">
           <p><strong>Önce risk profilini belirleyelim.</strong></p>
-          <p className="muted">7 soruluk anketi doldurduğunda profiline uygun fonları, neden önerildiklerini ve örnek bir portföyü burada görürsün.</p>
+          <p className="muted">9 soruluk anketi doldurduğunda profiline uygun fonları, neden önerildiklerini ve örnek bir portföyü burada görürsün.</p>
           <p><Link className="btn btn-primary" to="/risk-anketi">Risk anketini doldur →</Link></p>
         </div>
       </section>

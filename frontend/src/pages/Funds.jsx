@@ -31,7 +31,7 @@ const isReturn = (k) => k.startsWith('ret_')
 export default function Funds() {
   const [searchParams] = useSearchParams()
   const [categories, setCategories] = useState([])
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useState(searchParams.get('q') || '')
   const [category, setCategory] = useState(searchParams.get('kategori') || '')
   const [risk, setRisk] = useState('')
   const [showStale, setShowStale] = useState(false)

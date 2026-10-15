@@ -9,12 +9,12 @@ import { useDebounced } from '../hooks'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
 import { logTicks, monthTicks } from '../chart'
 import { STATUS_LABELS, isClosed, isExcludedFromBest } from '../fundStatus'
+import { C, SERIES } from '../theme'
 
-const GRID = '#e5ebe8'
-const INK_MUTED = '#5d6b65'
+const GRID = C.grid
+const INK_MUTED = C.axis
 // Kategorik palet (renk körlüğü kontrolünden geçti). Renk fonun seçildiği yuvaya bağlı:
 // bir fon çıkarılınca diğerlerinin rengi değişmez.
-const SERIES = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100']
 
 // [alan, başlık, daha iyi olan: 'max' | 'min' | null, biçim]
 const ROWS = [
@@ -256,7 +256,7 @@ export default function Compare() {
                     {funds.map((f) => (
                       <Line
                         key={f.code} type="linear" dataKey={f.code} stroke={colorOf(f.code)} strokeWidth={2}
-                        dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false}
+                        dot={false} activeDot={{ r: 4, stroke: C.surface, strokeWidth: 2 }} isAnimationActive={false}
                       />
                     ))}
                   </LineChart>

@@ -27,6 +27,8 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
   - `app/scheduler.py`: APScheduler, hafta içi 21:00; açılışta veri eskiyse günceller
   - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `fon_bilgisi_yukle`, `geriye_donuk_test`, `oneri_analizi`, `ml_degerlendir`
 - `frontend/` React 19 + Vite, React Router, axios, Recharts. Sayfalar: Home, Funds, FundDetail, Rankings, Compare, RiskSurvey, Recommendations, ModelPerformance, Doviz. Risk profili `localStorage`'da (`profileStore.js`).
+  - Tema: renkler ve yazı tipleri `src/index.css` başındaki CSS değişkenlerinde (açık + koyu tema, `prefers-color-scheme`); grafik renkleri `src/theme.js` (var(--…)). Sayfa ve bileşenlerde sabit renk kodu yazma. Fontlar `@fontsource` ile gömülü (latin + latin-ext).
+  - Ekran görüntüsü + yatay taşma ölçümü: `node scripts/ekran_goruntusu.mjs <klasör> <önek> [--mobil] [--koyu] [--ekran] [--sayfa ...]` (backend ve `npm run dev` açıkken)
 
 ## Komutlar
 

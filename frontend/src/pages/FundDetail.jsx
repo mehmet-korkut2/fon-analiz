@@ -11,16 +11,17 @@ import { axisDigits, monthTicks } from '../chart'
 import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
 import { isClosed } from '../fundStatus'
 import { compactTl, count } from '../money'
+import { C } from '../theme'
 
-const LINE = '#0f7a5c'
-const FORECAST = '#2a78d6' // tahmin: fiyattan ayrı bir renk (kategorik paletin 1. rengi)
+const LINE = C.price
+const FORECAST = C.forecast // tahmin: fiyattan ayrı bir renk (kategorik paletin 1. rengi)
 // Hareketli ortalamalar: fiyat ve tahminden ayrışan iki renk (doğrulayıcıdan geçti); 200 günlük ayrıca noktalı
 const MA = {
-  ma50: { color: '#c24a1a', label: '50 günlük ortalama', dash: undefined },
-  ma200: { color: '#a83e8c', label: '200 günlük ortalama', dash: '2 3' },
+  ma50: { color: C.ma50, label: '50 günlük ortalama', dash: undefined },
+  ma200: { color: C.ma200, label: '200 günlük ortalama', dash: '2 3' },
 }
-const GRID = '#e5ebe8'
-const INK_MUTED = '#5d6b65'
+const GRID = C.grid
+const INK_MUTED = C.axis
 
 // Fonun KAP sayfası bağlantısı TEFAS'ın fon profilinden gelir (kap_url; KAP'tan veri çekilmez,
 // docs/rapor/02_veri_toplama.md 2.8). Bağlantı yoksa KAP'ın yatırım fonları listesine yönlendiriyoruz.
@@ -141,7 +142,7 @@ function PriceChart({ points, months, forecast, ma, shown }) {
         <Tooltip content={<ChartTooltip shown={shown} />} cursor={{ stroke: INK_MUTED, strokeDasharray: '3 3' }} />
         <Area
           type="linear" dataKey="price" stroke={LINE} strokeWidth={2} fill="url(#priceFill)"
-          dot={false} activeDot={{ r: 4, stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} connectNulls={false}
+          dot={false} activeDot={{ r: 4, stroke: C.surface, strokeWidth: 2 }} isAnimationActive={false} connectNulls={false}
         />
         {/* Recharts 2, Fragment içindeki serileri görmez: her seri ayrı koşulla */}
         {forecast && <Area type="linear" dataKey="band" stroke="none" fill={FORECAST} fillOpacity={0.16} isAnimationActive={false} activeDot={false} />}

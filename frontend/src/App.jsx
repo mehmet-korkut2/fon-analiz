@@ -15,9 +15,10 @@ const ModelPerformance = lazy(() => import('./pages/ModelPerformance.jsx'))
 export default function App() {
   return (
     <div className="app">
+      <a href="#icerik" className="skip-link">İçeriğe geç</a>
       <header className="header">
-        <Link to="/" className="logo">Fon Analiz</Link>
-        <nav>
+        <Link to="/" className="logo">Fon<span className="logo-mark">Analiz</span></Link>
+        <nav aria-label="Ana menü">
           <NavLink to="/" end>Ana Sayfa</NavLink>
           <NavLink to="/fonlar">Fonlar</NavLink>
           <NavLink to="/siralamalar">Sıralamalar</NavLink>
@@ -28,7 +29,7 @@ export default function App() {
           <NavLink to="/doviz">Döviz ve Altın</NavLink>
         </nav>
       </header>
-      <main className="main">
+      <main className="main" id="icerik" tabIndex={-1}>
         <Suspense fallback={<p className="muted">Yükleniyor...</p>}>
           <Routes>
             <Route path="/" element={<Home />} />
