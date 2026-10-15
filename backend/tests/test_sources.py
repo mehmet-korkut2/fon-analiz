@@ -1,9 +1,15 @@
 """Veri kaynağı ayrıştırıcılarının testleri. İnternete çıkmaz, örnek yanıtlar kullanır."""
 from datetime import date
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
+from app.database import Base, get_db
 from app.main import app
+from app.models import FxSnapshot
 from app.services import fx
 from app.services.tefas_client import parse_fund_list, parse_kap_link, parse_prices, parse_profile, parse_snapshot, snap_period
 
@@ -48,30 +54,68 @@ def test_parse_canli_handles_numbers_and_strings():
     assert r["updated_at"] == "2026-10-11 11:14:01"
 
 
-def test_fx_endpoint_uses_cache(monkeypatch):
+@pytest.fixture
+def fx_client():
+    """Döviz uç noktası, bellek içi veritabanıyla (gerçek fon.db'ye kur yazılmasın)."""
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+
+    def override():
+        with Session() as db:
+            yield db
+
+    fx._cache.clear()
+    app.dependency_overrides[get_db] = override
+    yield TestClient(app), Session
+    app.dependency_overrides.clear()
+    fx._cache.clear()
+
+
+def test_fx_endpoint_uses_cache(monkeypatch, fx_client):
+    client, _ = fx_client
     calls = []
 
     def fake_fetch(source):
         calls.append(source)
         return fx.parse_canli(CANLI_JSON)
 
-    fx._cache.clear()
     monkeypatch.setattr(fx, "_fetch", fake_fetch)
-    client = TestClient(app)
     assert client.get("/api/fx").status_code == 200
     body = client.get("/api/fx").json()
     assert len(calls) == 1  # ikinci istek önbellekten geldi
-    assert body["source"] == "canli" and len(body["rates"]) == 4
+    assert body["source"] == "canli" and len(body["rates"]) == 4 and body["stale"] is False
 
 
-def test_fx_endpoint_returns_503_when_source_down(monkeypatch):
+def test_fx_endpoint_returns_503_when_source_down_and_nothing_saved(monkeypatch, fx_client):
+    client, _ = fx_client
+
     def broken(source):
         raise fx.FxError("bağlantı yok")
 
-    fx._cache.clear()
     monkeypatch.setattr(fx, "_fetch", broken)
-    r = TestClient(app).get("/api/fx?source=tcmb")
-    assert r.status_code == 503
+    assert client.get("/api/fx?source=tcmb").status_code == 503
+
+
+def test_fx_offline_returns_last_known_rates_from_db(monkeypatch, fx_client):
+    client, Session = fx_client
+    monkeypatch.setattr(fx, "_fetch", lambda source: fx.parse_tcmb(TCMB_XML))
+    first = client.get("/api/fx?source=tcmb").json()
+    with Session() as db:
+        assert db.get(FxSnapshot, "tcmb") is not None  # son başarılı yanıt saklandı
+
+    # internet kesildi ve uygulama yeniden başladı (bellek önbelleği boş)
+    fx._cache.clear()
+
+    def offline(source):
+        raise fx.FxError("TCMB gösterge kurları alınamadı: bağlantı yok")
+
+    monkeypatch.setattr(fx, "_fetch", offline)
+    r = client.get("/api/fx?source=tcmb")
+    body = r.json()
+    assert r.status_code == 200 and body["stale"] is True and "bağlantı yok" in body["error"]
+    assert body["fetched_at"] == first["fetched_at"] and body["rates"] == first["rates"]
+    assert client.get("/api/fx?source=canli").status_code == 503  # canlı kaynak hiç alınmamıştı
 
 
 def test_parse_tefas_prices_skips_bad_rows():

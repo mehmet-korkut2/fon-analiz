@@ -91,14 +91,17 @@ Son güncelleme: 13 Ekim 2026
 
 ## 7. Test, yayın, rapor, sunum
 
-- [ ] Uçtan uca test, hata düzeltme
-- [ ] Tek tıkla başlatma: backend + frontend + tarayıcı birlikte açılsın
-- [ ] İnternetsiz çalışma: döviz için son bilinen veri gösterilsin (sunumda bağlantı olmayabilir)
-- [ ] Sunum öncesi veritabanı yedeği ve geri yükleme komutu
-- [ ] Kullanıcı testi: 3–5 kişiye kullandır
+- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 204/204, internetsiz 208/208 (rapor 7.3)
+- [x] Tek tıkla başlatma: `FonAnaliz_Baslat.bat` (backend + frontend + tarayıcı, hazır olunca açar) ve `FonAnaliz_Durdur.bat`; eski 1–4 numaralı bat dosyaları kaldırıldı
+- [x] İnternetsiz çalışma: döviz son bilinen kurlar ("en son X tarihinde güncellendi"), güncelleme internet yoksa sessizce atlanır, bağlantı koparsa durur
+- [ ] İnternetsiz çalışmayı sunum bilgisayarında Wi-Fi kapatarak bir kez daha dene
+- [x] Sunum öncesi veritabanı yedeği ve geri yükleme komutu: `python -m scripts.yedekle`, `python -m scripts.geri_yukle` (sanal portföy dahil, `backups/` git'e girmez)
+- [x] Kullanıcı testi materyali: `docs/kullanici_testi.md` (6 görev, gözlem alanı, 5 soruluk anket; yazdırmak için .pdf)
+- [ ] Kullanıcı testi: 3–5 kişiye kullandır, sonuçları rapor 7.5'e yaz
 - [ ] Rapor: giriş, literatür, yöntem, ML sonuçları, sonuç, kaynakça
 - [ ] Sunum slaytları (10–15 slayt)
-- [ ] Demo videosu (canlı demo bozulursa diye)
+- [x] Demo videosu senaryosu: `docs/demo_senaryosu.md` (4 dk)
+- [ ] Demo videosunu çek (canlı demo bozulursa diye)
 - [ ] Prova ve olası sorular
 - [ ] README ve kod düzeni, teslim
 
@@ -119,7 +122,7 @@ Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işler
 
 ## Sık kullanılan komutlar
 
-En kolayı: proje klasöründeki .bat dosyalarına çift tıkla (1_backend_baslat, 2_frontend_baslat, 3_tum_fonlari_yukle, 4_backend_terminal).
+En kolayı: proje klasöründeki `FonAnaliz_Baslat.bat`'a çift tıkla (backend + frontend + tarayıcı); kapatmak için `FonAnaliz_Durdur.bat`. Sunumdan önce yedek: `python -m scripts.yedekle --not sunum-oncesi`.
 
 Elle çalıştırmak istersen, backend (her yeni terminalde önce ilk iki satır):
 

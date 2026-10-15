@@ -261,3 +261,13 @@ class SanalDeger(Base):
     holdings: Mapped[float] = mapped_column(Float)
     total: Mapped[float] = mapped_column(Float)
     benchmark: Mapped[float | None] = mapped_column(Float)  # aynı para para piyasası medyanında olsaydı
+
+
+class FxSnapshot(Base):
+    """Döviz kaynağının (tcmb / canli) son başarılı yanıtı: internet yokken son bilinen kurlar gösterilir."""
+
+    __tablename__ = "fx_snapshots"
+
+    source: Mapped[str] = mapped_column(String(10), primary_key=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime)

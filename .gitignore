@@ -15,3 +15,6 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Veritabanı yedekleri (python -m scripts.yedekle)
+backups/

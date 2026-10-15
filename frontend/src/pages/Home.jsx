@@ -147,6 +147,7 @@ export default function Home() {
         {status && <span>Son fiyat tarihi: {fmtDate(status.latest_price_date)}</span>}
         {status && <span>{status.price_count.toLocaleString('tr-TR')} fiyat kaydı</span>}
         {status && <span>Sonraki otomatik güncelleme: {status.next_update ? fmtDate(status.next_update) : 'kapalı'}</span>}
+        {status?.last_update?.status === 'offline' && <span>İnternet bağlantısı yok: güncelleme atlandı, son veriler gösteriliyor</span>}
       </p>
     </section>
   )

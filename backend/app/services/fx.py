@@ -5,7 +5,10 @@
 - "canli": Truncgil Finans (ücretsiz, gayriresmi). Gün içinde birkaç dakikada bir güncellenir;
            döviz, altın, gümüş, BIST100, Brent gibi verileri de içerir.
 
-Sonuçlar bellekte önbelleğe alınır, böylece her ziyaretçi isteği kaynağa gitmez.
+Sonuçlar bellekte önbelleğe alınır, böylece her ziyaretçi isteği kaynağa gitmez. Her kaynağın son
+başarılı yanıtı ayrıca veritabanına yazılır (fx_snapshots). İnternet yokken ya da kaynak yanıt
+vermezken bu son bilinen kurlar "stale" işaretiyle ve alındıkları zamanla döner; sunumda internet
+olmasa da döviz sayfası boş kalmaz.
 """
 from __future__ import annotations
 
@@ -14,6 +17,9 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 
 import requests
+from sqlalchemy.orm import Session
+
+from app.models import FxSnapshot
 
 TCMB_URL = "https://www.tcmb.gov.tr/kurlar/today.xml"
 CANLI_URL = "https://finans.truncgil.com/v4/today.json"
@@ -120,7 +126,23 @@ def _fetch(source: str) -> dict:
         raise FxError(f"{SOURCE_NAMES[source]} alınamadı: {e}") from e
 
 
-def get_rates(source: str = "canli", use_cache: bool = True) -> dict:
+def _save(db: Session, source: str, result: dict) -> None:
+    snap = db.get(FxSnapshot, source)
+    if snap is None:
+        snap = FxSnapshot(source=source)
+        db.add(snap)
+    snap.payload, snap.fetched_at = result, datetime.fromisoformat(result["fetched_at"])
+    db.commit()
+
+
+def last_known(db: Session | None, source: str) -> dict | None:
+    snap = db.get(FxSnapshot, source) if db is not None else None
+    return snap.payload if snap else None
+
+
+def get_rates(source: str = "canli", use_cache: bool = True, db: Session | None = None) -> dict:
+    """Kurlar. Kaynağa ulaşılamazsa önce bellekteki, yoksa veritabanındaki son başarılı yanıt
+    (stale=True; fetched_at alındığı zaman) döner; ikisi de yoksa FxError."""
     if source not in SOURCE_NAMES:
         raise ValueError(f"Bilinmeyen kaynak: {source}")
     now = time.time()
@@ -129,10 +151,13 @@ def get_rates(source: str = "canli", use_cache: bool = True) -> dict:
         return cached[1]
     try:
         result = _fetch(source)
-    except FxError:
-        if cached:  # kaynak geçici olarak düştüyse eski veriyi göster
-            return {**cached[1], "stale": True}
+    except FxError as e:
+        old = cached[1] if cached else last_known(db, source)
+        if old:  # kaynak düştüyse ya da internet yoksa son bilinen kurlar
+            return {**old, "stale": True, "error": str(e)}
         raise
     result.update(source=source, source_name=SOURCE_NAMES[source], fetched_at=datetime.now().isoformat(timespec="seconds"), stale=False)
     _cache[source] = (now, result)
+    if db is not None:
+        _save(db, source, result)
     return result

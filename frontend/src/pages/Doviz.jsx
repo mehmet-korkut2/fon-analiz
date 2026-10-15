@@ -30,7 +30,12 @@ export default function Doviz() {
   const load = useCallback(() => {
     getFx(source)
       .then((d) => { setData(d); setError(null) })
-      .catch((e) => setError(e.response?.data?.detail || 'Kurlar alınamadı. Backend çalışıyor mu?'))
+      .catch((e) => {
+        setData(null) // başka kaynağın verisi ekranda kalmasın
+        setError(e.response?.status === 503
+          ? 'Kurlar alınamadı: kaynağa ulaşılamıyor (internet bağlantısı yok olabilir) ve bu kaynak için daha önce kaydedilmiş kur yok.'
+          : 'Kurlar alınamadı. Backend çalışıyor mu?')
+      })
       .finally(() => setLoading(false))
   }, [source])
 
@@ -63,7 +68,6 @@ export default function Doviz() {
           <h1>Döviz ve altın</h1>
           <p className="hint">
             {data ? <>Kaynak: {data.source_name} · Son güncelleme: {data.updated_at}</> : 'Yükleniyor...'}
-            {data?.stale && <strong> · Kaynağa ulaşılamadı, son bilinen veriler gösteriliyor</strong>}
           </p>
         </div>
         <div className="seg" role="group" aria-label="Veri kaynağı">
@@ -73,6 +77,12 @@ export default function Doviz() {
       </div>
 
       {error && <p className="error">{error}</p>}
+      {data?.stale && (
+        <p className="notice" role="status">
+          <strong>Son bilinen kurlar gösteriliyor.</strong> Kaynağa şu an ulaşılamıyor (internet bağlantısı yok olabilir).
+          Kurlar en son {new Date(data.fetched_at).toLocaleString('tr-TR', { dateStyle: 'long', timeStyle: 'short' })} tarihinde güncellendi.
+        </p>
+      )}
 
       {featured.length > 0 && (
         <div className="cards">

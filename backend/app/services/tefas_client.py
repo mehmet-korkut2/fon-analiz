@@ -55,6 +55,18 @@ class TefasError(Exception):
     pass
 
 
+def internet_available(timeout: float = 3.0) -> bool:
+    """TEFAS'a ulaşılabiliyor mu (internet yokken güncellemeyi hızlıca atlamak için).
+
+    Herhangi bir HTTP yanıtı (bot koruması dahil) yeterli; proxy ayarları da dikkate alınır.
+    """
+    try:
+        requests.head(BASE_URL, headers={"User-Agent": HEADERS["User-Agent"]}, timeout=timeout, allow_redirects=False)
+        return True
+    except requests.RequestException:
+        return False
+
+
 @dataclass
 class FundInfo:
     code: str

@@ -2,6 +2,7 @@
 
     python -m scripts.rapor_olustur            # docx + pdf
     python -m scripts.rapor_olustur --no-pdf   # yalnızca docx
+    python -m scripts.rapor_olustur --belge ../docs/kullanici_testi.md   # tek belge: yanına .docx ve .pdf
 
 Çıktı: docs/rapor/cikti/Bitirme_Raporu.docx ve Bitirme_Raporu.pdf.
 İçindekiler ve PDF için Microsoft Word gerekir (pywin32 üzerinden). Word yoksa docx
@@ -11,6 +12,7 @@ Bağımlılıklar: requirements-rapor.txt (python-docx, pywin32; görseller içi
 Markdown'ın yalnızca rapor dosyalarında kullandığımız alt kümesi desteklenir: başlıklar,
 paragraflar, madde ve numaralı listeler (iki boşluk girintili alt maddeler), tablolar,
 görseller, alıntı blokları, kalın/italik/kod ve [DOLDUR: ...] işaretleri (sarı vurgulanır).
+Yazdırılacak belgelerde `<div style="page-break-after: always"></div>` satırı sayfa sonu olur, `---` atlanır.
 """
 
 import argparse
@@ -201,15 +203,21 @@ def sayfa_sonu(doc):
 
 # --- markdown bloklar --------------------------------------------------------------------
 
+PAGE_BREAK = '<div style="page-break-after: always"></div>'
+
+
 def bloklar(lines):
     """Satırları (tür, veri) bloklarına ayırır."""
     i = 0
     while i < len(lines):
         line = lines[i].rstrip()
-        if not line.strip():
+        if not line.strip() or line.strip() == "---":
             i += 1
             continue
-        if m := re.match(r"^(#{1,3}) (.+)$", line):
+        if line.strip() == PAGE_BREAK:
+            yield "sayfa_sonu", None
+            i += 1
+        elif m := re.match(r"^(#{1,3}) (.+)$", line):
             yield "baslik", (len(m.group(1)), m.group(2))
             i += 1
         elif m := re.match(r"^!\[(.*)\]\((.+)\)$", line.strip()):
@@ -240,7 +248,7 @@ def bloklar(lines):
             yield "liste", items
         else:
             buf = []
-            while i < len(lines) and lines[i].strip() and not re.match(
+            while i < len(lines) and lines[i].strip() and lines[i].strip() not in (PAGE_BREAK, "---") and not re.match(
                 r"^(#{1,3} |!\[|\||>|\s*- |\s*\d+\. )", lines[i]
             ):
                 buf.append(lines[i].strip())
@@ -350,6 +358,8 @@ def bolum(doc, md, ilk):
             tablo(doc, data)
         elif kind == "gorsel":
             gorsel(doc, *data, base)
+        elif kind == "sayfa_sonu":
+            sayfa_sonu(doc)
 
 
 # --- Word: içindekiler ve PDF ------------------------------------------------------------
@@ -403,7 +413,21 @@ def guncelleme_iste(docx):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--no-pdf", action="store_true", help="PDF üretme")
+    ap.add_argument("--belge", type=Path, help="Tek bir Markdown belgesini (kapak ve içindekiler olmadan) yanına docx/pdf olarak çevir")
     args = ap.parse_args(argv)
+
+    if args.belge:
+        md = args.belge.resolve()
+        doc = Document()
+        stiller(doc)
+        sayfa_duzeni(doc)
+        bolum(doc, md, ilk=True)
+        docx, pdf = md.with_suffix(".docx"), md.with_suffix(".pdf")
+        doc.save(str(docx))
+        print(f"docx: {docx}")
+        if not args.no_pdf and word_ile_guncelle(docx, pdf):
+            print(f"pdf:  {pdf}")
+        return
 
     CIKTI.mkdir(parents=True, exist_ok=True)
     docx = CIKTI / "Bitirme_Raporu.docx"

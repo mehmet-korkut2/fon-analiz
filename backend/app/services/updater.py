@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 
@@ -16,9 +17,13 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Fund, Price
 from app.services import fund_status, metrics_job, recommender, sanal_portfoy
-from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError
+from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError, internet_available
 
 log = logging.getLogger(__name__)
+
+OFFLINE_MSG = "İnternet bağlantısı yok; TEFAS güncellemesi atlandı. Site son verilerle çalışmaya devam eder."
+LOST_MSG = "İnternet bağlantısı kesildi; güncelleme yarıda bırakıldı, alınan veriler kaydedildi."
+FAILS_BEFORE_CHECK = 3  # art arda bu kadar hata olursa bağlantı yeniden kontrol edilir
 
 _lock = threading.Lock()  # aynı anda iki güncelleme çalışmasın
 
@@ -27,7 +32,7 @@ _lock = threading.Lock()  # aynı anda iki güncelleme çalışmasın
 class UpdateResult:
     started_at: str
     finished_at: str | None = None
-    status: str = "running"  # running / ok / partial / failed / skipped
+    status: str = "running"  # running / ok / partial / failed / skipped / offline
     funds_total: int = 0
     funds_updated: int = 0
     new_prices: int = 0
@@ -110,10 +115,24 @@ def run_update(
     client: TefasClient | None = None,
     recompute_metrics: bool = True,
     fetch_info: bool = True,
+    online: Callable[[], bool] | None = None,
 ) -> UpdateResult:
-    """Fon listesini yeniler ve her fonun son `months` aylık fiyatlarından eksik olanları ekler."""
+    """Fon listesini yeniler ve her fonun son `months` aylık fiyatlarından eksik olanları ekler.
+
+    İnternet yoksa (online() False) hiçbir şey yapmadan "offline" döner; güncelleme sırasında bağlantı
+    koparsa kalan fonlar için saatlerce yeniden denemek yerine durur. online verilmezse, gerçek
+    TEFAS istemcisiyle çalışırken internet_available kullanılır (testlerde sahte istemciyle kontrol yok).
+    """
     global last_result
     result = UpdateResult(started_at=datetime.now().isoformat(timespec="seconds"))
+    if online is None and client is None:
+        online = internet_available
+    if online is not None and not online():
+        result.status, result.finished_at = "offline", result.started_at
+        result.errors.append(OFFLINE_MSG)
+        last_result = result
+        log.info(OFFLINE_MSG)
+        return result
 
     if not _lock.acquire(blocking=False):
         result.status = "skipped"
@@ -128,8 +147,9 @@ def run_update(
             try:
                 funds = client.list_funds(fund_type)
             except TefasError as e:
-                result.status = "failed"
-                result.errors.append(str(e))
+                offline = online is not None and not online()
+                result.status = "offline" if offline else "failed"
+                result.errors.append(OFFLINE_MSG if offline else str(e))
                 return result
 
             if only_code:
@@ -140,14 +160,21 @@ def run_update(
             result.funds_total = len(funds)
             log.info("%s fon güncellenecek (%s, son %s ay).", len(funds), fund_type, months)
 
+            fails = 0
             for i, f in enumerate(funds, 1):
                 if not f.is_active:
                     continue
                 try:
                     added = save_prices(db, f.code, client.price_history(f.code, months=months))
+                    fails = 0
                 except TefasError as e:
                     result.errors.append(f"{f.code}: {e}")
                     log.error("%s atlandı: %s", f.code, e)
+                    fails += 1
+                    if fails >= FAILS_BEFORE_CHECK and online is not None and not online():
+                        result.errors.append(LOST_MSG)
+                        log.warning(LOST_MSG)
+                        break
                     continue
                 result.funds_updated += 1
                 result.new_prices += added

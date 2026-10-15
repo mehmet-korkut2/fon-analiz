@@ -130,3 +130,35 @@ def test_size_failure_keeps_price_update(db_session):
     r = updater.run_update(client=FakeClient({"AAA": [(date(2026, 10, 9), 1.0)], "BBB": [(date(2026, 10, 9), 2.0)]}, info_fail={"BBB"}))
     assert r.funds_updated == 2 and r.new_prices == 2 and r.info_updated == 1
     assert any(e.startswith("BBB (büyüklük)") for e in r.errors)
+
+
+def test_update_skipped_quietly_when_offline(db_session):
+    client = FakeClient({"AAA": [(date(2026, 10, 9), 1.0)]})
+    r = updater.run_update(client=client, online=lambda: False)
+    assert r.status == "offline" and r.funds_total == 0 and "İnternet bağlantısı yok" in r.errors[0]
+    assert updater.last_result is r
+    with db_session() as db:
+        assert db.scalar(select(func.count()).select_from(Price)) == 0  # hiçbir şey yazılmadı
+
+
+def test_update_stops_when_connection_lost(db_session):
+    class Dropping(FakeClient):
+        def list_funds(self, fund_type):
+            return [FundInfo(f"F{i}", f"Fon {i}", "Hisse Senedi", fund_type, 6, True, {}) for i in range(20)]
+
+        def price_history(self, code, months=1):
+            self.calls = getattr(self, "calls", 0) + 1
+            if code != "F0":
+                raise TefasError("bağlantı yok")
+            return [FundPrice(code, date(2026, 10, 9), 1.0)]
+
+    client = Dropping({})
+    state = {"n": 0}
+
+    def online():  # ilk kontrolde bağlı, sonra kopuk
+        state["n"] += 1
+        return state["n"] == 1
+
+    r = updater.run_update(client=client, online=online, recompute_metrics=False)
+    assert client.calls == 1 + updater.FAILS_BEFORE_CHECK  # 20 fonun hepsi denenmedi
+    assert r.new_prices == 1 and r.status == "partial" and updater.LOST_MSG in r.errors

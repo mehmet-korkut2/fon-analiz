@@ -9,7 +9,7 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
 - Windows, PowerShell. Python 3.13, Node.js 24.
 - Backend sanal ortamı: `backend\.venv` (komutlardan önce `backend\.venv\Scripts\activate`).
 - Veritabanı: yerelde SQLite (`backend\fon.db`, git'e girmez).
-- **Yayın yok:** Uygulama yayına alınmayacak; sunumda kendi bilgisayarında çalışacak. PostgreSQL, Render/Vercel, gece işini sunucuya taşıma, alan adı ve Alembic `YOL_HARITASI.md`'de "Gelecek çalışmalar"da. Öncelik: tek tıkla başlatma, internetsiz çalışma (döviz için son bilinen veri), sunum öncesi veritabanı yedeği/geri yükleme.
+- **Yayın yok:** Uygulama yayına alınmayacak; sunumda kendi bilgisayarında çalışacak. PostgreSQL, Render/Vercel, gece işini sunucuya taşıma, alan adı ve Alembic `YOL_HARITASI.md`'de "Gelecek çalışmalar"da. Sunum hazırlığı yapıldı: `FonAnaliz_Baslat.bat` / `FonAnaliz_Durdur.bat` (kökte), internetsiz çalışma (döviz son bilinen kurlar `fx_snapshots`'ta; güncelleme internet yoksa `offline` durumuyla atlanır, bağlantı koparsa durur), yedek `scripts.yedekle` / `scripts.geri_yukle` (`backups/`, git'e girmez).
 
 ## Yapı
 
@@ -34,9 +34,15 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
 ## Komutlar
 
 ```powershell
+# hepsini başlat / durdur (proje kökünde, çift tıklama da olur)
+.FonAnaliz_Baslat.bat
+.FonAnaliz_Durdur.bat
+
 # backend (backend klasöründe, .venv aktifken)
 uvicorn app.main:app --reload
 pytest
+python -m scripts.yedekle [--not sunum-oncesi]  # backups/fon_<tarih>.db
+python -m scripts.geri_yukle [--liste | <dosya>]  # varsayılan en son yedek; önce backend'i durdur
 python -m scripts.tefas_yukle --limit 0        # tüm fonlar, son 5 yıl
 python -m scripts.metrik_hesapla
 
@@ -44,6 +50,7 @@ python -m scripts.metrik_hesapla
 npm run dev
 npm run build
 npm run lint
+node scripts/uctan_uca.mjs [--cevrimdisi]      # uçtan uca test (uygulama açıkken), docs/rapor/07 7.3
 ```
 
 ## Kurallar ve bilinenler
