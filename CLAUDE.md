@@ -71,4 +71,4 @@ node scripts/uctan_uca.mjs [--cevrimdisi]      # uçtan uca test (uygulama açı
 
 ## Sıradaki işler
 
-5. ve 6. aşamalar (öneri sistemi, ML tahmin) tamamlandı. Sırada 7. aşama (yerel sunum hazırlığı, kullanıcı testi, rapor, sunum) ve 3. aşamada kalan kıyaslama (BIST 100, enflasyon, beta). Ayrıntı için `YOL_HARITASI.md`.
+5. ve 6. aşamalar (öneri sistemi, ML tahmin) tamamlandı. Sunum hazırlığı ve rapor tamamlandı; sırada kullanıcı testi, demo videosu, slaytlar ve prova. BIST 100 / enflasyon / beta kıyaslaması kapsam dışı (gelecek çalışma). Ayrıntı için `YOL_HARITASI.md`.

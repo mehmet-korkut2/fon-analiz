@@ -137,7 +137,7 @@ Her değişiklikten sonra bütün testler çalıştırıldı.
 
 ## 3.8 Kısıtlar
 
-- Fonların BIST 100, enflasyon ve mevduat ile kıyası ve beta katsayısı hesaplanmadı [DOLDUR: yapılırsa güncellenecek].
+- Fonların BIST 100, enflasyon ve mevduat ile kıyası ve beta katsayısı hesaplanmadı; bu kıyaslama kapsam dışı bırakıldı ve gelecek çalışmalar arasındadır (Bölüm 8.6).
 - Şema değişiklikleri bir migration aracıyla değil, açılışta eksik sütunları ekleyen bir yardımcıyla (`init_db`) yönetilmektedir; Alembic'e geçiş gelecek çalışmalara bırakıldı.
 - Sanal portföy tek kullanıcılıdır ve bilgisayardaki veritabanında saklanır; komisyon, stopaj ve TEFAS'ın tutar/adet sınırları uygulanmaz. Resmî tatiller bilinmediği için valör günü hesabında yalnızca hafta sonları atlanır; tatile denk gelen hedef günde sonraki ilk işlem gününün fiyatı kullanılır.
 - Metrikler basit getiriler üzerinden hesaplanmaktadır; vergi, giriş-çıkış komisyonu gibi maliyetler hesaba katılmamaktadır (fon yönetim ücreti fiyata yansımıştır).

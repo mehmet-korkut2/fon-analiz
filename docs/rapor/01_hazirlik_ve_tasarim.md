@@ -73,11 +73,33 @@ Henüz bir migration aracına (Alembic) geçmediğimiz için, mevcut tablolara s
 
 ## 1.6 Arayüz taslakları
 
-[DOLDUR: Ana sayfa, fon detayı, karşılaştırma ve risk anketi için hazırlanan taslakların açıklaması ve görselleri; hangi araçla hazırlandığı.]
+Arayüz taslaklarını 11.10.2026'da Claude'un tasarım tuvali (Design) aracıyla hazırladık. Dört ekran tasarlandı: ana sayfa, fon detayı, karşılaştırma ve risk anketi (Şekil 1.2–1.5).
+
+- **Bağlı prototip:** Ekranlar birbirine bağlı bir prototip olarak tasarlandı; ekranlar arasında gezinilebiliyordu.
+- **Etkileşimli anket:** Risk anketi 5 soruyla çalışan etkileşimli bir prototipti. Uygulamadaki anket sonradan 8 puanlı ve 1 uygunluk sorusuna genişletildi (Bölüm 5.2).
+- **Örnek veri:** Taslaklarda örnek veri kullanıldı; henüz bilinmeyen değerler [X] ve [N] ile işaretlendi.
+- **Uygulamaya aktarılanlar:** Taslağın renk paleti (koyu yeşil ana renk) ve yazı tipleri (Fraunces, IBM Plex Sans, IBM Plex Mono) sonradan uygulamanın tasarımına aktarıldı (Bölüm 4.3).
+
+**Şekil 1.2** Ana sayfa taslağı [görsel eklenecek]
+
+**Şekil 1.3** Fon detay taslağı [görsel eklenecek]
+
+**Şekil 1.4** Karşılaştırma taslağı [görsel eklenecek]
+
+**Şekil 1.5** Risk anketi taslağı [görsel eklenecek]
 
 ## 1.7 Proje takvimi
 
-Git kayıtlarına göre kodlama 11.10.2026'da proje iskeletiyle başladı; veri toplama aynı gün, metrikler ve ön yüz sayfaları 13.10.2026'da, risk anketi ve öneri sistemi 13.10.2026'da, makine öğrenmesi modülü 14.10.2026'da tamamlandı. Aynı gün uygulamanın yayına alınmama kararını aldık; raporu ve rapor üretme betiğini hazırladık; KAP fizibilite denemesini ve veri kaynaklarının kullanım koşulları incelemesini yaptık (Bölüm 2.8 ve 2.9). 15.10.2026'da teknik göstergeler, fon büyüklüğü ve KAP bağlantısı, arayüz tasarımı ve koyu tema, sanal portföy ve sunum hazırlığı (tek tıkla başlatma, internetsiz çalışma, yedek, uçtan uca test) tamamlandı. [DOLDUR: Git kaydından önceki hazırlık süreci (proje fikri, tanıtım yazısı, mimari diyagram, taslaklar) ve tarihleri.]
+**Plan.** 09.10.2026'da proje fikrini belirledik ve tanıtım yazısını hazırladık. Süreyi 3–4 ay, maliyeti ücretsiz katmanlarla yaklaşık 0 TL olarak tahmin ettik. 10.10.2026 – 25.01.2027 arası için 92 iş günlük ayrıntılı bir plan çıkardık.
+
+**Gerçekleşen.**
+
+- **11.10.2026:** Geliştirme ortamı kuruldu (Python 3.13, Node.js 24, Git), proje iskeleti oluşturuldu ve GitHub deposu açıldı. Aynı gün sistem mimarisi, veritabanı şeması ve arayüz taslakları hazırlandı (Bölüm 1.4–1.6). Veri toplama da bu gün başladı.
+- **13.10.2026:** Metrikler, ön yüz sayfaları, risk anketi ve öneri sistemi tamamlandı.
+- **14.10.2026:** Makine öğrenmesi modülü tamamlandı. Uygulamanın yayına alınmama kararı alındı. Rapor ve rapor üretme betiği hazırlandı. KAP fizibilite denemesi ve veri kaynaklarının kullanım koşulları incelemesi yapıldı (Bölüm 2.8 ve 2.9).
+- **15.10.2026:** Teknik göstergeler, fon büyüklüğü ve KAP bağlantısı, arayüz tasarımı ve koyu tema, sanal portföy ve sunum hazırlığı tamamlandı. Sunum hazırlığı tek tıkla başlatma, internetsiz çalışma, yedek ve uçtan uca testi kapsıyordu.
+
+**Plan ile karşılaştırma.** Gerçekleşen ilerleme plandan önemli ölçüde hızlı oldu. Planın 92 iş gününe yaydığı geliştirme işleri, kullanıcı testi ve sunum dışında, kodlamanın başlamasından sonraki beş gün içinde tamamlandı. Bunda kodun büyük bölümünün Claude Code ile yazılması (Bölüm 1.3) belirleyici oldu. Kalan süre kullanıcı testine, raporun son hâline ve sunuma ayrılmıştır.
 
 ## 1.8 Kısıtlar
 

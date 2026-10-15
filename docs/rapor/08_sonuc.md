@@ -81,7 +81,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 - Kayan pencereli test ve ML testi aynı tek faiz rejimini kapsar ve 24 dönemden oluşur. Dönemler örtüştüğü için bağımsız değildir; küçük farklar istatistiksel olarak ayırt edilemez.
 - Öneri ağırlıkları uzman görüşüne dayanır, optimize edilmedi.
 - Metriklerde ve sanal portföyde komisyon, stopaj ve alım-satım masrafı yoktur.
-- Fonlar BIST 100, enflasyon ve mevduatla kıyaslanmadı; beta hesaplanmadı. [DOLDUR: kıyaslama yapılırsa bu madde güncellenecek.]
+- Fonlar BIST 100, enflasyon ve mevduatla kıyaslanmadı; beta hesaplanmadı. Bu kıyaslama kapsam dışı bırakıldı (Bölüm 8.6).
 
 **Uygulama.**
 
@@ -97,7 +97,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 
 | Konu | Neden kapsam dışı | Ne olursa yapılabilir |
 |---|---|---|
-| Takas analizi | Takas (aracı kurum dağılımı) verisi borsada işlem gören paylar içindir; TEFAS'ta işlem gören yatırım fonları için karşılığı yoktur. Bir fonun içindeki hisselerin takas verisini kullanmak için fonun portföy içeriğini bilmek gerekirdi; portföy dağılımı da elimizde yok (Bölüm 2.8). Takas verisi ayrıca ücretsiz ve açık bir kaynaktan alınamıyor. [DOLDUR: takas verisinin lisans ve dağıtım koşulu kaynakla doğrulanacak.] | Lisanslı veri ve fon portföy içerikleri bulunursa borsa yatırım fonları için denenebilir |
+| Takas analizi | Takas (aracı kurum dağılımı) verisi borsada işlem gören paylar içindir; TEFAS'ta işlem gören yatırım fonları için karşılığı yoktur. Bir fonun içindeki hisselerin takas verisini kullanmak için fonun portföy içeriğini bilmek gerekirdi; portföy dağılımı da elimizde yok (Bölüm 2.8). Takas verisi ayrıca ücretsiz ve açık bir kaynaktan alınamıyor: 1 Ocak 2025'ten bu yana Borsa İstanbul tarafından ücretli sunulmakta ve T+2 gecikmeyle yayımlanmaktadır [30]. | Lisanslı veri ve fon portföy içerikleri bulunursa borsa yatırım fonları için denenebilir |
 | RSI, MACD gibi teknik göstergeler | Test ettiğimiz fiyat temelli özellikler (momentum, 1 yıllık zirveye uzaklık) bir aylık getiriyi drift'ten iyi tahmin etmedi (Bölüm 6.6). Test edilmemiş göstergeleri çoğaltmak kullanıcıda sinyal varmış izlenimi yaratabilirdi. Yalnızca geçmişi özetleyen 50/200 günlük ortalama ve 52 haftalık aralığı, "geleceği tahmin etmez" notuyla ekledik (Bölüm 4.4) | Göstergeler önce walk-forward düzeneğinde sınanır, işe yararsa gösterilir |
 | Haber ve duygu analizi | Fon ve şirket haberlerinin başlıca kaynağı KAP'tır ve KAP verisi saklanamaz (Bölüm 2.8). Haber sitelerinin içeriği telif kapsamındadır. Türkçe finans metinleri için etiketli veri yoktur. Fiyat temelli sinyallerin bile drift'i geçemediği bir ufukta haberden ek fayda beklemek için gerekçe bulamadık | Lisanslı bir haber akışı ve etiketli veriyle ayrı bir araştırma olarak yapılabilir |
 | Yönetim ücreti | TEFAS'ın sayfalarında ve uç noktalarında yok; resmî olarak izahnamede ve KAP'ta yayımlanır (Bölüm 2.9). Getiri hesaplarını etkilemez, çünkü ücret fiyata yansımıştır | MKK'nın izniyle ya da portföy şirketlerinin sitelerinin koşulları incelenerek |

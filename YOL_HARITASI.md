@@ -36,7 +36,6 @@ Son güncelleme: 13 Ekim 2026
 
 - [x] Getiri hesapları: 1 ay, 3 ay, 6 ay, 1 yıl, 3 yıl, yılbaşından bu yana
 - [x] Volatilite, Sharpe oranı, maksimum düşüş
-- [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta
 - [x] `fund_metrics` tablosu: metrikleri her gece önceden hesapla
 - [x] Endpoint: fon detay (`GET /api/funds/{kod}`)
 - [x] Endpoint: fiyat geçmişi (tarih aralığı parametresiyle)
@@ -99,7 +98,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] Kullanıcı testi materyali: `docs/kullanici_testi.md` (6 görev, gözlem alanı, 5 soruluk anket; yazdırmak için .pdf)
 - [ ] Kullanıcı testi: 3–5 kişiye kullandır, sonuçları rapor 7.5'e yaz
 - [x] Rapor: 00–08 bölümleri ve kaynakça tamamlandı, Word/PDF `docs/rapor/cikti/` (`python -m scripts.rapor_olustur`); sayılar, şekil/tablo numaraları ve atıf sırası denetlendi
-- [ ] Rapordaki kalan [DOLDUR] alanları (taslaklar, hazırlık süreci, 5 fonun kodları, kullanıcı testi, video, Wi-Fi denemesi, kişisel değerlendirme, iki tebliğin Resmî Gazete bilgisi)
+- [ ] Rapordaki kalan [DOLDUR] alanları (5 fonun kodları, kullanıcı testi, video, Wi-Fi denemesi, kişisel değerlendirme) ve 1.6'daki dört taslak görseli
 - [x] Sunum taslağı: `docs/sunum_taslagi.md` (14 slayt, şekil numaralarıyla, konuşmacı notları)
 - [ ] Sunum slaytlarını hazırla (taslaktan)
 - [x] Demo videosu senaryosu: `docs/demo_senaryosu.md` (4 dk)
@@ -120,6 +119,7 @@ Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işler
 - [ ] Günlük güncellemeyi Render Cron Job veya GitHub Actions'a taşı (ücretsiz Render sunucusu uykuya geçer)
 - [ ] Alan adı (GitHub Student Pack ile ücretsiz)
 - [ ] Alembic migration'larına geçiş
+- [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta (kapsam dışı bırakıldı; rapor 8.6)
 
 ---
 
