@@ -23,9 +23,10 @@ SAMPLE_FUNDS = [
     FundOut(code="CCC", name="Örnek Altın Fonu", category="Kıymetli Madenler", risk_level=5, price=0.8765),
 ]
 
-SortField = Literal["code", "name", "ret_1m", "ret_3m", "ret_6m", "ret_1y", "ret_ytd", "ret_3y", "volatility_1y", "sharpe_1y", "max_drawdown_1y", "risk_level"]
+SortField = Literal["code", "name", "ret_1m", "ret_3m", "ret_6m", "ret_1y", "ret_ytd", "ret_3y", "volatility_1y", "sharpe_1y", "max_drawdown_1y", "risk_level", "total_value", "investor_count"]
 SORT_COLUMNS = {
     "code": Fund.code, "name": Fund.name, "risk_level": Fund.risk_level,
+    "total_value": Fund.total_value, "investor_count": Fund.investor_count,
     "ret_1m": FundMetrics.ret_1m, "ret_3m": FundMetrics.ret_3m, "ret_6m": FundMetrics.ret_6m,
     "ret_1y": FundMetrics.ret_1y, "ret_ytd": FundMetrics.ret_ytd, "ret_3y": FundMetrics.ret_3y, "volatility_1y": FundMetrics.volatility_1y,
     "sharpe_1y": FundMetrics.sharpe_1y, "max_drawdown_1y": FundMetrics.max_drawdown_1y,
@@ -50,6 +51,7 @@ def fund_out(f: Fund, cutoff: date | None) -> FundOut:
         price=m.last_price if m else None, price_date=m.as_of if m else None,
         is_stale=m is None or (cutoff is not None and m.as_of < cutoff),
         status=f.status or STATUS_ACTIVE, status_note=f.status_note, status_source=f.status_source, status_url=f.status_url,
+        total_value=f.total_value, investor_count=f.investor_count, info_date=f.info_date,
         metrics=metrics_out(m) if m else None,
     )
 
@@ -138,7 +140,7 @@ def get_fund(code: str, db: Session = Depends(get_db)):
     if f is None:
         raise HTTPException(404, f"{code.upper()} kodlu fon bulunamadı.")
     cutoff = stale_cutoff(db)
-    out = FundDetail(**fund_out(f, cutoff).model_dump(), fund_type=f.fund_type, is_active=f.is_active)
+    out = FundDetail(**fund_out(f, cutoff).model_dump(), fund_type=f.fund_type, is_active=f.is_active, kap_url=f.kap_url)
 
     # Kategori sırası sadece güncel verili ve işlem gören fonlar arasında
     # (eski fonun 1 yıllık getirisi başka döneme ait; işleme kapatılan fona yatırım yapılamaz)

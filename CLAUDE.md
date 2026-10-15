@@ -25,7 +25,7 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
   - `app/services/technical.py`: 50/200 günlük ortalama, trend, 52 haftalık aralık (`/api/funds/{kod}/technical`)
   - `app/services/fx.py`: TCMB today.xml (resmi) + Truncgil v4 (anlık)
   - `app/scheduler.py`: APScheduler, hafta içi 21:00; açılışta veri eskiyse günceller
-  - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `geriye_donuk_test`, `oneri_analizi`, `ml_degerlendir`
+  - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `fon_bilgisi_yukle`, `geriye_donuk_test`, `oneri_analizi`, `ml_degerlendir`
 - `frontend/` React 19 + Vite, React Router, axios, Recharts. Sayfalar: Home, Funds, FundDetail, Rankings, Compare, RiskSurvey, Recommendations, ModelPerformance, Doviz. Risk profili `localStorage`'da (`profileStore.js`).
 
 ## Komutlar
@@ -47,7 +47,7 @@ npm run lint
 
 - Değişiklikten sonra `pytest` ve `npm run lint` / `npm run build` çalıştır.
 - `YOL_HARITASI.md`'yi düzenlerken her zaman önce dosyanın son hâlini oku ve sadece ilgili maddeleri değiştir (dosya editörde de düzenleniyor; tamamını yeniden yazmak başka değişiklikleri siler).
-- TEFAS artık portföy dağılımı, yatırımcı sayısı ve fon büyüklüğü yayınlamıyor; bu sütunlar boş kalabilir.
+- TEFAS portföy dağılımı ve yönetim ücreti yayınlamıyor. Fon büyüklüğü ve yatırımcı sayısı yalnızca güncel değer olarak `fonBilgiGetir`'den (fon başına bir istek) gelir; gece güncellemesinde `funds.total_value`, `investor_count`, `info_date`'e yazılır. Geçmişi yok, bu yüzden öneri ve geriye dönük testte kullanılmaz. `prices` tablosundaki `total_value`/`investor_count` sütunları boş. KAP bağlantısı `fonProfilBilgiGetir`'in `kapLink`'inden (`funds.kap_url`, bir kez alınır); KAP'tan veri çekilmez.
 - TEFAS fiyat geçmişi en fazla 60 ay; `periyod` sadece 1, 3, 6, 12, 36, 60 olabilir.
 - Fon adları Türkçe büyük harf (İ, Ş, Ğ); aramada `tr_upper()` kullanılıyor.
 - Metrikler ondalık kesir olarak saklanır (0.25 = %25). Sharpe için risksiz getiri: para piyasası fonlarının 1 yıllık medyan getirisi.

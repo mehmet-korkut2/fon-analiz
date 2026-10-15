@@ -9,15 +9,17 @@ from app import scheduler
 from app.database import Base
 from app.models import Fund, Price
 from app.services import updater
-from app.services.tefas_client import FundInfo, FundPrice, TefasError
+from app.services.tefas_client import FundInfo, FundPrice, FundSnapshot, TefasError
 
 
 class FakeClient:
     """TEFAS'a gitmeden önceden belirlenmiş veriyi döndürür."""
 
-    def __init__(self, prices, fail=()):
+    def __init__(self, prices, fail=(), info_fail=()):
         self.prices = prices
         self.fail = set(fail)
+        self.info_fail = set(info_fail)
+        self.kap_calls = []
 
     def list_funds(self, fund_type):
         return [
@@ -30,6 +32,15 @@ class FakeClient:
         if code in self.fail:
             raise TefasError("zaman aşımı")
         return [FundPrice(code, d, p) for d, p in self.prices.get(code, [])]
+
+    def snapshot(self, code):
+        if code in self.info_fail:
+            raise TefasError("zaman aşımı")
+        return FundSnapshot(code, 1_000_000.0 * len(self.kap_calls), 100 + len(self.kap_calls), 5000)
+
+    def kap_link(self, code):
+        self.kap_calls.append(code)
+        return f"https://www.kap.org.tr/tr/fon-bilgileri/genel/{code.lower()}"
 
 
 @pytest.fixture
@@ -91,3 +102,30 @@ def test_expected_latest_date():
     assert scheduler.expected_latest_date(datetime(2026, 10, 12, 22, 0)).isoformat() == "2026-10-12"
     # Pazar -> cuma
     assert scheduler.expected_latest_date(datetime(2026, 10, 11, 23, 0)).isoformat() == "2026-10-09"
+
+
+def test_update_stores_current_size_and_kap_link_once(db_session):
+    prices = {"AAA": [(date(2026, 10, 9), 1.0)], "BBB": [(date(2026, 10, 9), 2.0)]}
+    first = FakeClient(prices)
+    r = updater.run_update(client=first)
+    assert r.info_updated == 2
+    assert first.kap_calls == ["AAA", "BBB"]  # KPL işlem görmüyor, istek yok
+    with db_session() as db:
+        a = db.get(Fund, "AAA")
+        assert a.investor_count is not None and a.total_value is not None and a.info_date is not None
+        assert a.kap_url.endswith("/aaa")
+        assert db.get(Fund, "KPL").total_value is None
+
+    # ikinci gece: büyüklük yenilenir, KAP bağlantısı zaten var, yeniden istenmez
+    second = FakeClient(prices)
+    second.kap_calls = ["x"]  # değerleri birinci geceden farklı kılmak için
+    updater.run_update(client=second)
+    assert second.kap_calls == ["x"]
+    with db_session() as db:
+        assert db.get(Fund, "AAA").investor_count == 101
+
+
+def test_size_failure_keeps_price_update(db_session):
+    r = updater.run_update(client=FakeClient({"AAA": [(date(2026, 10, 9), 1.0)], "BBB": [(date(2026, 10, 9), 2.0)]}, info_fail={"BBB"}))
+    assert r.funds_updated == 2 and r.new_prices == 2 and r.info_updated == 1
+    assert any(e.startswith("BBB (büyüklük)") for e in r.errors)

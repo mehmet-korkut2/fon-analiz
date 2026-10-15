@@ -6,14 +6,16 @@ Bu aşamanın amacı, TEFAS'taki yatırım fonlarının bilgilerini ve beş yıl
 
 ## 2.2 TEFAS'ın 2026 arayüz değişikliği
 
-TEFAS [7] 2026'da veri sunma biçimini değiştirdi. Eski HTML/form tabanlı uç noktalar yerine sitenin kendi kullandığı iki JSON uç noktası üzerinden çalıştık (`app/services/tefas_client.py`):
+TEFAS [7] 2026'da veri sunma biçimini değiştirdi. Eski HTML/form tabanlı uç noktalar yerine sitenin kendi kullandığı JSON uç noktaları üzerinden çalıştık (`app/services/tefas_client.py`):
 
 - `/api/funds/fonGetiriBazliBilgiGetir`: fon listesi; kod, unvan, kategori, risk değeri ve işlem durumu.
 - `/api/funds/fonFiyatBilgiGetir`: bir fonun fiyat geçmişi.
+- `/api/funds/fonBilgiGetir`: bir fonun o günkü portföy büyüklüğü, yatırımcı sayısı ve pay adedi.
+- `/api/funds/fonProfilBilgiGetir`: bir fonun profili; ISIN, valör, giriş/çıkış komisyonu ve fonun KAP sayfasının bağlantısı (`kapLink`). Profilden yalnızca bu bağlantıyı saklıyoruz.
 
 Değişikliğin bizi doğrudan etkileyen sonuçları:
 
-- **Kaldırılan alanlar:** Portföy dağılımı, yatırımcı sayısı ve fon büyüklüğü artık yayımlanmıyor. Veritabanında bu alanlar boş kalabiliyor; varlık dağılımı özelliği şimdilik uygulanmadı (Bölüm 2.8).
+- **Kaldırılan ve kısıtlanan alanlar:** Portföy dağılımı artık yayımlanmıyor; varlık dağılımı özelliği uygulanmadı (Bölüm 2.8). Fon büyüklüğü ve yatırımcı sayısı yalnızca **güncel değer** olarak, fon başına ayrı bir istekle (`fonBilgiGetir`) alınabiliyor; geçmiş tarihlerin değerini veren bir uç nokta yok. Başta bu alanların tamamen kaldırıldığını düşünmüştük; 15.10.2026'da sitenin fon sayfasının kullandığı uç noktaları incelerken `fonBilgiGetir`'i bulduk. Bu nedenle yalnızca son alınan değeri `funds` tablosunda saklıyoruz (`total_value`, `investor_count`, `info_date`).
 - **Sınırlı fiyat geçmişi:** En fazla 60 ay geriye gidiyor ve dönem parametresi yalnızca 1, 3, 6, 12, 36 ve 60 ay olabiliyor. İstemci, istenen süreyi bunlardan en yakın büyüğüne yuvarlıyor.
 - **Resmî olmayan erişim:** Uç noktalar resmî ve belgelenmiş bir API değil, sitenin kullandığı adresler; TEFAS dışarıya API sunmadığını belirtmektedir (Bölüm 2.9). Siteyi yormamak için istekler arasında 0,5 saniye bekliyor, hata durumunda üç kez ve artan aralıklarla yeniden deniyoruz.
 
@@ -23,6 +25,7 @@ Değişikliğin bizi doğrudan etkileyen sonuçları:
 
 **Günlük güncelleme.** `app/scheduler.py` hafta içi her gün saat 21:00'de (İstanbul) son bir ayın fiyatlarını çeker. Ardından sırasıyla şunları çalıştırır:
 
+- her fon için güncel büyüklük ve yatırımcı sayısının alınması, KAP bağlantısı henüz yoksa onun da alınması (fon başına bir istek, KAP bağlantısı için bir kez daha; istekler arası bekleme korunur. Güncellemeye yaklaşık 9 dakika ekler; 1.071 fonun ilk doldurması `scripts/fon_bilgisi_yukle` ile 18 dakika sürdü ve hatasız tamamlandı),
 - metriklerin yeniden hesaplanması (Bölüm 3),
 - SPK kararlarına göre fon durumlarının işaretlenmesi,
 - kayan pencereli geriye dönük test (Bölüm 5),
@@ -139,9 +142,9 @@ Bu adresler belgelenmemiştir, önceden haber verilmeden değişebilir. Denemeni
 
 > "Kullanıcılar bilgi ve dokümanları, sadece bilgi edinme amacıyla kullanabilir. Burada mevcut bulunan bilgiler, MKK'nın önceden yazılı olarak izni alınmadan kısmen veya tamamen kopya edilemez, uygulamaya konulamaz, dağıtılamaz, kiralanamaz, çoğaltılamaz, alt lisansla kullandırılamaz, değiştirilemez, ileride kullanılmak üzere saklanamaz."
 
-**Karar.** Portföy dağılımı özelliğini **uygulamadık**. Teknik ölçüt sınırda karşılansa da, raporlardan çıkarılan verileri veritabanında saklamak bu koşuldaki "ileride kullanılmak üzere saklanamaz" yasağına doğrudan girmektedir. Aynı gerekçeyle KAP bildirimlerini (başlık, tarih, tür) çekip saklama ve uygulamada gösterme planından da vazgeçtik. Uygulama hiçbir KAP verisini saklamaz ve göstermez. Fon detay sayfasında yalnızca "Bu fonun KAP bildirimlerini görüntüle" bağlantısı vardır.
+**Karar.** Portföy dağılımı özelliğini **uygulamadık**. Teknik ölçüt sınırda karşılansa da, raporlardan çıkarılan verileri veritabanında saklamak bu koşuldaki "ileride kullanılmak üzere saklanamaz" yasağına doğrudan girmektedir. Aynı gerekçeyle KAP bildirimlerini (başlık, tarih, tür) çekip saklama ve uygulamada gösterme planından da vazgeçtik. Uygulama hiçbir KAP verisini saklamaz ve göstermez. Fon detay sayfasında yalnızca fonun KAP sayfasına giden bir bağlantı vardır.
 
-**Bağlantı neden doğrudan fonun sayfasına gitmiyor?** KAP'ta bir fonun sayfasının adresi fon kodunu değil, KAP'ın kendi fon kimliğini içerir. Bu kimlik yalnızca KAP'ın fon listesinden öğrenilebiliyor; o listeyi saklamamaya karar verdiğimiz için kimliği de bilemiyoruz. Bu nedenle bağlantı KAP'ın yatırım fonları listesine gider. Kullanıcı orada arama kutusuna fon kodunu yazarak fonu bulur. Fizibilite denemesi sırasında indirilen dosyalar yalnızca geçici çalışma klasöründe tutuldu, projeye eklenmedi.
+**KAP bağlantısı nereden geliyor?** KAP'ta bir fonun sayfasının adresi fon kodunu değil, KAP'ın kendi adlandırmasını içerir; bu adres KAP'tan veri çekmeden tahmin edilemez. İlk sürümde bu yüzden bağlantı KAP'ın yatırım fonları listesine gidiyordu ve kullanıcı fonu orada arıyordu. Daha sonra TEFAS'ın fon profilinin (`fonProfilBilgiGetir`) her fon için KAP sayfasının adresini (`kapLink`) verdiğini gördük. Bu adres KAP'ın değil TEFAS'ın verisidir; KAP'tan hiçbir şey çekmeden yalnızca bu bağlantıyı saklıyoruz (`funds.kap_url`). Bağlantıyı, KAP'ın alan adıyla (`https://www.kap.org.tr/`) başlamıyorsa saklamıyoruz. Bağlantısı olmayan fonlarda eski davranış (KAP'ın fon listesi) sürer. 15.10.2026 itibarıyla veritabanındaki 1.071 fonun tamamının KAP bağlantısı vardır. Fizibilite denemesi sırasında indirilen dosyalar yalnızca geçici çalışma klasöründe tutuldu, projeye eklenmedi.
 
 MKK'dan yazılı izin alınması durumunda A, B ve C kalıpları için bir ayrıştırıcı yazılabilir; bu, gelecek çalışmalara bırakılmıştır (Bölüm 8.4).
 
@@ -175,8 +178,10 @@ Saklamayı ya da göstermeyi yasaklayan bir hüküm yoktur. Ancak TEFAS dışar�
 |---|---|---|---|---|
 | KAP | MKK'nın yazılı izni gerekli | Açıkça yasak | Resmî API yok | Kullanılmıyor; yalnızca bağlantı |
 | TCMB | Kaynak göstererek serbest | Hüküm yok | Ticari kullanım yazılı izne bağlı | Gösterge kurları, kaynak belirtilerek |
-| TEFAS | Açık yasak yok | Açık yasak yok | Dış API sunulmuyor; iç adresler kullanılıyor | Fon listesi ve fiyatlar |
+| TEFAS | Açık yasak yok | Açık yasak yok | Dış API sunulmuyor; iç adresler kullanılıyor | Fon listesi, fiyatlar, güncel büyüklük ve yatırımcı sayısı, KAP bağlantısı |
 | Truncgil | Koşul yok | Koşul yok | Hiçbir taahhüt yok | Anlık kurlar, ayrı sekmede |
+
+**Yönetim ücreti.** Fonların yıllık yönetim ücretini göstermek için kaynak aradık (15.10.2026). TEFAS'ın sayfalarında (fon karşılaştırma, terimler sözlüğü, sıkça sorulan sorular) ve fon sayfasının kullandığı uç noktalarda (`fonBilgiGetir`, `fonProfilBilgiGetir`) yönetim ücreti alanı yoktur; profil yalnızca giriş ve çıkış komisyonunu verir. Yönetim ücreti resmî olarak fon izahnamesinde ve KAP'ta yayımlanır; KAP verisini kullanmadığımız için (Bölüm 2.8) bu özelliği kapsam dışı bıraktık (Bölüm 8.4). Getiri hesaplarımız bundan etkilenmez, çünkü yönetim ücreti fon fiyatına zaten yansımıştır.
 
 **Değerlendirme.** Bu inceleme sonucunda kod değişikliği yapmadık. KAP dışındaki kaynaklarda kullanımımızı açıkça yasaklayan bir hüküm bulunmamaktadır. Ancak TEFAS ve Truncgil erişimi açık bir izne değil, yasak bulunmamasına dayanmaktadır. Uygulama yayına alınacak ya da ticari amaçla kullanılacak olursa TEFAS verisi için Borsa İstanbul'un veri yayın ürünleri, KAP verisi için MKK'nın yazılı izni gerekecektir.
 
@@ -185,5 +190,7 @@ Saklamayı ya da göstermeyi yasaklayan bir hüküm yoktur. Ancak TEFAS dışar�
 - TEFAS erişimi resmî bir API'ye değil, sitenin kendi kullandığı adreslere dayanır; TEFAS dışarıya API sunmadığını belirtmektedir (Bölüm 2.9). Bu adresler önceden haber verilmeden değişebilir. Truncgil'in kullanım koşulu yoktur.
 - Fiyat geçmişi beş yılla sınırlıdır.
 - Fonların kategori ve risk değerinin geçmişteki hâlleri saklanmamaktadır; yalnızca güncel değerler bilinmektedir.
+- Fon büyüklüğü ve yatırımcı sayısının geçmişi yoktur; TEFAS yalnızca güncel değeri verir. Bu yüzden bu bilgiler öneri algoritmasında ve geriye dönük testte kullanılmaz (Bölüm 5.8).
+- Yönetim ücreti gösterilmemektedir; TEFAS'ta bulunmamaktadır (Bölüm 2.9).
 - SPK kararları elle izlenmekte ve işlenmektedir.
 - Fonların portföy dağılımı gösterilmemektedir; KAP verisi kullanım koşulu nedeniyle saklanmamaktadır (Bölüm 2.8).

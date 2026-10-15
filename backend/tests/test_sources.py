@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.services import fx
-from app.services.tefas_client import parse_fund_list, parse_prices, snap_period
+from app.services.tefas_client import parse_fund_list, parse_kap_link, parse_prices, parse_snapshot, snap_period
 
 TCMB_XML = """<?xml version="1.0" encoding="UTF-8"?>
 <Tarih_Date Tarih="09.10.2026" Date="10/09/2026" Bulten_No="2026/191">
@@ -104,3 +104,21 @@ def test_parse_tefas_fund_list():
 
 def test_snap_period():
     assert snap_period(2) == 3 and snap_period(12) == 12 and snap_period(100) == 60
+
+
+def test_parse_tefas_snapshot():
+    rows = [{"fonKodu": "TTE", "sonFiyat": 1.10794, "payAdet": 2048583509, "portBuyukluk": 2269708592.44,
+             "yatirimciSayi": 39630, "kategoriDerece": 139}]
+    s = parse_snapshot(rows, "tte")
+    assert (s.code, s.total_value, s.investor_count, s.shares_outstanding) == ("TTE", 2269708592.44, 39630, 2048583509)
+    s = parse_snapshot([{"fonKodu": "X", "portBuyukluk": None, "yatirimciSayi": ""}], "X")
+    assert s.total_value is None and s.investor_count is None
+    assert parse_snapshot([], "X") is None
+
+
+def test_parse_kap_link_accepts_only_kap():
+    ok = "https://www.kap.org.tr/tr/fon-bilgileri/genel/tte-is-portfoy"
+    assert parse_kap_link([{"kapLink": ok}]) == ok
+    assert parse_kap_link([{"kapLink": "javascript:alert(1)"}]) is None
+    assert parse_kap_link([{"kapLink": "https://kap.org.tr.evil.com/x"}]) is None
+    assert parse_kap_link([{"kapLink": None}]) is None and parse_kap_link([]) is None

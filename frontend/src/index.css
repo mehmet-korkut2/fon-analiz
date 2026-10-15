@@ -331,3 +331,4 @@ a.tag:hover { border-color: #0f7a5c; }
 .range-track { position: relative; height: 6px; margin: 8px 6px; border-radius: 3px; background: #e5ebe8; }
 .range-dot { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: #17211d; border: 2px solid #fff; transform: translate(-50%, -50%); box-shadow: 0 0 0 1px #17211d; }
 .range-ends { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.nowrap { white-space: nowrap; }

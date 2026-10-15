@@ -24,6 +24,8 @@ Yol haritasında "Gelecek çalışmalar" başlığına aldığımız işler:
 - Şema değişiklikleri için Alembic'e geçiş.
 - KAP portföy dağılım raporlarından fonların varlık dağılımı: MKK'dan yazılı izin alınırsa (Bölüm 2.8).
 - Yayına alma ya da ticari kullanım durumunda TEFAS verisi için resmî kaynağa (Borsa İstanbul veri yayın ürünleri) geçilmesi (Bölüm 2.9).
+- Fonların yıllık yönetim ücretinin gösterilmesi: TEFAS'ta bulunmadığı için kapsam dışı kaldı; KAP ya da izahname verisi için MKK'nın yazılı izni ya da portföy şirketlerinin kendi sitelerinin kullanım koşullarının ayrı ayrı incelenmesi gerekir (Bölüm 2.9).
+- Fon büyüklüğü ve yatırımcı sayısının her gün saklanarak geçmişinin biriktirilmesi; yeterli geçmiş oluşunca bu bilgilerin geriye dönük testte sınanabilmesi (Bölüm 5.8).
 
 [DOLDUR: kullanıcı girişi ve favoriler, BIST 100 / enflasyon / mevduat kıyası, LSTM (Bölüm 6.8).]
 

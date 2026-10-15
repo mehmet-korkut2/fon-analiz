@@ -33,6 +33,10 @@ class FundOut(BaseModel):
     status_note: str | None = None
     status_source: str | None = None
     status_url: str | None = None
+    # TEFAS'ın güncel değeri (geçmişi yok); info_date alındığı gün
+    total_value: float | None = None
+    investor_count: int | None = None
+    info_date: date | None = None
     metrics: MetricsOut | None = None
 
 
@@ -87,6 +91,7 @@ class TechnicalOut(BaseModel):
 class FundDetail(FundOut):
     fund_type: str | None = None
     is_active: bool = True
+    kap_url: str | None = None  # TEFAS profilindeki KAP bağlantısı
     category_rank_1y: int | None = None  # kategorisinde 1 yıllık getiriye göre sırası
     category_size: int | None = None
 

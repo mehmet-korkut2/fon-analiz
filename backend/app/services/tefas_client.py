@@ -5,11 +5,14 @@ yeni bir JSON API'ye geçti:
 
 - /api/funds/fonGetiriBazliBilgiGetir : fon listesi (getiri tablosu)
 - /api/funds/fonFiyatBilgiGetir       : tek fonun fiyat geçmişi
+- /api/funds/fonBilgiGetir            : tek fonun güncel büyüklüğü ve yatırımcı sayısı (geçmişi yok)
+- /api/funds/fonProfilBilgiGetir      : tek fonun profili (ISIN, valör, komisyon, KAP bağlantısı)
 
 Yeni API'nin kısıtları:
 - Fiyat geçmişi fon fon çekilir (toplu tarih sorgusu yok).
 - Geriye dönük süre sadece 1, 3, 6, 12, 36 veya 60 ay olabilir (en fazla 5 yıl).
-- Portföy dağılımı, yatırımcı sayısı ve fon büyüklüğü artık yayınlanmıyor.
+- Portföy dağılımı ve yönetim ücreti yayınlanmıyor. Fon büyüklüğü ve yatırımcı sayısı yalnızca
+  güncel değer olarak (fon başına bir istekle) alınabiliyor; geçmiş tarihlerin değeri yok.
 """
 from __future__ import annotations
 
@@ -25,6 +28,10 @@ log = logging.getLogger(__name__)
 BASE_URL = "https://www.tefas.gov.tr"
 LIST_ENDPOINT = "/api/funds/fonGetiriBazliBilgiGetir"
 PRICE_ENDPOINT = "/api/funds/fonFiyatBilgiGetir"
+INFO_ENDPOINT = "/api/funds/fonBilgiGetir"
+PROFILE_ENDPOINT = "/api/funds/fonProfilBilgiGetir"
+# kapLink yalnızca KAP'ın fon sayfasıysa saklanır (bağlantı arayüzde açılıyor)
+KAP_LINK_PREFIX = "https://www.kap.org.tr/"
 VALID_PERIODS = (1, 3, 6, 12, 36, 60)
 FUND_TYPES = ("YAT", "EMK", "BYF")  # yatırım, emeklilik, borsa yatırım fonu
 
@@ -60,6 +67,16 @@ class FundPrice:
     code: str
     date: date
     price: float
+
+
+@dataclass
+class FundSnapshot:
+    """fonBilgiGetir: fonun o anki büyüklüğü ve yatırımcı sayısı."""
+
+    code: str
+    total_value: float | None  # portföy büyüklüğü (TL)
+    investor_count: int | None
+    shares_outstanding: int | None
 
 
 def snap_period(months: int) -> int:
@@ -139,6 +156,29 @@ def parse_fund_list(rows: list[dict], fund_type: str) -> list[FundInfo]:
     return funds
 
 
+def _to_int(value) -> int | None:
+    f = _to_float(value)
+    return None if f is None or f < 0 else int(round(f))
+
+
+def parse_snapshot(rows: list[dict], code: str) -> FundSnapshot | None:
+    if not rows:
+        return None
+    r = rows[0]
+    total = _to_float(r.get("portBuyukluk"))
+    return FundSnapshot(
+        code=(r.get("fonKodu") or code).strip().upper(),
+        total_value=total if total is not None and total >= 0 else None,
+        investor_count=_to_int(r.get("yatirimciSayi")),
+        shares_outstanding=_to_int(r.get("payAdet")),
+    )
+
+
+def parse_kap_link(rows: list[dict]) -> str | None:
+    link = (rows[0].get("kapLink") or "").strip() if rows else ""
+    return link if link.startswith(KAP_LINK_PREFIX) and len(link) <= 500 else None
+
+
 def parse_prices(rows: list[dict], code: str) -> list[FundPrice]:
     prices = []
     for r in rows:
@@ -190,3 +230,9 @@ class TefasClient:
     def price_history(self, code: str, months: int = 12) -> list[FundPrice]:
         payload = {"fonKodu": code.upper(), "dil": "TR", "periyod": snap_period(months)}
         return parse_prices(self._post(PRICE_ENDPOINT, payload), code)
+
+    def snapshot(self, code: str) -> FundSnapshot | None:
+        return parse_snapshot(self._post(INFO_ENDPOINT, {"fonKodu": code.upper(), "dil": "TR"}), code)
+
+    def kap_link(self, code: str) -> str | None:
+        return parse_kap_link(self._post(PROFILE_ENDPOINT, {"fonKodu": code.upper(), "dil": "TR"}))

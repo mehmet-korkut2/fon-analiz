@@ -10,6 +10,7 @@ import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
 import { axisDigits, monthTicks } from '../chart'
 import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
 import { isClosed } from '../fundStatus'
+import { compactTl, count } from '../money'
 
 const LINE = '#0f7a5c'
 const FORECAST = '#2a78d6' // tahmin: fiyattan ayrı bir renk (kategorik paletin 1. rengi)
@@ -21,8 +22,8 @@ const MA = {
 const GRID = '#e5ebe8'
 const INK_MUTED = '#5d6b65'
 
-// KAP'ın fon sayfası adresi KAP'ın kendi fon kimliğini istiyor; KAP verisi saklanmadığı için
-// (kullanım koşulu, docs/rapor/02_veri_toplama.md 2.8) yatırım fonları listesine yönlendiriyoruz.
+// Fonun KAP sayfası bağlantısı TEFAS'ın fon profilinden gelir (kap_url; KAP'tan veri çekilmez,
+// docs/rapor/02_veri_toplama.md 2.8). Bağlantı yoksa KAP'ın yatırım fonları listesine yönlendiriyoruz.
 const KAP_FUNDS_URL = 'https://www.kap.org.tr/tr/YatirimFonlari/YF'
 const FUND_TYPES = { YAT: 'Yatırım fonu', EMK: 'Emeklilik fonu', BYF: 'Borsa yatırım fonu' }
 
@@ -372,8 +373,9 @@ export default function FundDetail() {
         {tech && <TechnicalSummary summary={tech.summary} />}
         {tech && (
           <p className="muted small chart-note">
-            Teknik göstergeler geçmiş fiyat hareketini özetler; testlerimizde gelecekteki getiriyi tahmin etmede basit
-            ortalamadan daha iyi sonuç vermedi.
+            Teknik göstergeler geçmiş fiyat hareketini özetler. Testlerimizde momentum ve 52 haftalık zirveye uzaklık gibi
+            göstergeler gelecekteki getiriyi tahmin etmede basit ortalamadan daha iyi sonuç vermedi; hareketli ortalamalar
+            ayrıca test edilmedi.
           </p>
         )}
         {prices && prices.length > 0 && (
@@ -394,6 +396,16 @@ export default function FundDetail() {
       </div>
 
       <ForecastCard forecast={forecast} unavailable={forecastMissing} />
+
+      {(fund.total_value != null || fund.investor_count != null) && (
+        <>
+          <h2>Fon bilgileri {fund.info_date && <span className="muted small">(TEFAS, {trDate(fund.info_date)})</span>}</h2>
+          <div className="cards">
+            <MetricCard label="Fon büyüklüğü" value={compactTl(fund.total_value)}>Fonun toplam portföy değeri.</MetricCard>
+            <MetricCard label="Yatırımcı sayısı" value={count(fund.investor_count)}>Fonda payı bulunan yatırımcı sayısı.</MetricCard>
+          </div>
+        </>
+      )}
 
       {m ? (
         <>
@@ -439,8 +451,14 @@ export default function FundDetail() {
       )}
 
       <p className="small kap-link">
-        <a href={KAP_FUNDS_URL} target="_blank" rel="noopener noreferrer">Bu fonun KAP bildirimlerini görüntüle ↗</a>
-        <span className="muted"> KAP'ın yatırım fonları listesi açılır; arama kutusuna {fund.code} yazarak fonu bulabilirsiniz.</span>
+        {fund.kap_url ? (
+          <a href={fund.kap_url} target="_blank" rel="noopener noreferrer">Bu fonun KAP sayfasını görüntüle ↗</a>
+        ) : (
+          <>
+            <a href={KAP_FUNDS_URL} target="_blank" rel="noopener noreferrer">Bu fonun KAP bildirimlerini görüntüle ↗</a>
+            <span className="muted"> KAP'ın yatırım fonları listesi açılır; arama kutusuna {fund.code} yazarak fonu bulabilirsiniz.</span>
+          </>
+        )}
       </p>
 
       <p className="hint">

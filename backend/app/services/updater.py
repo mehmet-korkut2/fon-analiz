@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import threading
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -31,6 +31,7 @@ class UpdateResult:
     funds_total: int = 0
     funds_updated: int = 0
     new_prices: int = 0
+    info_updated: int = 0  # büyüklüğü/yatırımcı sayısı yenilenen fon
     metrics: dict | None = None
     ml: dict | None = None
     errors: list[str] = field(default_factory=list)
@@ -71,6 +72,26 @@ def save_prices(db: Session, code: str, prices: list[FundPrice]) -> int:
     return len(new)
 
 
+def update_info(db: Session, client: TefasClient, code: str, today: date | None = None) -> bool:
+    """Fonun güncel büyüklüğünü ve yatırımcı sayısını (her seferinde) ve KAP bağlantısını (yoksa) yazar.
+
+    TEFAS bu değerlerin geçmişini vermiyor; sadece son alınan değer saklanır. İstekler
+    TefasClient'ın bekleme süresine tabidir. Başarısız olursa eski değer korunur.
+    """
+    fund = db.get(Fund, code)
+    if fund is None:
+        return False
+    snap = client.snapshot(code)
+    if snap is not None:
+        fund.total_value = snap.total_value
+        fund.investor_count = snap.investor_count
+        fund.info_date = today or date.today()
+    if not fund.kap_url:  # bağlantı değişmiyor; bir kez alınması yeterli
+        fund.kap_url = client.kap_link(code)
+    db.commit()
+    return snap is not None
+
+
 def run_update(
     fund_type: str = "YAT",
     months: int = 1,
@@ -78,6 +99,7 @@ def run_update(
     only_code: str | None = None,
     client: TefasClient | None = None,
     recompute_metrics: bool = True,
+    fetch_info: bool = True,
 ) -> UpdateResult:
     """Fon listesini yeniler ve her fonun son `months` aylık fiyatlarından eksik olanları ekler."""
     global last_result
@@ -119,6 +141,11 @@ def run_update(
                     continue
                 result.funds_updated += 1
                 result.new_prices += added
+                if fetch_info:
+                    try:
+                        result.info_updated += update_info(db, client, f.code)
+                    except TefasError as e:  # büyüklük alınamazsa fiyat güncellemesi yine sayılır
+                        result.errors.append(f"{f.code} (büyüklük): {e}")
                 if i % 50 == 0 or i == len(funds):
                     log.info("[%s/%s] işlendi, şimdiye kadar %s yeni fiyat.", i, len(funds), result.new_prices)
 

@@ -10,10 +10,11 @@ FastAPI [1] ile şu uç noktaları sunduk (`app/routers/`):
 
 | Uç nokta | İşlev |
 |---|---|
-| `GET /api/funds` | Fon listesi: arama (Türkçe büyük harf duyarlı), kategori ve risk süzgeci, metriğe göre sıralama, sayfalama |
+| `GET /api/funds` | Fon listesi: arama (Türkçe büyük harf duyarlı), kategori ve risk süzgeci, metriğe, fon büyüklüğüne ya da yatırımcı sayısına göre sıralama, sayfalama |
 | `GET /api/funds/categories` | Kategoriler ve fon sayıları |
-| `GET /api/funds/{kod}` | Fon detayı, metrikler, kategori içi sıra, SPK durumu |
+| `GET /api/funds/{kod}` | Fon detayı, metrikler, kategori içi sıra, SPK durumu, güncel büyüklük ve yatırımcı sayısı, KAP bağlantısı |
 | `GET /api/funds/{kod}/prices` | Fiyat geçmişi (ay sayısı ya da tarih aralığı) |
+| `GET /api/funds/{kod}/technical` | 50/200 günlük hareketli ortalama, trend, 52 haftalık aralık (Bölüm 4.4) |
 | `GET /api/compare` | 2–4 fonun 100'den başlayan karşılaştırma serileri |
 | `GET /api/rankings` | En yüksek getiri, en düşük volatilite, en yüksek Sharpe |
 | `GET /api/risk-survey`, `POST /api/risk-profile` | Risk anketi ve profil (Bölüm 5) |

@@ -154,6 +154,7 @@ Kotayı yine de tuttuk. Gerekçemiz geçmiş getiri değil, profil tutarlılığ
 ## 5.8 Kısıtlar
 
 - Geriye dönük testte fonların geçmişteki risk değeri ve kategorisi bilinmediği için güncel değerler kullanıldı.
+- Fon büyüklüğü ve yatırımcı sayısı öneri puanına ve geriye dönük teste katılmadı. TEFAS bu değerlerin yalnızca bugünkü hâlini veriyor (Bölüm 2.2). Geçmiş bir seçim gününde bugünün büyüklüğünü kullanmak geleceği bilmek anlamına gelir: bugün büyük olan bir fon, büyük olasılıkla geçmişte iyi getiri sağladığı için büyümüştür; bu, testi iyimser yapardı. Bu bilgiler yalnızca fon listesinde ve detayında gösterilir. Bir testle (`test_size_and_investors_not_used_in_recommendation`) büyüklük değiştiğinde önerilerin ve geriye dönük test sonucunun değişmediği doğrulanır.
 - Alım-satım masrafı ve stopaj hesaba katılmadı; portföy yeniden dengelenmiyor.
 - Test dönemi tek bir yüksek faiz ortamını kapsar.
 - Profil kullanıcı girişi olmadığı için tarayıcıda saklanır.

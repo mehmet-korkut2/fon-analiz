@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { getCategories, getFunds } from '../api/client'
 import RiskBar from '../components/RiskBar'
 import { num, pct } from '../format'
+import { compactTl, count } from '../money'
 import { useDebounced } from '../hooks'
 import { STATUS_LABELS, isClosed } from '../fundStatus'
 
@@ -18,6 +19,11 @@ const COLUMNS = [
   ['volatility_1y', 'Volatilite', 'Fiyatın ne kadar dalgalandığı (yıllık). Yüksekse risk yüksektir.'],
   ['sharpe_1y', 'Sharpe', 'Alınan risk başına getiri. Risksiz getiri olarak para piyasası fonlarının medyanı kullanılır.'],
   ['max_drawdown_1y', 'Maks. düşüş', 'Son 1 yılda bir zirveden sonraki en büyük kayıp'],
+]
+// Fon bilgisi sütunları (metrik değil; TEFAS'ın güncel değeri, geçmişi yok)
+const INFO_COLUMNS = [
+  ['total_value', 'Büyüklük', 'Fonun toplam portföy değeri (TEFAS, güncel)', compactTl],
+  ['investor_count', 'Yatırımcı', 'Fondaki yatırımcı sayısı (TEFAS, güncel)', count],
 ]
 
 const isReturn = (k) => k.startsWith('ret_')
@@ -119,10 +125,11 @@ export default function Funds() {
               <SortHeader k="risk_level" title="TEFAS risk değeri (1 en düşük, 7 en yüksek)">Risk</SortHeader>
               <th className="r">Fiyat</th>
               {COLUMNS.map(([k, label, title]) => <SortHeader key={k} k={k} title={title} right>{label}</SortHeader>)}
+              {INFO_COLUMNS.map(([k, label, title]) => <SortHeader key={k} k={k} title={title} right>{label}</SortHeader>)}
             </tr>
           </thead>
           <tbody>
-            {data && data.items.length === 0 && <tr><td colSpan={4 + COLUMNS.length} className="muted">Aramana uyan fon yok.</td></tr>}
+            {data && data.items.length === 0 && <tr><td colSpan={4 + COLUMNS.length + INFO_COLUMNS.length} className="muted">Aramana uyan fon yok.</td></tr>}
             {data?.items.map((f) => (
               <tr key={f.code}>
                 <td className="num">{data.sample ? <strong>{f.code}</strong> : <Link to={`/fonlar/${f.code}`}><strong>{f.code}</strong></Link>}</td>
@@ -147,6 +154,7 @@ export default function Funds() {
                     </td>
                   )
                 })}
+                {INFO_COLUMNS.map(([k, , , fmt]) => <td key={k} className="r num nowrap">{fmt(f[k])}</td>)}
               </tr>
             ))}
           </tbody>

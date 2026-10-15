@@ -51,6 +51,11 @@ def client():
                 prices = prices * (1 + 0.01 * (-1) ** np.arange(len(dates)))
             db.add_all(Price(fund_code=code, date=d.date(), price=float(p)) for d, p in zip(dates, prices))
         db.add(Fund(code="KPL", name="KAPALI FON", category="Hisse Senedi", is_active=False))
+        # TEFAS'tan alınan güncel büyüklük ve yatırımcı sayısı (PPB'de yok)
+        for code, size, inv in [("HSA", 5e8, 1200), ("HSB", 2e9, 300), ("PPA", 1e9, 50_000)]:
+            f = db.get(Fund, code)
+            f.total_value, f.investor_count, f.info_date = size, inv, date(2026, 10, 9)
+        db.get(Fund, "HSA").kap_url = "https://www.kap.org.tr/tr/fon-bilgileri/genel/hsa-ornek"
         db.commit()
         apply_status_rules(db)
         recompute_all(db)
@@ -271,3 +276,18 @@ def test_technical_indicators(client):
 
 def test_technical_404(client):
     assert client.get("/api/funds/YOK/technical").status_code == 404
+
+
+def test_sort_by_size_and_investors(client):
+    codes = [f["code"] for f in client.get("/api/funds?sort=total_value").json()["items"]]
+    assert codes == ["HSB", "PPA", "HSA", "PPB"]  # büyüklüğü olmayan sona
+    items = client.get("/api/funds?sort=investor_count&order=asc").json()["items"]
+    assert [f["code"] for f in items] == ["HSB", "HSA", "PPA", "PPB"]
+    assert items[0]["investor_count"] == 300 and items[0]["total_value"] == 2e9 and items[0]["info_date"] == "2026-10-09"
+
+
+def test_detail_has_kap_url_and_size(client):
+    d = client.get("/api/funds/HSA").json()
+    assert d["kap_url"] == "https://www.kap.org.tr/tr/fon-bilgileri/genel/hsa-ornek"
+    assert d["total_value"] == 5e8 and d["investor_count"] == 1200
+    assert client.get("/api/funds/PPB").json()["kap_url"] is None

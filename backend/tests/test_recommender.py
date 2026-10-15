@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -186,6 +186,26 @@ def test_equal_weight_buy_and_hold(db_session):
     mm = R.performance(db, ["MM1", "MM2", "MM3"], date(2025, 10, 9), date(2026, 10, 9), ["MM1", "MM2", "MM3"])
     assert perf.benchmark["return"] == pytest.approx(np.median(list(mm.funds.values())))
     assert mm.funds["MM1"] > mm.funds["MM2"] > mm.funds["MM3"]
+
+
+def test_size_and_investors_not_used_in_recommendation(db_session):
+    # Büyüklüğün geçmişi yok (sadece bugünkü değer); öneri ve geriye dönük test bunu kullanmamalı
+    db, _ = db_session
+
+    def run():
+        R._frame_cache.clear()
+        rec, bt = R.recommend(db, "agresif", False), R.backtest(db, "agresif", False)
+        return rec.items.reset_index(drop=True), rec.portfolio.reset_index(drop=True), bt.performance.funds
+
+    before = run()
+    assert len(before[0]) > 0
+    for i, f in enumerate(db.scalars(select(Fund))):
+        f.total_value, f.investor_count = 10.0 ** (i + 3), 10 ** i
+    db.commit()
+    after = run()
+    pd.testing.assert_frame_equal(before[0], after[0])
+    pd.testing.assert_frame_equal(before[1], after[1])
+    assert before[2] == after[2]
 
 
 def test_current_recommendations_exclude_closed_fund(db_session):
