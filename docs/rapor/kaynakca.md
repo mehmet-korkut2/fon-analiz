@@ -6,7 +6,7 @@ Kaynaklar IEEE biçimindedir ve metinde ilk geçiş sırasıyla numaralandırıl
 
 [2] M. Bayer, "SQLAlchemy," [Çevrimiçi]. Erişim adresi: https://www.sqlalchemy.org. [Erişim: 14 Eki. 2026].
 
-[3] W. McKinney, "Data structures for statistical computing in Python," in *Proc. 9th Python in Science Conf. (SciPy 2010)*, Austin, TX, USA, 2010, [DOLDUR: sayfa numaraları].
+[3] W. McKinney, "Data structures for statistical computing in Python," in *Proc. 9th Python in Science Conf. (SciPy 2010)*, Austin, TX, USA, 2010, pp. 56–61.
 
 [4] Meta Platforms, "React," [Çevrimiçi]. Erişim adresi: https://react.dev. [Erişim: 14 Eki. 2026].
 
@@ -44,16 +44,18 @@ Kaynaklar IEEE biçimindedir ve metinde ilk geçiş sırasıyla numaralandırıl
 
 [21] Committee of European Securities Regulators, "CESR's guidelines on the methodology for the calculation of the synthetic risk and reward indicator in the Key Investor Information Document," CESR/10-673, Tem. 2010.
 
-[22] Sermaye Piyasası Kurulu, "Yatırım Fonlarına İlişkin Esaslar Tebliği (III-52.1)," *Resmî Gazete*, [DOLDUR: tarih ve sayı].
+[22] W3C, "Web Content Accessibility Guidelines (WCAG) 2.1," W3C Recommendation, 5 Haz. 2018. [Çevrimiçi]. Erişim adresi: https://www.w3.org/TR/WCAG21/. [Erişim: 15 Eki. 2026].
 
-[23] G. E. P. Box, G. M. Jenkins, G. C. Reinsel ve G. M. Ljung, *Time Series Analysis: Forecasting and Control*, 5. baskı. Hoboken, NJ, USA: Wiley, 2015.
+[23] Sermaye Piyasası Kurulu, "Yatırım Fonlarına İlişkin Esaslar Tebliği (III-52.1)," *Resmî Gazete*, [DOLDUR: tarih ve sayı].
 
-[24] S. Seabold ve J. Perktold, "Statsmodels: Econometric and statistical modeling with Python," in *Proc. 9th Python in Science Conf. (SciPy 2010)*, Austin, TX, USA, 2010, [DOLDUR: sayfa numaraları].
+[24] G. E. P. Box, G. M. Jenkins, G. C. Reinsel ve G. M. Ljung, *Time Series Analysis: Forecasting and Control*, 5. baskı. Hoboken, NJ, USA: Wiley, 2015.
 
-[25] G. Ke, Q. Meng, T. Finley, T. Wang, W. Chen, W. Ma, Q. Ye ve T.-Y. Liu, "LightGBM: A highly efficient gradient boosting decision tree," in *Advances in Neural Information Processing Systems 30 (NIPS 2017)*, 2017, pp. 3146–3154.
+[25] S. Seabold ve J. Perktold, "Statsmodels: Econometric and statistical modeling with Python," in *Proc. 9th Python in Science Conf. (SciPy 2010)*, Austin, TX, USA, 2010, pp. 92–96.
 
-[26] L. Grinsztajn, E. Oyallon ve G. Varoquaux, "Why do tree-based models still outperform deep learning on typical tabular data?," in *Advances in Neural Information Processing Systems 35, Datasets and Benchmarks Track*, 2022.
+[26] G. Ke, Q. Meng, T. Finley, T. Wang, W. Chen, W. Ma, Q. Ye ve T.-Y. Liu, "LightGBM: A highly efficient gradient boosting decision tree," in *Advances in Neural Information Processing Systems 30 (NIPS 2017)*, 2017, pp. 3146–3154.
 
-[27] V. Vovk, A. Gammerman ve G. Shafer, *Algorithmic Learning in a Random World*. New York, NY, USA: Springer, 2005.
+[27] L. Grinsztajn, E. Oyallon ve G. Varoquaux, "Why do tree-based models still outperform deep learning on typical tabular data?," in *Advances in Neural Information Processing Systems 35, Datasets and Benchmarks Track*, 2022.
 
-[28] A. N. Angelopoulos ve S. Bates, "A gentle introduction to conformal prediction and distribution-free uncertainty quantification," arXiv:2107.07511, 2021.
+[28] V. Vovk, A. Gammerman ve G. Shafer, *Algorithmic Learning in a Random World*. New York, NY, USA: Springer, 2005.
+
+[29] A. N. Angelopoulos ve S. Bates, "A gentle introduction to conformal prediction and distribution-free uncertainty quantification," arXiv:2107.07511, 2021.

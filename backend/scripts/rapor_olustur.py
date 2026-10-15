@@ -10,7 +10,7 @@ yine üretilir; içindekiler Word'de açıldığında güncellenir.
 
 Bağımlılıklar: requirements-rapor.txt (python-docx, pywin32; görseller için matplotlib).
 Markdown'ın yalnızca rapor dosyalarında kullandığımız alt kümesi desteklenir: başlıklar,
-paragraflar, madde ve numaralı listeler (iki boşluk girintili alt maddeler), tablolar,
+paragraflar, çitli kod blokları (```), madde ve numaralı listeler (iki boşluk girintili alt maddeler), tablolar,
 görseller, alıntı blokları, kalın/italik/kod ve [DOLDUR: ...] işaretleri (sarı vurgulanır).
 Yazdırılacak belgelerde `<div style="page-break-after: always"></div>` satırı sayfa sonu olur, `---` atlanır.
 """
@@ -217,6 +217,14 @@ def bloklar(lines):
         if line.strip() == PAGE_BREAK:
             yield "sayfa_sonu", None
             i += 1
+        elif line.strip().startswith("```"):
+            i += 1
+            code = []
+            while i < len(lines) and not lines[i].strip().startswith("```"):
+                code.append(lines[i].rstrip())
+                i += 1
+            i += 1  # kapanış çiti
+            yield "kod", code
         elif m := re.match(r"^(#{1,3}) (.+)$", line):
             yield "baslik", (len(m.group(1)), m.group(2))
             i += 1
@@ -248,7 +256,7 @@ def bloklar(lines):
             yield "liste", items
         else:
             buf = []
-            while i < len(lines) and lines[i].strip() and lines[i].strip() not in (PAGE_BREAK, "---") and not re.match(
+            while i < len(lines) and lines[i].strip() and lines[i].strip() not in (PAGE_BREAK, "---") and not lines[i].strip().startswith("```") and not re.match(
                 r"^(#{1,3} |!\[|\||>|\s*- |\s*\d+\. )", lines[i]
             ):
                 buf.append(lines[i].strip())
@@ -360,6 +368,14 @@ def bolum(doc, md, ilk):
             gorsel(doc, *data, base)
         elif kind == "sayfa_sonu":
             sayfa_sonu(doc)
+        elif kind == "kod":
+            for ln in data:
+                p = doc.add_paragraph()
+                p.paragraph_format.left_indent = Cm(0.6)
+                p.paragraph_format.space_after = Pt(0)
+                r = p.add_run(ln or " ")
+                r.font.name = KOD_FONT
+                r.font.size = Pt(9)
 
 
 # --- Word: içindekiler ve PDF ------------------------------------------------------------

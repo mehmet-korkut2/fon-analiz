@@ -98,11 +98,14 @@ Son güncelleme: 13 Ekim 2026
 - [x] Sunum öncesi veritabanı yedeği ve geri yükleme komutu: `python -m scripts.yedekle`, `python -m scripts.geri_yukle` (sanal portföy dahil, `backups/` git'e girmez)
 - [x] Kullanıcı testi materyali: `docs/kullanici_testi.md` (6 görev, gözlem alanı, 5 soruluk anket; yazdırmak için .pdf)
 - [ ] Kullanıcı testi: 3–5 kişiye kullandır, sonuçları rapor 7.5'e yaz
-- [ ] Rapor: giriş, literatür, yöntem, ML sonuçları, sonuç, kaynakça
-- [ ] Sunum slaytları (10–15 slayt)
+- [x] Rapor: 00–08 bölümleri ve kaynakça tamamlandı, Word/PDF `docs/rapor/cikti/` (`python -m scripts.rapor_olustur`); sayılar, şekil/tablo numaraları ve atıf sırası denetlendi
+- [ ] Rapordaki kalan [DOLDUR] alanları (taslaklar, hazırlık süreci, 5 fonun kodları, kullanıcı testi, video, Wi-Fi denemesi, kişisel değerlendirme, iki tebliğin Resmî Gazete bilgisi)
+- [x] Sunum taslağı: `docs/sunum_taslagi.md` (14 slayt, şekil numaralarıyla, konuşmacı notları)
+- [ ] Sunum slaytlarını hazırla (taslaktan)
 - [x] Demo videosu senaryosu: `docs/demo_senaryosu.md` (4 dk)
 - [ ] Demo videosunu çek (canlı demo bozulursa diye)
-- [ ] Prova ve olası sorular
+- [x] Olası jüri soruları ve cevaplar: `docs/juri_sorulari.md` (20 soru)
+- [ ] Prova
 - [ ] README ve kod düzeni, teslim
 
 > Uygulama yayına alınmayacak; sunumda kendi bilgisayarımda çalışacak. Yayınla ilgili maddeler aşağıda "Gelecek çalışmalar"da.

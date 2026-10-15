@@ -16,7 +16,7 @@ Anket 8 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur (`app/servi
 | Hedef | ×2 | Risk isteğini ölçer |
 | Birikim payı (yatırılacak tutar birikimin ne kadarı?) | ×2 | Kapasite: aynı kayıp birikimin küçük bir kısmında katlanılabilir, tamamında katlanılamaz |
 | Gelir istikrarı, acil durum birikimi, deneyim | ×1 | Destekleyici etkenler |
-| Nitelikli yatırımcı | puana girmez | Serbest fonlar yalnızca nitelikli yatırımcıya satılabilir [22]; "Evet" ise serbest fonlar da önerilir |
+| Nitelikli yatırımcı | puana girmez | Serbest fonlar yalnızca nitelikli yatırımcıya satılabilir [23]; "Evet" ise serbest fonlar da önerilir |
 
 **Profil eşikleri ve risk aralıkları:**
 
@@ -71,7 +71,7 @@ Bu değişikliğin dengeli profilin ilk 10'una etkisi küçük oldu: iki yöntem
 
 **Çeşitlendirme ve gerekçeler.** Aynı kategoriden en fazla 2 fon önerilir. Her önerinin gerekçesi, fonun en güçlü iki bileşeninden ve profil uyumundan sayılarla otomatik üretilir; en zayıf bileşen alt %25'teyse bir "Dikkat" notu eklenir.
 
-![Şekil 5.3 Öneriler sayfası (dengeli profil)](gorseller/sekil_5_3_oneriler.png)
+![Şekil 5.1 Öneriler sayfası (dengeli profil)](gorseller/sekil_5_1_oneriler.png)
 
 ## 5.4 Ağırlık duyarlılığı
 
@@ -91,12 +91,12 @@ Ağırlıkları değiştirerek ilk 10'un ne kadar değiştiğini ölçtük. Dene
 
 ## 5.5 Karşılaşılan sorun: dengeli profil ve riskli fon kotası
 
-İlk sürümde dengeli profilin ilk 10'u tamamen para piyasası benzeri fonlardan oluşuyordu: volatilite %2'nin altında, maksimum düşüş sıfıra yakın. Bunun nedeni dönemin piyasa koşuluydu. Risksiz getiri %46 iken düşük riskli fonlar hem daha çok kazandırmış hem hiç düşmemişti (Şekil 5.1):
+İlk sürümde dengeli profilin ilk 10'u tamamen para piyasası benzeri fonlardan oluşuyordu: volatilite %2'nin altında, maksimum düşüş sıfıra yakın. Bunun nedeni dönemin piyasa koşuluydu. Risksiz getiri %46 iken düşük riskli fonlar hem daha çok kazandırmış hem hiç düşmemişti (Şekil 5.2):
 
 - risk değeri 1–2 olan fonların medyan 1 yıllık getirisi %45–46,
 - risk değeri 7 olan fonlarınki %15.
 
-![Şekil 5.1 Risk değerine göre son 1 yılın medyan getirisi](gorseller/sekil_5_1_risk_getiri.png)
+![Şekil 5.2 Risk değerine göre son 1 yılın medyan getirisi](gorseller/sekil_5_2_risk_getiri.png)
 
 Riske göre getiriyi ödüllendiren her yöntem, bu dönemde dengeli yatırımcıyı muhafazakâr fonlara yönlendirir. Bu yöntemin bir hatası değildi, ama "dengeli" etiketiyle de uyuşmuyordu.
 
@@ -125,7 +125,7 @@ Riske göre getiriyi ödüllendiren her yöntem, bu dönemde dengeli yatırımc�
 
 Dönemlerin para piyasası medyanı ortalaması %55,3'tür. Nitelikli yatırımcı için (serbest fonlar dahil) temkinli profil 24 dönemin 18'inde kıyası geçmiştir.
 
-![Şekil 5.2 Kayan pencereli test: örnek portföy eksi para piyasası medyanı](gorseller/sekil_5_2_kayan_pencere.png)
+![Şekil 5.3 Kayan pencereli test: örnek portföy eksi para piyasası medyanı](gorseller/sekil_5_3_kayan_pencere.png)
 
 **Değerlendirme:**
 

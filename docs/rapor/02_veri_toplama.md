@@ -11,7 +11,7 @@ TEFAS [7] 2026'da veri sunma biçimini değiştirdi. Eski HTML/form tabanlı uç
 - `/api/funds/fonGetiriBazliBilgiGetir`: fon listesi; kod, unvan, kategori, risk değeri ve işlem durumu.
 - `/api/funds/fonFiyatBilgiGetir`: bir fonun fiyat geçmişi.
 - `/api/funds/fonBilgiGetir`: bir fonun o günkü portföy büyüklüğü, yatırımcı sayısı ve pay adedi.
-- `/api/funds/fonProfilBilgiGetir`: bir fonun profili; ISIN, valör, giriş/çıkış komisyonu ve fonun KAP sayfasının bağlantısı (`kapLink`). Profilden yalnızca bu bağlantıyı saklıyoruz.
+- `/api/funds/fonProfilBilgiGetir`: bir fonun profili; ISIN, valör, son işlem saati, giriş/çıkış komisyonu ve fonun KAP sayfasının bağlantısı (`kapLink`). Profilden KAP bağlantısını, alış ve satış valörünü ve son işlem saatini saklıyoruz (sanal portföy için; Bölüm 3.6).
 
 Değişikliğin bizi doğrudan etkileyen sonuçları:
 
@@ -25,11 +25,14 @@ Değişikliğin bizi doğrudan etkileyen sonuçları:
 
 **Günlük güncelleme.** `app/scheduler.py` hafta içi her gün saat 21:00'de (İstanbul) son bir ayın fiyatlarını çeker. Ardından sırasıyla şunları çalıştırır:
 
-- her fon için güncel büyüklük ve yatırımcı sayısının alınması, KAP bağlantısı henüz yoksa onun da alınması (fon başına bir istek, KAP bağlantısı için bir kez daha; istekler arası bekleme korunur. Güncellemeye yaklaşık 9 dakika ekler; 1.071 fonun ilk doldurması `scripts/fon_bilgisi_yukle` ile 18 dakika sürdü ve hatasız tamamlandı),
+- her fon için güncel büyüklük ve yatırımcı sayısının alınması; profil (KAP bağlantısı, valör, son işlem saati) hiç alınmadıysa ya da 30 günden eskiyse onun da alınması (fon başına bir istek, profil için 30 günde bir bir istek daha; istekler arası bekleme korunur. Güncellemeye yaklaşık 9 dakika ekler; 1.071 fonun ilk doldurması `scripts/fon_bilgisi_yukle` ile 18 dakika sürdü ve hatasız tamamlandı),
 - metriklerin yeniden hesaplanması (Bölüm 3),
 - SPK kararlarına göre fon durumlarının işaretlenmesi,
+- bekleyen sanal portföy emirlerinin gerçekleştirilmesi ve portföy değerinin yeniden hesaplanması (Bölüm 3.6),
 - kayan pencereli geriye dönük test (Bölüm 5),
 - tahmin işi (Bölüm 6).
+
+Güncelleme başlamadan önce TEFAS'a ulaşılıp ulaşılamadığı denetlenir; internet yoksa güncelleme hiçbir şeye dokunmadan atlanır (Bölüm 7.4).
 
 TEFAS günün fiyatlarını akşam yayımladığı için daha erken bir saat seçmedik.
 
@@ -55,6 +58,8 @@ Döviz ve altın sayfası için iki kaynak kullandık:
 
 - **TCMB'nin günlük gösterge kurları (`today.xml`) [8]:** Resmî kaynak.
 - **Truncgil Finans [9]:** Gün içi anlık kurlar. Resmî olmayan bir kaynak olduğu için arayüzde ayrı bir sekmede, kaynağı belirtilerek gösterilmektedir.
+
+Her kaynağın son başarılı yanıtı veritabanında saklanır; kaynağa ulaşılamazsa döviz sayfası son bilinen kurları güncellenme zamanıyla gösterir (Bölüm 7.4).
 
 ## 2.6 Veri doğrulama
 
@@ -146,7 +151,7 @@ Bu adresler belgelenmemiştir, önceden haber verilmeden değişebilir. Denemeni
 
 **KAP bağlantısı nereden geliyor?** KAP'ta bir fonun sayfasının adresi fon kodunu değil, KAP'ın kendi adlandırmasını içerir; bu adres KAP'tan veri çekmeden tahmin edilemez. İlk sürümde bu yüzden bağlantı KAP'ın yatırım fonları listesine gidiyordu ve kullanıcı fonu orada arıyordu. Daha sonra TEFAS'ın fon profilinin (`fonProfilBilgiGetir`) her fon için KAP sayfasının adresini (`kapLink`) verdiğini gördük. Bu adres KAP'ın değil TEFAS'ın verisidir; KAP'tan hiçbir şey çekmeden yalnızca bu bağlantıyı saklıyoruz (`funds.kap_url`). Bağlantıyı, KAP'ın alan adıyla (`https://www.kap.org.tr/`) başlamıyorsa saklamıyoruz. Bağlantısı olmayan fonlarda eski davranış (KAP'ın fon listesi) sürer. 15.10.2026 itibarıyla veritabanındaki 1.071 fonun tamamının KAP bağlantısı vardır. Fizibilite denemesi sırasında indirilen dosyalar yalnızca geçici çalışma klasöründe tutuldu, projeye eklenmedi.
 
-MKK'dan yazılı izin alınması durumunda A, B ve C kalıpları için bir ayrıştırıcı yazılabilir; bu, gelecek çalışmalara bırakılmıştır (Bölüm 8.4).
+MKK'dan yazılı izin alınması durumunda A, B ve C kalıpları için bir ayrıştırıcı yazılabilir; bu, gelecek çalışmalara bırakılmıştır (Bölüm 8.6).
 
 ## 2.9 Kaynakların kullanım koşulları
 
@@ -181,9 +186,9 @@ Saklamayı ya da göstermeyi yasaklayan bir hüküm yoktur. Ancak TEFAS dışar�
 | TEFAS | Açık yasak yok | Açık yasak yok | Dış API sunulmuyor; iç adresler kullanılıyor | Fon listesi, fiyatlar, güncel büyüklük ve yatırımcı sayısı, KAP bağlantısı |
 | Truncgil | Koşul yok | Koşul yok | Hiçbir taahhüt yok | Anlık kurlar, ayrı sekmede |
 
-**Yönetim ücreti.** Fonların yıllık yönetim ücretini göstermek için kaynak aradık (15.10.2026). TEFAS'ın sayfalarında (fon karşılaştırma, terimler sözlüğü, sıkça sorulan sorular) ve fon sayfasının kullandığı uç noktalarda (`fonBilgiGetir`, `fonProfilBilgiGetir`) yönetim ücreti alanı yoktur; profil yalnızca giriş ve çıkış komisyonunu verir. Yönetim ücreti resmî olarak fon izahnamesinde ve KAP'ta yayımlanır; KAP verisini kullanmadığımız için (Bölüm 2.8) bu özelliği kapsam dışı bıraktık (Bölüm 8.4). Getiri hesaplarımız bundan etkilenmez, çünkü yönetim ücreti fon fiyatına zaten yansımıştır.
+**Yönetim ücreti.** Fonların yıllık yönetim ücretini göstermek için kaynak aradık (15.10.2026). TEFAS'ın sayfalarında (fon karşılaştırma, terimler sözlüğü, sıkça sorulan sorular) ve fon sayfasının kullandığı uç noktalarda (`fonBilgiGetir`, `fonProfilBilgiGetir`) yönetim ücreti alanı yoktur; profil yalnızca giriş ve çıkış komisyonunu verir. Yönetim ücreti resmî olarak fon izahnamesinde ve KAP'ta yayımlanır; KAP verisini kullanmadığımız için (Bölüm 2.8) bu özelliği kapsam dışı bıraktık (Bölüm 8.5). Getiri hesaplarımız bundan etkilenmez, çünkü yönetim ücreti fon fiyatına zaten yansımıştır.
 
-**Değerlendirme.** Bu inceleme sonucunda kod değişikliği yapmadık. KAP dışındaki kaynaklarda kullanımımızı açıkça yasaklayan bir hüküm bulunmamaktadır. Ancak TEFAS ve Truncgil erişimi açık bir izne değil, yasak bulunmamasına dayanmaktadır. Uygulama yayına alınacak ya da ticari amaçla kullanılacak olursa TEFAS verisi için Borsa İstanbul'un veri yayın ürünleri, KAP verisi için MKK'nın yazılı izni gerekecektir.
+**Değerlendirme.** Bu inceleme sonucunda kod değişikliği yapmadık. Daha sonra internetsiz çalışma için TCMB ve Truncgil'in son yanıtını veritabanında saklamaya başladık (Bölüm 7.4); iki kaynakta da saklamayı kısıtlayan bir hüküm yoktur. KAP dışındaki kaynaklarda kullanımımızı açıkça yasaklayan bir hüküm bulunmamaktadır. Ancak TEFAS ve Truncgil erişimi açık bir izne değil, yasak bulunmamasına dayanmaktadır. Uygulama yayına alınacak ya da ticari amaçla kullanılacak olursa TEFAS verisi için Borsa İstanbul'un veri yayın ürünleri, KAP verisi için MKK'nın yazılı izni gerekecektir.
 
 ## 2.10 Kısıtlar
 

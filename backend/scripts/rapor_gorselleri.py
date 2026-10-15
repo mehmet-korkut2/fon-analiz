@@ -187,7 +187,7 @@ def risk_getiri(con):
     ax.set_xlabel("TEFAS risk değeri")
     ax.set_ylabel("Medyan 1 yıllık getiri")
     ax.set_title("Risk değerine göre son 1 yılın medyan getirisi")
-    save(fig, "sekil_5_1_risk_getiri.png")
+    save(fig, "sekil_5_2_risk_getiri.png")
 
 
 def kayan_pencere(con):
@@ -204,7 +204,7 @@ def kayan_pencere(con):
     ax.set_xlabel("Seçim ayı")
     ax.set_title("Kayan pencereli test: örnek portföy eksi para piyasası medyanı")
     ax.legend(fontsize=7.5, ncol=3)
-    save(fig, "sekil_5_2_kayan_pencere.png")
+    save(fig, "sekil_5_3_kayan_pencere.png")
 
 
 # --- 6. ML -------------------------------------------------------------------------------

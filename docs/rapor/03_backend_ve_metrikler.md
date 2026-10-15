@@ -124,11 +124,12 @@ Bekleyen emirler her gece güncellemeden sonra, ilgili günün fiyatı geldiğin
 
 ## 3.7 Testler
 
-Backend'de toplam 125 otomatik test vardır (`backend/tests/`). Testler şu alanları kapsar:
+Backend'de toplam 131 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
 
 - **Metrik tanımları:** Bilinen sentetik serilerle.
 - **API davranışları:** Süzme, sıralama, sayfalama, Türkçe arama, eski verili ve kapatılmış fonların dışlanması.
-- **Diğer kurallar:** Veri kalitesi ve SPK işaretleme.
+- **Diğer kurallar:** Veri kalitesi ve SPK işaretleme; teknik göstergeler; fon büyüklüğünün öneriye katılmaması.
+- **Veri toplama ve çalışma ortamı:** TEFAS ve döviz yanıtlarının ayrıştırılması, gece güncellemesi, internet yokken güncellemenin atlanması ve son bilinen kurlar, yedek ve geri yükleme.
 - **Sanal portföy:** Emir günü ve son işlem saati, valör ve hafta sonu, ileri fiyat, tatil gününde sonraki fiyat, valör bilgisi olmayan fon, nakit yetersizliği (bekleyen alışlar dahil), kısmi ve tam satış ile ortalama maliyet, bekleyen satıştaki payların yeniden satılamaması, iptal, sıfırlama, kapatılmış ve eski verili fon, günlük değer ve para piyasası kıyası, "Ya o zaman alsaydım?" hesabı ve yıllıklandırma sınırı (18 test).
 - **Diğer bölümler:** Öneri sistemi ve makine öğrenmesi modülü (Bölüm 5 ve 6).
 

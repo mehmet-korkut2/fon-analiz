@@ -1,6 +1,6 @@
 # 7. Test ve Demo
 
-> Kullanıcı testinin sonuçları (7.5) ve demo videosunun bağlantısı (7.6) testler yapıldıktan sonra doldurulacaktır.
+> Kullanıcı testinin sonuçları (7.5), demo videosunun bağlantısı (7.6) ve sunum bilgisayarındaki Wi-Fi denemesi (7.4) yapıldıktan sonra doldurulacaktır.
 
 ## 7.1 Amaç
 
