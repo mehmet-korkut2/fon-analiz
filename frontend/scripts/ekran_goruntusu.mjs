@@ -25,6 +25,8 @@ const PAGES = {
   oneriler: '/oneriler',
   model: '/model-performansi',
   doviz: '/doviz',
+  sanal: '/sanal-portfoy',
+  geriye: '/sanal-portfoy?mod=geriye&fon=TTE,AFT,IPB,AES',
 }
 
 const args = process.argv.slice(2)

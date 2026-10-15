@@ -17,6 +17,7 @@ Bu aşamada, backend'in sunduğu verileri kullanıcıya anlaşılır, karşıla�
 | Sıralamalar | En yüksek getiri (dönem seçilebilir), en düşük volatilite, en yüksek Sharpe; kategori süzgeci |
 | Risk anketi | Sorular tek tek, ilerleme çubuğu; sonuç kartı |
 | Öneriler | Profil özeti, gerekçeli 10 öneri, örnek portföy, portföy planlayıcı, kayan pencereli test özeti (Bölüm 5) |
+| Sanal Portföy | Hayali parayla alış/satış ve "Ya o zaman alsaydım?" (Bölüm 4.5, Şekil 4.7 ve 4.8) |
 | Model | Tahmin modelinin bütün test sonuçları (Bölüm 6) |
 | Döviz ve Altın | TCMB ve anlık kaynak sekmeleri |
 
@@ -80,13 +81,34 @@ Grafik renkleri: 50 günlük ortalama turuncu (#c24a1a) düz çizgi, 200 günlü
 
 ![Şekil 4.6 Fon detay sayfası, koyu tema](gorseller/sekil_4_6_koyu_tema.png)
 
-## 4.5 Mobil uyum
+## 4.5 Sanal portföy
+
+Sanal Portföy sayfası iki sekmeden oluşur; mantığı ve kuralları Bölüm 3.6'dadır. Sayfanın en üstünde, iki sekmede de görünen belirgin bir uyarı vardır: "Bu hayali parayla yapılan bir simülasyondur. Gerçek alım satım yapılmaz. Geçmiş performans gelecekteki sonuçların göstergesi değildir. Yatırım tavsiyesi değildir." Fon detay sayfasındaki "Sanal portföyde dene" düğmesi bu sayfayı fon seçili olarak açar.
+
+**Sanal portföy sekmesi** (Şekil 4.7):
+
+- *Özet kartları:* Toplam değer ve toplam kâr/zarar (TL ve %), nakit (kullanılabilir ve bekleyen alışlar için ayrılan), fonlardaki değer ve satışlardan gerçekleşen kâr/zarar, para piyasası medyanı kıyası ve fark.
+- *Fon al:* Fon arama kutusu ve tutar. Fon seçilince son fiyat, alış valörü ("1 iş günü sonraki (T+1) fiyat") ve son işlem saati gösterilir. İşleme kapatılmış ya da eski verili fon seçilirse neden alınamadığı yazar ve düğme kapanır. Emir verilince hangi günün fiyatından gerçekleşeceği bildirilir.
+- *Bekleyen emirler:* Ayrı bir tabloda, gerçekleşecekleri gün ve valörle; her biri iptal edilebilir.
+- *Pozisyonlar:* Pay adedi, ortalama maliyet, maliyet, güncel fiyat ve değer, kâr/zarar (TL ve %). Her satırdaki "Sat" düğmesi satış formunu açar; "Tamamı" düğmesi satılabilir payların hepsini yazar, form satış valörünü ve bugünkü fiyatla yaklaşık tutarı gösterir.
+- *Portföy değeri grafiği:* Günlük toplam değer ve kesikli çizgiyle para piyasası medyanı kıyası.
+- *İşlem geçmişi* (açılır tablo) ve *ayarlar:* başlangıç bakiyesi ve iki adımlı "Portföyü sıfırla" onayı.
+
+**"Ya o zaman alsaydım?" sekmesi** (Şekil 4.8): En fazla 4 fon, alış tarihi ve tutar seçilir. Sonuç tablosunda her fonun alış günü ve fiyatı, bugünkü değeri, kâr/zararı, yıllıklandırılmış getirisi ve aynı dönemde para piyasası medyanının vereceği değer yer alır. Grafikte fonlar ve kesikli çizgiyle para piyasası medyanı aynı tutardan başlar. Fon renkleri Karşılaştır sayfasındaki kategorik paletle ve aynı kuralla (renk, fonun seçim yuvasına bağlı) verilir. Fon seçilen tarihte henüz yoksa "Fon bu tarihte yoktu; ilk fiyat …" etiketi çıkar.
+
+**Mobil.** Pozisyon, bekleyen emir ve "Ya o zaman alsaydım?" tabloları 600 px'in altında satır başına bir karta dönüşür. Her hücre kendi etiketiyle alt alta yazılır, böylece kâr/zarar ve "Sat" düğmesi yatay kaydırmadan görünür. 390 px'te iki sekmede de yatay taşma yoktur.
+
+![Şekil 4.7 Sanal portföy: ilk gün, valör gününü bekleyen bir alış emri](gorseller/sekil_4_7_sanal_portfoy.png)
+
+![Şekil 4.8 Ya o zaman alsaydım?](gorseller/sekil_4_8_ya_o_zaman.png)
+
+## 4.6 Mobil uyum
 
 Arayüzü telefon genişliklerinde (360 ve 390 px) tarayıcının geliştirici protokolüyle açıp her sayfada yatay taşma olup olmadığını ölçtük; bütün sayfalarda sayfa genişliği ekran genişliğine eşittir. Geniş tablolar kendi kutuları içinde yatay kaydırılır. Tasarım değişikliğinden sonra ölçümü 390 px'te dokuz sayfanın hepsinde tekrarladık; taşma yoktur. Ana sayfada başlık ve anket kartı alt alta geçer, kategori kutuları iki sütuna iner; başlık çubuğu dar ekranda sayfayla birlikte kayar.
 
 ![Şekil 4.4 Fon detay sayfası, 390 px genişlik](gorseller/sekil_4_4_mobil.png)
 
-## 4.6 Karşılaşılan sorunlar ve çözümleri
+## 4.7 Karşılaşılan sorunlar ve çözümleri
 
 | Sorun | Neden | Çözüm |
 |---|---|---|
@@ -99,9 +121,11 @@ Arayüzü telefon genişliklerinde (360 ve 390 px) tarayıcının geliştirici p
 | Ekran görüntülerinde sayfanın alt kısmındaki grafikler boş çıkıyordu | Sayfanın tamamını çekerken tarayıcı pencereyi yeniden boyutlandırıyor, grafikler yeniden çizilirken görüntü alınıyordu | Betik önce pencereyi sayfa boyuna büyütüp grafiklerin çizilmesini bekliyor, sonra çekiyor |
 | Headless tarayıcıda 390 px'lik görüntü yatay taşıyor gibi görünüyordu | Tarayıcı penceresinin en küçük genişliği 390 px'ten büyük | Genişlik pencere boyutuyla değil, geliştirici protokolünün ekran öykünmesiyle veriliyor; gerçek taşma yoktu |
 | Koyu temada ana sayfadaki kartın düğmesi zemine karışıyordu | Açık yeşil zemin değişkeni koyu temada koyu yeşile dönüyor | Kart düğmesi için ayrı değişken (`--hero-btn`); koyu temada açık yeşil, kontrast 8,5:1 |
+| Fon seçici sanal portföy formunda alanın altında büyük bir boşluk bırakıyordu | Karşılaştır sayfasındaki seçicinin esneme kuralı, sütun yönlü kapta dikeyde uzuyordu | Seçici ortak bileşene çıkarıldı (`FundPicker`); formda esneme kapatıldı |
+| Telefonda "Ya o zaman alsaydım?" tablosunda sonuç sütunları ekran dışında kalıyordu | Geniş tablo yalnızca yatay kayıyordu | Tablolar dar ekranda etiketli kartlara dönüşüyor (`stack-table`) |
 | Anket metinlerinde soru sayısı tutarsızdı ("7 soruluk") | Anket 9 soruya çıktıktan sonra metin güncellenmemişti | Metinler 9 soruya göre düzeltildi |
 
-## 4.7 Kısıtlar
+## 4.8 Kısıtlar
 
 - Kullanıcı girişi ve favori fonlar uygulanmadı; profil ve karşılaştırma listesi tarayıcıya bağlıdır.
 - Koyu tema yalnızca sistem ayarını izler; sayfada ayrı bir tema düğmesi yoktur.

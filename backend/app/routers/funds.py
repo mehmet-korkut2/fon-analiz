@@ -140,7 +140,8 @@ def get_fund(code: str, db: Session = Depends(get_db)):
     if f is None:
         raise HTTPException(404, f"{code.upper()} kodlu fon bulunamadı.")
     cutoff = stale_cutoff(db)
-    out = FundDetail(**fund_out(f, cutoff).model_dump(), fund_type=f.fund_type, is_active=f.is_active, kap_url=f.kap_url)
+    out = FundDetail(**fund_out(f, cutoff).model_dump(), fund_type=f.fund_type, is_active=f.is_active, kap_url=f.kap_url,
+                     buy_valor=f.buy_valor, sell_valor=f.sell_valor, cutoff_time=f.cutoff_time)
 
     # Kategori sırası sadece güncel verili ve işlem gören fonlar arasında
     # (eski fonun 1 yıllık getirisi başka döneme ait; işleme kapatılan fona yatırım yapılamaz)

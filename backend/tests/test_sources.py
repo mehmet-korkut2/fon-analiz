@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.services import fx
-from app.services.tefas_client import parse_fund_list, parse_kap_link, parse_prices, parse_snapshot, snap_period
+from app.services.tefas_client import parse_fund_list, parse_kap_link, parse_prices, parse_profile, parse_snapshot, snap_period
 
 TCMB_XML = """<?xml version="1.0" encoding="UTF-8"?>
 <Tarih_Date Tarih="09.10.2026" Date="10/09/2026" Bulten_No="2026/191">
@@ -122,3 +122,14 @@ def test_parse_kap_link_accepts_only_kap():
     assert parse_kap_link([{"kapLink": "javascript:alert(1)"}]) is None
     assert parse_kap_link([{"kapLink": "https://kap.org.tr.evil.com/x"}]) is None
     assert parse_kap_link([{"kapLink": None}]) is None and parse_kap_link([]) is None
+
+
+def test_parse_profile_valor_mapping():
+    # Yabancı hisse fonu: alış T+1, satış T+3. TEFAS'ta alış = fonGeriAlisValor, satış = fonSatisValor
+    rows = [{"fonKodu": "GUH", "kapLink": "https://www.kap.org.tr/tr/fon-bilgileri/genel/guh", "fonSatisValor": 3,
+             "fonGeriAlisValor": 1, "sonIsSaat": "17:45", "basIsSaat": "09:00"}]
+    p = parse_profile(rows)
+    assert (p.buy_valor, p.sell_valor, p.cutoff) == (1, 3, "17:45") and p.kap_url.endswith("/guh")
+    p = parse_profile([{"fonSatisValor": None, "fonGeriAlisValor": "x", "sonIsSaat": "25:00"}])
+    assert (p.buy_valor, p.sell_valor, p.cutoff, p.kap_url) == (None, None, None, None)
+    assert parse_profile([]) is None

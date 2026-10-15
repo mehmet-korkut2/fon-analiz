@@ -1,5 +1,9 @@
 // TL tutarları ve tutar girişi
 export const tl = (v) => (v == null || Number.isNaN(v) ? '–' : `${Math.round(v).toLocaleString('tr-TR')} TL`)
+// Kuruşlu: 12.345,67 TL
+export const tl2 = (v) => (v == null || Number.isNaN(v) ? '–' : `${v.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`)
+// İşaretli kuruşlu (kâr/zarar): +1.234,56 TL
+export const signedTl = (v) => (v == null || Number.isNaN(v) ? '–' : `${v > 0 ? '+' : ''}${tl2(v)}`)
 
 // "10.000" ya da "10000,50" gibi girişleri sayıya çevirir; geçersizse null
 export function parseAmount(text) {

@@ -11,6 +11,7 @@ const FundDetail = lazy(() => import('./pages/FundDetail.jsx'))
 const Compare = lazy(() => import('./pages/Compare.jsx'))
 const Recommendations = lazy(() => import('./pages/Recommendations.jsx'))
 const ModelPerformance = lazy(() => import('./pages/ModelPerformance.jsx'))
+const SanalPortfoy = lazy(() => import('./pages/SanalPortfoy.jsx'))
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <NavLink to="/karsilastir">Karşılaştır</NavLink>
           <NavLink to="/risk-anketi">Risk Anketi</NavLink>
           <NavLink to="/oneriler">Öneriler</NavLink>
+          <NavLink to="/sanal-portfoy">Sanal Portföy</NavLink>
           <NavLink to="/model-performansi">Model</NavLink>
           <NavLink to="/doviz">Döviz ve Altın</NavLink>
         </nav>
@@ -40,6 +42,7 @@ export default function App() {
             <Route path="/risk-anketi" element={<RiskSurvey />} />
             <Route path="/oneriler" element={<Recommendations />} />
             <Route path="/model-performansi" element={<ModelPerformance />} />
+            <Route path="/sanal-portfoy" element={<SanalPortfoy />} />
             <Route path="/doviz" element={<Doviz />} />
           </Routes>
         </Suspense>

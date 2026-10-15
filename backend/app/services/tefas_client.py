@@ -6,7 +6,11 @@ yeni bir JSON API'ye geçti:
 - /api/funds/fonGetiriBazliBilgiGetir : fon listesi (getiri tablosu)
 - /api/funds/fonFiyatBilgiGetir       : tek fonun fiyat geçmişi
 - /api/funds/fonBilgiGetir            : tek fonun güncel büyüklüğü ve yatırımcı sayısı (geçmişi yok)
-- /api/funds/fonProfilBilgiGetir      : tek fonun profili (ISIN, valör, komisyon, KAP bağlantısı)
+- /api/funds/fonProfilBilgiGetir      : tek fonun profili (ISIN, valör, son işlem saati, komisyon, KAP bağlantısı)
+
+Valör alanları: fonGeriAlisValor yatırımcının ALIŞ, fonSatisValor SATIŞ valörüdür (iş günü).
+Adlar ters görünse de değerler piyasa uygulamasıyla uyumlu: yabancı hisse fonlarında
+fonGeriAlisValor=1, fonSatisValor=3 (alım T+1, satım T+3); para piyasası fonlarında 0 / 0.
 
 Yeni API'nin kısıtları:
 - Fiyat geçmişi fon fon çekilir (toplu tarih sorgusu yok).
@@ -179,6 +183,45 @@ def parse_kap_link(rows: list[dict]) -> str | None:
     return link if link.startswith(KAP_LINK_PREFIX) and len(link) <= 500 else None
 
 
+def _valor(value) -> int | None:
+    try:
+        v = int(value)
+    except (TypeError, ValueError):
+        return None
+    return v if 0 <= v <= 10 else None
+
+
+def _hhmm(value) -> str | None:
+    s = str(value or "").strip()
+    try:
+        h, m = (int(x) for x in s.split(":")[:2])
+    except ValueError:
+        return None
+    return f"{h:02d}:{m:02d}" if 0 <= h < 24 and 0 <= m < 60 else None
+
+
+@dataclass
+class FundProfile:
+    """fonProfilBilgiGetir'den saklananlar."""
+
+    kap_url: str | None
+    buy_valor: int | None  # fonGeriAlisValor: alış valörü (iş günü)
+    sell_valor: int | None  # fonSatisValor: satış valörü (iş günü)
+    cutoff: str | None  # sonIsSaat: bu saatten sonraki emir ertesi iş günü sayılır ("17:45")
+
+
+def parse_profile(rows: list[dict]) -> FundProfile | None:
+    if not rows:
+        return None
+    r = rows[0]
+    return FundProfile(
+        kap_url=parse_kap_link(rows),
+        buy_valor=_valor(r.get("fonGeriAlisValor")),
+        sell_valor=_valor(r.get("fonSatisValor")),
+        cutoff=_hhmm(r.get("sonIsSaat")),
+    )
+
+
 def parse_prices(rows: list[dict], code: str) -> list[FundPrice]:
     prices = []
     for r in rows:
@@ -234,5 +277,5 @@ class TefasClient:
     def snapshot(self, code: str) -> FundSnapshot | None:
         return parse_snapshot(self._post(INFO_ENDPOINT, {"fonKodu": code.upper(), "dil": "TR"}), code)
 
-    def kap_link(self, code: str) -> str | None:
-        return parse_kap_link(self._post(PROFILE_ENDPOINT, {"fonKodu": code.upper(), "dil": "TR"}))
+    def profile(self, code: str) -> FundProfile | None:
+        return parse_profile(self._post(PROFILE_ENDPOINT, {"fonKodu": code.upper(), "dil": "TR"}))

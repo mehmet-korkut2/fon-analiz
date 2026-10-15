@@ -49,6 +49,11 @@ class Fund(Base):
     investor_count: Mapped[int | None] = mapped_column(Integer)
     info_date: Mapped[date | None] = mapped_column(Date)  # büyüklük ve yatırımcı sayısının alındığı gün
     kap_url: Mapped[str | None] = mapped_column(String(500))  # TEFAS profilindeki kapLink (KAP'tan veri çekilmez)
+    # TEFAS profili (fonProfilBilgiGetir): sanal portföyde emrin gerçekleşeceği günü belirler
+    buy_valor: Mapped[int | None] = mapped_column(Integer)  # alış valörü, iş günü
+    sell_valor: Mapped[int | None] = mapped_column(Integer)  # satış valörü, iş günü
+    cutoff_time: Mapped[str | None] = mapped_column(String(5))  # son işlem saati ("17:45")
+    profile_date: Mapped[date | None] = mapped_column(Date)  # profilin alındığı gün
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (CheckConstraint("risk_level BETWEEN 1 AND 7", name="ck_fund_risk_level"),)
@@ -208,3 +213,51 @@ class MlReport(Base):
     data_as_of: Mapped[date] = mapped_column(Date)
     payload: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+# --- Sanal portföy (tek kullanıcı, hayali para; app/services/sanal_portfoy.py) -----------------
+
+class SanalAyar(Base):
+    """Sanal portföyün başlangıç bakiyesi ve başlangıç günü (tek satır, id=1)."""
+
+    __tablename__ = "sanal_portfoy"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    initial_balance: Mapped[float] = mapped_column(Float)
+    start_date: Mapped[date] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class SanalEmir(Base):
+    """Sanal alış/satış emri. Nakit ve pozisyonlar bu kayıtlardan hesaplanır (ayrı bakiye tutulmaz)."""
+
+    __tablename__ = "sanal_emirler"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code"), index=True)
+    side: Mapped[str] = mapped_column(String(5))  # alis / satis
+    status: Mapped[str] = mapped_column(String(12), index=True)  # bekliyor / gerceklesti / iptal
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    order_date: Mapped[date] = mapped_column(Date)  # emrin sayıldığı iş günü (saat sonrası: ertesi iş günü)
+    valor: Mapped[int] = mapped_column(Integer)
+    valor_known: Mapped[bool] = mapped_column(default=True)  # False: TEFAS'ta valör yok, ertesi iş günü
+    target_date: Mapped[date] = mapped_column(Date)  # bu gün (ya da sonraki ilk işlem günü) fiyatından gerçekleşir
+    amount: Mapped[float | None] = mapped_column(Float)  # alış: istenen tutar (TL, emir verilince ayrılır)
+    units: Mapped[int | None] = mapped_column(Integer)  # satış: istenen pay adedi
+    exec_date: Mapped[date | None] = mapped_column(Date)
+    exec_price: Mapped[float | None] = mapped_column(Float)
+    exec_units: Mapped[int | None] = mapped_column(Integer)
+    exec_amount: Mapped[float | None] = mapped_column(Float)
+    note: Mapped[str | None] = mapped_column(String(300))
+
+
+class SanalDeger(Base):
+    """Sanal portföyün günlük değeri; gece güncellemesinden ve her emirden sonra yeniden hesaplanır."""
+
+    __tablename__ = "sanal_degerler"
+
+    date: Mapped[date] = mapped_column(Date, primary_key=True)
+    cash: Mapped[float] = mapped_column(Float)
+    holdings: Mapped[float] = mapped_column(Float)
+    total: Mapped[float] = mapped_column(Float)
+    benchmark: Mapped[float | None] = mapped_column(Float)  # aynı para para piyasası medyanında olsaydı

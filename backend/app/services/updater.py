@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Fund, Price
-from app.services import fund_status, metrics_job, recommender
+from app.services import fund_status, metrics_job, recommender, sanal_portfoy
 from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError
 
 log = logging.getLogger(__name__)
@@ -34,6 +34,7 @@ class UpdateResult:
     info_updated: int = 0  # büyüklüğü/yatırımcı sayısı yenilenen fon
     metrics: dict | None = None
     ml: dict | None = None
+    sanal: dict | None = None
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self):
@@ -72,8 +73,12 @@ def save_prices(db: Session, code: str, prices: list[FundPrice]) -> int:
     return len(new)
 
 
+PROFILE_REFRESH_DAYS = 30  # valör ve KAP bağlantısı nadiren değişir
+
+
 def update_info(db: Session, client: TefasClient, code: str, today: date | None = None) -> bool:
-    """Fonun güncel büyüklüğünü ve yatırımcı sayısını (her seferinde) ve KAP bağlantısını (yoksa) yazar.
+    """Fonun güncel büyüklüğünü ve yatırımcı sayısını (her seferinde), profilini (KAP bağlantısı,
+    valör, son işlem saati; hiç alınmadıysa ya da 30 günden eskiyse) yazar.
 
     TEFAS bu değerlerin geçmişini vermiyor; sadece son alınan değer saklanır. İstekler
     TefasClient'ın bekleme süresine tabidir. Başarısız olursa eski değer korunur.
@@ -81,13 +86,18 @@ def update_info(db: Session, client: TefasClient, code: str, today: date | None 
     fund = db.get(Fund, code)
     if fund is None:
         return False
+    today = today or date.today()
     snap = client.snapshot(code)
     if snap is not None:
         fund.total_value = snap.total_value
         fund.investor_count = snap.investor_count
-        fund.info_date = today or date.today()
-    if not fund.kap_url:  # bağlantı değişmiyor; bir kez alınması yeterli
-        fund.kap_url = client.kap_link(code)
+        fund.info_date = today
+    if fund.profile_date is None or (today - fund.profile_date).days >= PROFILE_REFRESH_DAYS:
+        prof = client.profile(code)
+        if prof is not None:
+            fund.kap_url = prof.kap_url or fund.kap_url
+            fund.buy_valor, fund.sell_valor, fund.cutoff_time = prof.buy_valor, prof.sell_valor, prof.cutoff
+            fund.profile_date = today
     db.commit()
     return snap is not None
 
@@ -155,6 +165,11 @@ def run_update(
                 except Exception as e:  # metrik hatası fiyat güncellemesini boşa çıkarmasın
                     log.exception("Metrik hesaplama başarısız")
                     result.errors.append(f"metrikler: {e}")
+                try:
+                    result.sanal = sanal_portfoy.process(db)  # bekleyen sanal emirler ve portföy değeri
+                except Exception as e:
+                    log.exception("Sanal portföy güncellemesi başarısız")
+                    result.errors.append(f"sanal portföy: {e}")
                 try:
                     n = recommender.store_rolling(db)  # ~1 dk; öneri sayfasındaki geriye dönük test
                     log.info("Kayan pencereli geriye dönük test: %s pencere", n)

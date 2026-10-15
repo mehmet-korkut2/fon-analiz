@@ -554,3 +554,56 @@ tbody tr:hover td { background: var(--hover); }
 }
 .home-cta .cta-secondary { color: inherit; text-decoration: underline; }
 .detail h1 { font-weight: 500; }
+
+/* ==========================================================================
+   Sanal portföy
+   ========================================================================== */
+.sim-page, .sim { display: flex; flex-direction: column; gap: 16px; }
+.sim-page .hint { margin: 4px 0 0; }
+.sim-page h2 { margin: 0; font-size: 20px; }
+.sim-warning { margin: 0; border-left: 4px solid var(--warn); font-size: 15px; }
+.sim-form-row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; }
+.sim-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 0 1 auto; }
+.sim-field:first-child { flex: 1 1 280px; }
+.sim-field .picker { max-width: none; flex: none; }
+.sim-field .chip { align-self: flex-start; }
+.sim-valor { margin: 0; }
+.date-input { font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); color: var(--ink); color-scheme: inherit; }
+.notice-ok { background: var(--brand-soft); color: var(--brand-ink); }
+.btn-sm { min-height: 30px; padding: 4px 12px; font-size: 13px; }
+.btn-danger, .btn-danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); color: var(--danger-ink); }
+.sim-table { font-size: 14px; min-width: 760px; }
+.sim-table td { vertical-align: middle; }
+.whatif-table { min-width: 820px; }
+.whatif-table .fund-name { min-width: 240px; }
+.side-badge { padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.side-alis { background: var(--brand-soft); color: var(--brand-ink); }
+.side-satis { background: var(--warn-soft); color: var(--warn-ink); }
+.sell-row td, tbody tr.sell-row:hover td { background: var(--surface-2); }
+.sell-form { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.sell-form input { font: inherit; width: 120px; padding: 6px 10px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.sim-confirm { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+.tip-row-2 { grid-template-columns: 10px auto auto; }
+.sim .chips .picker { flex: 1 1 260px; }
+@media (max-width: 600px) {
+  .sim-form-row > .btn { width: 100%; justify-content: center; }
+  .sim-field { flex: 1 1 100%; }
+  .amount-field input { width: 100%; }
+  .amount-field { width: 100%; }
+}
+.chart:has(.chart-empty-sm) { min-height: 0; }
+.chart-empty-sm { height: auto; padding: 24px 0; }
+/* Dar ekranda tablo satırları kart olur: her hücre data-label etiketiyle alt alta */
+@media (max-width: 600px) {
+  .table-wrap .stack-table { min-width: 0; }
+  .stack-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .stack-table tr { display: block; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); }
+  .stack-table tbody tr:last-child { border-bottom: 0; }
+  .stack-table td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 3px 0; border: 0; text-align: right; }
+  .stack-table td[data-label]::before { content: attr(data-label); flex: none; color: var(--ink-2); font-family: var(--font-body); font-size: 13px; text-align: left; }
+  .stack-table td.fund-name { flex-direction: column; align-items: flex-start; min-width: 0; text-align: left; padding-bottom: 6px; }
+  .stack-table td.td-action { justify-content: flex-end; padding-top: 6px; }
+  .stack-table br { display: none; }
+  .stack-table tbody tr:hover td { background: transparent; }
+  .stack-table tr.sell-row td { display: block; text-align: left; }
+}

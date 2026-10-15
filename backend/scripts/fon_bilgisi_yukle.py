@@ -1,7 +1,7 @@
-"""Fonların güncel büyüklüğünü, yatırımcı sayısını ve KAP bağlantısını TEFAS'tan alır.
+"""Fonların güncel büyüklüğünü, yatırımcı sayısını ve profilini (KAP bağlantısı, valör, son işlem saati) TEFAS'tan alır.
 
 Gece güncellemesi bunu fiyatlarla birlikte zaten yapar; bu betik ilk doldurma veya
-elle yenileme içindir. Fon başına 1-2 istek, istekler arasında TefasClient'ın beklemesi var
+elle yenileme içindir. Profil, hiç alınmadıysa ya da 30 günden eskiyse istenir. Fon başına 1-2 istek, istekler arasında TefasClient'ın beklemesi var
 (~1.000 fon için ~15-25 dk).
 
     python -m scripts.fon_bilgisi_yukle            # TEFAS'ta işlem gören bütün fonlar

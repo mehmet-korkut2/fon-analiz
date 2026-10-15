@@ -23,10 +23,11 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
   - `app/services/fund_status.py`, `data_quality.py`: SPK kararıyla kapatılan fonlar, fiyat sıçramaları
   - `app/ml/`: 1 aylık getiri tahmini (features, models, evaluation, report, job). LightGBM drift'i geçemedi; sitede ML tahmini değil, drift + konformal %80 aralık gösterilir (`forecasts` her gece, `ml_reports` 28 günde bir). Ayrıntı: `docs/ml_tahmin.md`, rapor bölümü `docs/rapor/06_ml_tahmin.md`
   - `app/services/technical.py`: 50/200 günlük ortalama, trend, 52 haftalık aralık (`/api/funds/{kod}/technical`)
+  - `app/services/sanal_portfoy.py`: Sanal Portföy (hayali para, tek kullanıcı; tablolar sanal_portfoy, sanal_emirler, sanal_degerler). Nakit/pozisyon emir kayıtlarından hesaplanır. Valör: alış = TEFAS `fonGeriAlisValor`, satış = `fonSatisValor` (adlar ters görünür; yabancı hisse fonunda 1 / 3). İleri fiyat: hedef günün fiyatı biliniyorsa sonraki iş günü. Gece güncellemesinden sonra `process()`
   - `app/services/fx.py`: TCMB today.xml (resmi) + Truncgil v4 (anlık)
   - `app/scheduler.py`: APScheduler, hafta içi 21:00; açılışta veri eskiyse günceller
   - `scripts/`: `tefas_yukle`, `metrik_hesapla`, `baglanti_testi`, `veri_kalitesi`, `fon_durumu_isaretle`, `fon_bilgisi_yukle`, `geriye_donuk_test`, `oneri_analizi`, `ml_degerlendir`
-- `frontend/` React 19 + Vite, React Router, axios, Recharts. Sayfalar: Home, Funds, FundDetail, Rankings, Compare, RiskSurvey, Recommendations, ModelPerformance, Doviz. Risk profili `localStorage`'da (`profileStore.js`).
+- `frontend/` React 19 + Vite, React Router, axios, Recharts. Sayfalar: Home, Funds, FundDetail, Rankings, Compare, RiskSurvey, Recommendations, SanalPortfoy, ModelPerformance, Doviz. Risk profili `localStorage`'da (`profileStore.js`).
   - Tema: renkler ve yazı tipleri `src/index.css` başındaki CSS değişkenlerinde (açık + koyu tema, `prefers-color-scheme`); grafik renkleri `src/theme.js` (var(--…)). Sayfa ve bileşenlerde sabit renk kodu yazma. Fontlar `@fontsource` ile gömülü (latin + latin-ext).
   - Ekran görüntüsü + yatay taşma ölçümü: `node scripts/ekran_goruntusu.mjs <klasör> <önek> [--mobil] [--koyu] [--ekran] [--sayfa ...]` (backend ve `npm run dev` açıkken)
 
@@ -49,7 +50,7 @@ npm run lint
 
 - Değişiklikten sonra `pytest` ve `npm run lint` / `npm run build` çalıştır.
 - `YOL_HARITASI.md`'yi düzenlerken her zaman önce dosyanın son hâlini oku ve sadece ilgili maddeleri değiştir (dosya editörde de düzenleniyor; tamamını yeniden yazmak başka değişiklikleri siler).
-- TEFAS portföy dağılımı ve yönetim ücreti yayınlamıyor. Fon büyüklüğü ve yatırımcı sayısı yalnızca güncel değer olarak `fonBilgiGetir`'den (fon başına bir istek) gelir; gece güncellemesinde `funds.total_value`, `investor_count`, `info_date`'e yazılır. Geçmişi yok, bu yüzden öneri ve geriye dönük testte kullanılmaz. `prices` tablosundaki `total_value`/`investor_count` sütunları boş. KAP bağlantısı `fonProfilBilgiGetir`'in `kapLink`'inden (`funds.kap_url`, bir kez alınır); KAP'tan veri çekilmez.
+- TEFAS portföy dağılımı ve yönetim ücreti yayınlamıyor. Fon büyüklüğü ve yatırımcı sayısı yalnızca güncel değer olarak `fonBilgiGetir`'den (fon başına bir istek) gelir; gece güncellemesinde `funds.total_value`, `investor_count`, `info_date`'e yazılır. Geçmişi yok, bu yüzden öneri ve geriye dönük testte kullanılmaz. `prices` tablosundaki `total_value`/`investor_count` sütunları boş. KAP bağlantısı, valör ve son işlem saati `fonProfilBilgiGetir`'den (`funds.kap_url`, `buy_valor`, `sell_valor`, `cutoff_time`; 30 günde bir yenilenir); KAP'tan veri çekilmez.
 - TEFAS fiyat geçmişi en fazla 60 ay; `periyod` sadece 1, 3, 6, 12, 36, 60 olabilir.
 - Fon adları Türkçe büyük harf (İ, Ş, Ğ); aramada `tr_upper()` kullanılıyor.
 - Metrikler ondalık kesir olarak saklanır (0.25 = %25). Sharpe için risksiz getiri: para piyasası fonlarının 1 yıllık medyan getirisi.

@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -92,6 +92,9 @@ class FundDetail(FundOut):
     fund_type: str | None = None
     is_active: bool = True
     kap_url: str | None = None  # TEFAS profilindeki KAP bağlantısı
+    buy_valor: int | None = None  # alış / satış valörü (iş günü), son işlem saati: sanal portföy
+    sell_valor: int | None = None
+    cutoff_time: str | None = None
     category_rank_1y: int | None = None  # kategorisinde 1 yıllık getiriye göre sırası
     category_size: int | None = None
 
@@ -307,3 +310,118 @@ class MlPerformanceOut(BaseModel):
     created_at: str
     data_as_of: date
     report: dict  # app/ml/report.build_report çıktısı
+
+
+# --- Sanal portföy -----------------------------------------------------------------
+
+class SanalOrderIn(BaseModel):
+    code: str
+    side: str = Field(pattern="^(alis|satis)$")
+    amount: float | None = None  # alış: TL
+    units: int | None = None  # satış: pay adedi
+
+
+class SanalResetIn(BaseModel):
+    initial_balance: float
+
+
+class SanalOrderOut(BaseModel):
+    id: int
+    code: str
+    name: str
+    side: str
+    status: str
+    created_at: datetime
+    order_date: date
+    valor: int
+    valor_known: bool
+    target_date: date
+    amount: float | None = None
+    units: int | None = None
+    exec_date: date | None = None
+    exec_price: float | None = None
+    exec_units: int | None = None
+    exec_amount: float | None = None
+    note: str | None = None
+
+
+class SanalPositionOut(BaseModel):
+    code: str
+    name: str
+    category: str | None = None
+    risk_level: int | None = None
+    status: str
+    units: int
+    avg_cost: float | None = None
+    cost: float
+    price: float | None = None
+    price_date: date | None = None
+    value: float
+    pnl: float | None = None
+    pnl_pct: float | None = None
+    realized: float
+    sellable: int
+    sell_valor: int | None = None
+
+
+class SanalValueOut(BaseModel):
+    date: date
+    total: float
+    cash: float
+    holdings: float
+    benchmark: float | None = None
+
+
+class SanalOut(BaseModel):
+    initial_balance: float
+    start_date: date
+    as_of: date | None = None
+    total: float
+    cash: float  # bloke dahil nakit
+    reserved: float  # bekleyen alışlar için ayrılan
+    available: float
+    holdings: float
+    pnl: float
+    pnl_pct: float | None = None
+    realized: float
+    benchmark: float | None = None  # aynı para para piyasası medyanında olsaydı
+    benchmark_pct: float | None = None
+    positions: list[SanalPositionOut]
+    pending: list[SanalOrderOut]
+    history: list[SanalOrderOut]
+    values: list[SanalValueOut]
+
+
+class WhatIfFund(BaseModel):
+    code: str
+    name: str
+    error: str | None = None
+    category: str | None = None
+    risk_level: int | None = None
+    status: str | None = None
+    status_note: str | None = None
+    buy_date: date | None = None
+    buy_price: float | None = None
+    units: float | None = None
+    last_date: date | None = None
+    last_price: float | None = None
+    value: float | None = None
+    pnl: float | None = None
+    pnl_pct: float | None = None
+    days: int | None = None
+    annualized: float | None = None  # 360 günden kısa dönemde boş
+    mm_value: float | None = None
+    mm_pct: float | None = None
+    mm_annualized: float | None = None
+    late_start: bool = False  # fonun ilk fiyatı seçilen tarihten çok sonra
+
+
+class WhatIfOut(BaseModel):
+    date: date
+    amount: float
+    as_of: date
+    funds: list[WhatIfFund]
+    mm_pct: float | None = None
+    mm_value: float | None = None
+    mm_start: date | None = None
+    series: list[dict]  # {date, KOD: değer, ..., mm: değer}

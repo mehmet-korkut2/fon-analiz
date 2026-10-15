@@ -9,7 +9,7 @@ from app import scheduler
 from app.database import Base
 from app.models import Fund, Price
 from app.services import updater
-from app.services.tefas_client import FundInfo, FundPrice, FundSnapshot, TefasError
+from app.services.tefas_client import FundInfo, FundPrice, FundProfile, FundSnapshot, TefasError
 
 
 class FakeClient:
@@ -38,9 +38,9 @@ class FakeClient:
             raise TefasError("zaman aşımı")
         return FundSnapshot(code, 1_000_000.0 * len(self.kap_calls), 100 + len(self.kap_calls), 5000)
 
-    def kap_link(self, code):
+    def profile(self, code):
         self.kap_calls.append(code)
-        return f"https://www.kap.org.tr/tr/fon-bilgileri/genel/{code.lower()}"
+        return FundProfile(f"https://www.kap.org.tr/tr/fon-bilgileri/genel/{code.lower()}", 1, 2, "17:45")
 
 
 @pytest.fixture
@@ -114,9 +114,10 @@ def test_update_stores_current_size_and_kap_link_once(db_session):
         a = db.get(Fund, "AAA")
         assert a.investor_count is not None and a.total_value is not None and a.info_date is not None
         assert a.kap_url.endswith("/aaa")
+        assert (a.buy_valor, a.sell_valor, a.cutoff_time) == (1, 2, "17:45") and a.profile_date is not None
         assert db.get(Fund, "KPL").total_value is None
 
-    # ikinci gece: büyüklük yenilenir, KAP bağlantısı zaten var, yeniden istenmez
+    # ikinci gece: büyüklük yenilenir; profil (KAP, valör) 30 günden yeni, yeniden istenmez
     second = FakeClient(prices)
     second.kap_calls = ["x"]  # değerleri birinci geceden farklı kılmak için
     updater.run_update(client=second)

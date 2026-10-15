@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { getCompare, getFunds } from '../api/client'
+import { getCompare } from '../api/client'
+import FundPicker from '../components/FundPicker'
 import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
 import RiskBar from '../components/RiskBar'
 import { num, pct, signClass, trDate } from '../format'
-import { useDebounced } from '../hooks'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
 import { logTicks, monthTicks } from '../chart'
 import { STATUS_LABELS, isClosed, isExcludedFromBest } from '../fundStatus'
@@ -50,52 +50,6 @@ function formatCell(v, fmt) {
 
 // Yuva dizisi: [kod | null] × 4. Seçilen fonlar dolu yuvalar, renk yuva sırasından gelir.
 const toSlots = (codes) => Array.from({ length: MAX_COMPARE }, (_, i) => codes[i] ?? null)
-
-function FundPicker({ selected, onAdd }) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const q = useDebounced(query.trim())
-
-  useEffect(() => {
-    if (!q) { setResults([]); return }
-    let ignore = false
-    getFunds({ q, page_size: 8, sort: 'ret_1y' })
-      .then((d) => { if (!ignore) setResults(d.sample ? [] : d.items) })
-      .catch(() => { if (!ignore) setResults([]) })
-    return () => { ignore = true }
-  }, [q])
-
-  const add = (code) => { onAdd(code); setQuery(''); setResults([]) }
-
-  return (
-    <div className="picker">
-      <label className="search">
-        <span className="sr-only">Karşılaştırmaya fon ekle</span>
-        <input
-          type="search" placeholder="Fon kodu veya adı yazıp ekle..." value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && results[0] && !selected.includes(results[0].code)) add(results[0].code) }}
-        />
-      </label>
-      {results.length > 0 && (
-        <ul className="picker-results">
-          {results.map((f) => {
-            const taken = selected.includes(f.code)
-            return (
-              <li key={f.code}>
-                <button type="button" disabled={taken} onClick={() => add(f.code)}>
-                  <strong className="num">{f.code}</strong>
-                  <span className="picker-name">{f.name}</span>
-                  {taken && <span className="muted small">seçili</span>}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </div>
-  )
-}
 
 function ChartTooltip({ active, payload, label, colorOf }) {
   if (!active || !payload?.length) return null
@@ -205,7 +159,7 @@ export default function Compare() {
             <button type="button" className="chip-x" aria-label={`${code} fonunu çıkar`} onClick={() => remove(code)}>×</button>
           </span>
         ))}
-        {selected.length < MAX_COMPARE && <FundPicker selected={selected} onAdd={add} />}
+        {selected.length < MAX_COMPARE && <FundPicker selected={selected} onAdd={add} label="Karşılaştırmaya fon ekle" />}
       </div>
 
       {error && <p className="error">{error}</p>}

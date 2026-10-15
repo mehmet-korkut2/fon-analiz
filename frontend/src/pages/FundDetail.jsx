@@ -282,6 +282,7 @@ export default function FundDetail() {
       </div>
 
       <div className="detail-actions">
+        <Link className="btn" to={`/sanal-portfoy?fon=${fund.code}`}>Sanal portföyde dene</Link>
         {inCompare ? (
           <>
             <Link className="btn btn-primary" to={compareUrl}>Karşılaştır ({compareList.length}) →</Link>
