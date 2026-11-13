@@ -34,6 +34,7 @@ export default function App() {
           <NavLink to="/risk-anketi">Risk Anketi</NavLink>
           <NavLink to="/oneriler">Öneriler</NavLink>
           <NavLink to="/sanal-portfoy">Sanal Portföy</NavLink>
+          <NavLink to="/favoriler">Favorilerim</NavLink>
           <NavLink to="/model-performansi">Model</NavLink>
           <NavLink to="/doviz">Döviz ve Altın</NavLink>
         </nav>

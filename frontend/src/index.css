@@ -293,7 +293,7 @@ a.tag:hover { border-color: var(--brand); }
 .rank-card h2 { margin: 0; font-size: 16px; }
 .rank-card .metric-desc { margin: 0 0 4px; }
 .rank-list { margin: 0; padding: 0; list-style: none; }
-.rank-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.rank-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line-soft); }
 .rank-no { color: var(--ink-2); font-size: 13px; text-align: right; }
 .rank-fund { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--ink); }
 .rank-fund:hover strong { color: var(--brand); }
@@ -674,3 +674,24 @@ tbody tr:hover td { background: var(--hover); }
   .user-area { margin-left: 0; }
   .user-menu { right: auto; left: 0; }
 }
+.fav-actions { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.fav-table td { vertical-align: middle; }
+.fav-table .fund-name { min-width: 220px; }
+.fav-date { display: block; }
+@media (max-width: 600px) {
+  .fav-table .fund-name { min-width: 0; }
+  .fav-date { display: inline; margin-left: 6px; }
+  .fav-pos { align-items: flex-end; }
+}
+.fav-hits { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; white-space: nowrap; font-size: 13px; }
+.fav-pos { display: inline-flex; flex-direction: column; gap: 2px; white-space: nowrap; font-size: 13px; }
+.fav-warning { margin: 0; line-height: 1.6; }
+.fav-summary { display: flex; flex-direction: column; gap: 10px; }
+.fav-summary .notice { margin: 0; }
+.fav-mini { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.fav-mini li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 12px; align-items: center; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.fav-mini-name { display: flex; gap: 6px; min-width: 0; color: var(--ink); grid-column: 1 / -1; }
+.fav-mini-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); font-size: 13px; align-self: center; }
+.fav-mini-name:hover strong { color: var(--brand); }
+.fav-mini-warn { color: var(--danger-ink); background: var(--danger-soft); padding: 0 6px; border-radius: 999px; justify-self: start; }
+.chip .fav-compact { min-height: 26px; padding: 0 4px; }

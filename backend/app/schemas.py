@@ -40,6 +40,31 @@ class FundOut(BaseModel):
     metrics: MetricsOut | None = None
 
 
+class FavoriteForecast(BaseModel):
+    """Favorilerdeki kısa karne: son tahmin günlerinin 1 günlük tahminlerinden kaçı %80 aralıkta kaldı."""
+    horizon: int
+    n: int
+    in_band: int
+    live: int  # n'nin kaçı canlı kayıt (gerisi geriye dönük hesaplanmış)
+    last_as_of: date
+    last_in_band: bool
+    last_error_pct: float | None
+
+
+class FavoritePosition(BaseModel):
+    units: int
+    value: float
+    pnl: float | None
+    pnl_pct: float | None
+
+
+class FavoriteOut(FundOut):
+    added_at: datetime | None = None
+    warning: str | None = None  # işleme kapatıldı / verisi eski
+    forecast: FavoriteForecast | None = None
+    position: FavoritePosition | None = None  # kullanıcının sanal portföyünde pozisyon varsa
+
+
 class FundPage(BaseModel):
     items: list[FundOut]
     total: int

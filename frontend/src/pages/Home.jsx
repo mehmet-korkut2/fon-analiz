@@ -5,6 +5,7 @@ import RiskBar from '../components/RiskBar'
 import { pct, signClass } from '../format'
 import { compactTl, count } from '../money'
 import { useAuth } from '../auth'
+import FavoritesSummary from '../components/FavoritesSummary'
 
 const FEATURED = 8
 const fmtDate = (s) => (s ? new Date(s).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: s.length > 10 ? 'short' : undefined }) : '–')
@@ -80,6 +81,8 @@ export default function Home() {
           )}
         </aside>
       </div>
+
+      <FavoritesSummary />
 
       <section aria-labelledby="cat-title">
         <div className="section-head">

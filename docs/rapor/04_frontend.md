@@ -104,13 +104,25 @@ Sanal Portföy sayfası iki sekmeden oluşur; mantığı ve kuralları Bölüm 3
 
 ![Şekil 4.7 Ya o zaman alsaydım?](gorseller/sekil_4_7_ya_o_zaman.png)
 
-## 4.6 Mobil uyum
+## 4.6 Kullanıcı hesabı ve favoriler
+
+**Hesap.** Menünün sağında girişsiz kullanıcıya "Giriş" ve "Kayıt ol", girişli kullanıcıya adı ve bir açılır menü (Hesabım, Favorilerim, Sanal portföyüm, Risk profilim, Çıkış yap) görünür. Giriş, Kayıt ve Hesabım (şifre değiştirme, çıkış, şifre onayıyla hesap silme) sayfaları eklendi. Giriş gerektiren bir bölüme girişsiz gelen kullanıcıya bir kart gösterilir; giriş ya da kayıttan sonra aynı sayfaya dönülür. Oturum bilgisi uygulama açılırken bir kez sorulur ve sayfalar bu bilgi gelince çizilir; böylece görünüm girişli ve girişsiz hâller arasında gidip gelmez. Güvenlik kararları Bölüm 3.7'dedir.
+
+**Favoriler.** Fon listesinde, fon detayında, Karşılaştır sayfasındaki fon kartlarında ve sıralamalarda bir yıldız düğmesi (☆/★) vardır. Durum yalnızca renkle değil, dolu/boş yıldız ve ekran okuyucu için `aria-pressed` ile de belirtilir. Girişsiz kullanıcı yıldıza basınca giriş sayfasına gider. Favoriler hesaba bağlıdır (`favorites` tablosu: kullanıcı, fon, eklenme zamanı) ve veritabanı yedeğine dahildir. Menüdeki "Favorilerim" sayfasında her favori için şunlar gösterilir:
+
+- güncel fiyat ve tarihi, günlük değişim, 1 ay ve 1 yıl getirisi, TEFAS risk değeri;
+- *tahmin karnesi özeti:* son 10 tahmin gününün 1 günlük tahminlerinden gerçekleşenlerin kaçının %80 aralıkta kaldığı ve en sonuncusunun içinde mi dışında mı olduğu (geriye dönük hesaplananlar dahil; kaçının canlı olduğu ipucunda yazar; ayrıntı fonun karnesinde, Bölüm 6.10);
+- kullanıcının sanal portföyünde açık pozisyonu varsa pay adedi, değeri ve kâr/zararı.
+
+SPK kararıyla işleme kapatılan ya da verisi 7 günden eski bir fon favorideyse satırında ve sayfanın başında uyarı çıkar. Satırlardaki onay kutularıyla en fazla 4 favori seçilip tek tıkla Karşılaştır sayfasına gönderilir; varsayılan olarak ilk 4 favori seçilidir. Ana sayfada girişli kullanıcıya ilk 5 favorinin kısa özeti (günlük değişim, 1 yıl getirisi, uyarı) gösterilir. 600 px'in altında favori tablosu satır başına bir karta dönüşür.
+
+## 4.7 Mobil uyum
 
 Arayüzü telefon genişliklerinde (360 ve 390 px) tarayıcının geliştirici protokolüyle açıp her sayfada yatay taşma olup olmadığını ölçtük; bütün sayfalarda sayfa genişliği ekran genişliğine eşittir. Geniş tablolar kendi kutuları içinde yatay kaydırılır. Tasarım değişikliğinden sonra ölçümü 390 px'te dokuz sayfanın hepsinde tekrarladık; taşma yoktur. Ana sayfada başlık ve anket kartı alt alta geçer, kategori kutuları iki sütuna iner; başlık çubuğu dar ekranda sayfayla birlikte kayar.
 
 ![Şekil 4.8 Fon detay sayfası, 390 px genişlik](gorseller/sekil_4_8_mobil.png)
 
-## 4.7 Karşılaşılan sorunlar ve çözümleri
+## 4.8 Karşılaşılan sorunlar ve çözümleri
 
 | Sorun | Neden | Çözüm |
 |---|---|---|
@@ -127,7 +139,7 @@ Arayüzü telefon genişliklerinde (360 ve 390 px) tarayıcının geliştirici p
 | Telefonda "Ya o zaman alsaydım?" tablosunda sonuç sütunları ekran dışında kalıyordu | Geniş tablo yalnızca yatay kayıyordu | Tablolar dar ekranda etiketli kartlara dönüşüyor (`stack-table`) |
 | Anket metinlerinde soru sayısı tutarsızdı ("7 soruluk") | Anket 9 soruya çıktıktan sonra metin güncellenmemişti | Metinler 9 soruya göre düzeltildi |
 
-## 4.8 Kısıtlar
+## 4.9 Kısıtlar
 
 - Karşılaştırma listesi tarayıcıya bağlıdır. Sanal portföy, kayıtlı risk profili ve favoriler hesaba bağlıdır (Bölüm 3.7); girişsiz kullanıcının risk profili yalnızca o oturumda tutulur.
 - Koyu tema yalnızca sistem ayarını izler; sayfada ayrı bir tema düğmesi yoktur.

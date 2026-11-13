@@ -94,7 +94,7 @@ def check(path: Path) -> dict:
             if not REQUIRED_TABLES <= tables:
                 raise YedekHata(f"{path.name} bu projenin veritabanı değil (funds/prices tablosu yok).")
             counts = {t: con.execute(f'SELECT COUNT(*) FROM "{t}"').fetchone()[0]
-                      for t in ("funds", "prices", "sanal_emirler", "forecast_days") if t in tables}
+                      for t in ("funds", "prices", "sanal_emirler", "forecast_days", "users", "favorites") if t in tables}
             last = con.execute("SELECT MAX(date) FROM prices").fetchone()[0]
         finally:
             con.close()

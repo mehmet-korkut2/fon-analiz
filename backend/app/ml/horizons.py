@@ -443,3 +443,43 @@ def fund_scorecard(db: Session, code: str, as_of: date | None = None, source: st
         x["label"] = HORIZON_LABELS[x["horizon"]]
     return {"code": code, "data_as_of": market[-1].date() if len(market) else None, "days": day_list,
             "selected": selected, "summary": summ}
+
+
+def recent_hits(db: Session, codes: list[str], horizon: int = 1, days: int = 10) -> dict[str, dict]:
+    """Favoriler için kısa karne: her fonun son `days` tahmin gününün `horizon` günlük tahminlerinden
+    gerçekleşenlerin kaçı %80 aralıkta kaldı; en son gerçekleşenin durumu. Canlı ve geriye dönük birlikte
+    sayılır, canlı sayısı ayrıca verilir (aynı günün iki kaynağı varsa canlı alınır)."""
+    if not codes:
+        return {}
+    cols = [ForecastDay.fund_code, ForecastDay.as_of, ForecastDay.horizon, ForecastDay.pred_price,
+            ForecastDay.lo_price, ForecastDay.hi_price, ForecastDay.source]
+    last_days = select(ForecastDay.as_of).distinct().order_by(ForecastDay.as_of.desc()).limit(days + horizon + 5)
+    df = pd.DataFrame(db.execute(select(*cols).where(ForecastDay.fund_code.in_(codes), ForecastDay.horizon == horizon,
+                                                     ForecastDay.as_of.in_(last_days.scalar_subquery()))).all(),
+                      columns=[c.key for c in cols])
+    if df.empty:
+        return {}
+    df = df.sort_values("source").drop_duplicates(["fund_code", "as_of"], keep="first")  # "canli" < "geriye_donuk"
+    first = df["as_of"].min()
+    market = pd.DatetimeIndex(sorted(pd.to_datetime(db.scalars(select(Price.date).where(Price.date >= first).distinct()).all())))
+    ps = pd.DataFrame(db.execute(select(Price.fund_code, Price.date, Price.price).where(
+        Price.fund_code.in_(codes), Price.date >= first)).all(), columns=["code", "date", "price"])
+    wide = ps.assign(date=pd.to_datetime(ps["date"])).pivot_table(index="date", columns="code", values="price").reindex(market).ffill()
+
+    def price_at(cs, ds):
+        out = np.full(len(cs), np.nan)
+        for i, (c, d) in enumerate(zip(cs, pd.to_datetime(ds))):
+            if c in wide.columns and d in wide.index:
+                out[i] = wide.at[d, c]
+        return out
+
+    r = realize(df, market, price_at)
+    r = r[r["realized_price"].notna()]
+    out = {}
+    for code, g in r.groupby("fund_code"):
+        g = g.sort_values("as_of").tail(days)
+        last = g.iloc[-1]
+        out[code] = {"horizon": horizon, "n": int(len(g)), "in_band": int(g["in_band"].astype(bool).sum()),
+                     "live": int((g["source"] == SOURCE_LIVE).sum()), "last_as_of": last["as_of"],
+                     "last_in_band": bool(last["in_band"]), "last_error_pct": _f(last["error_pct"])}
+    return out

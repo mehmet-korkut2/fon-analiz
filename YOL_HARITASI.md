@@ -59,7 +59,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] Yükleme, hata ve boş durum ekranları
 - [x] Mobil uyum
 - [x] Sanal Portföy: hayali parayla alış/satış (TEFAS valörü ve son işlem saatine göre bekleyen emir, ileri fiyat, kısmi satış, bloke nakit, para piyasası medyanı kıyası, her gece yeniden değerleme) ve "Ya o zaman alsaydım?" (en fazla 4 fon, yıllıklandırılmış getiri). Mantık `app/services/sanal_portfoy.py`, rapor 3.6 ve 4.5
-- [ ] Favori fonlar (temel hâli kullanıcı girişiyle geldi: yıldız düğmesi, Favorilerim; genişletmesi sürüyor)
+- [x] Favori fonlar (13.11.2026, hesaba bağlı): fon listesi, detay, karşılaştırma ve sıralamalarda ☆/★; Favorilerim'de fiyat, günlük değişim, 1 ay/1 yıl, risk, tahmin karnesi özeti (son 10 günün 1 günlük tahmini), sanal portföy pozisyonu; kapatılmış/eski verili uyarısı; tek tıkla karşılaştırma; ana sayfada özet; mobilde kart düzeni; yedeğe dahil. Rapor 4.6
 - [x] Kullanıcı girişi (13.11.2026): kayıt, giriş, çıkış, şifre değiştirme, hesap silme; Argon2id, HttpOnly çerezde sunucu tarafı oturum (JWT değil), CSRF başlığı, art arda hatalı girişte artan bekleme (30 sn → 15 dk). Sanal portföy, kayıtlı risk profili ve favoriler hesaba özel; giriş öncesi sanal portföy ilk hesaba aktarılır. 33 test, rapor 3.7 (güvenlik kararları ve tehdit/önlem tablosu)
 
 ## 5. Risk profili ve öneri ✅
@@ -96,7 +96,7 @@ Son güncelleme: 13 Ekim 2026
 
 ## 7. Test, yayın, rapor, sunum
 
-- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 220/220, internetsiz 224/224 (13.11.2026, tahmin karnesi adımlarıyla; rapor 7.3)
+- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 336/336, internetsiz 340/340 (13.11.2026, tahmin karnesi, kullanıcı girişi ve favori adımlarıyla; rapor 7.3)
 - [x] Tek tıkla başlatma: `FonAnaliz_Baslat.bat` (backend + frontend + tarayıcı, hazır olunca açar) ve `FonAnaliz_Durdur.bat`; eski 1–4 numaralı bat dosyaları kaldırıldı
 - [x] İnternetsiz çalışma: döviz son bilinen kurlar ("en son X tarihinde güncellendi"), güncelleme internet yoksa sessizce atlanır, bağlantı koparsa durur
 - [ ] İnternetsiz çalışmayı sunum bilgisayarında Wi-Fi kapatarak bir kez daha dene
@@ -127,6 +127,7 @@ Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işler
 - [ ] Alembic migration'larına geçiş
 - [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta (kapsam dışı bırakıldı; rapor 8.6)
 - [ ] Kullanıcı girişi: e-posta doğrulaması, şifre sıfırlama, iki aşamalı doğrulama; yayına alınırsa çerezde `Secure` (`COOKIE_SECURE=true`)
+- [ ] Borsa İstanbul hisse analizi (13.11.2026'da ertelendi; rapor 8.6): hisse fiyat verisi Borsa İstanbul lisansına tabi, ücretsiz kaynakların kullanım koşulları belirsiz; temel analiz verileri (bilanço, özel durum açıklamaları) KAP'ta ve KAP koşulları izinsiz saklama/kullanıma izin vermiyor. Lisans/izin olursa metrikler, teknik göstergeler, tahmin karnesi ve sanal portföy (T+2 takasla) hisselere uyarlanabilir
 
 ---
 

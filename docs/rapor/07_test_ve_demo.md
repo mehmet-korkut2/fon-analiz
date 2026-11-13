@@ -8,7 +8,7 @@ Bu aşamada uygulamanın uçtan uca doğru çalıştığını göstermeyi, sunum
 
 ## 7.2 Otomatik testler
 
-Backend'de 188 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
+Backend'de 192 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
 
 **Tablo 7.1** Test dosyalarına göre otomatik testler
 
@@ -24,14 +24,15 @@ Backend'de 188 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz 
 | `test_ml.py` | ML özellikleri, modeller, değerlendirme | 9 |
 | `test_metrics.py` | Getiri, volatilite, Sharpe, maksimum düşüş | 8 |
 | `test_updater.py` | Gece güncellemesi, büyüklük ve profil; internet yokken atlama, bağlantı kopunca durma | 9 |
-| `test_yedek.py` | Yedek alma, sıkıştırma, geri yükleme (sıkıştırılmış ve eski yedek), güvenlik kopyası, geçersiz ve yarım yedeğin reddi | 6 |
+| `test_yedek.py` | Yedek alma, sıkıştırma, geri yükleme (sıkıştırılmış ve eski yedek), güvenlik kopyası, geçersiz ve yarım yedeğin reddi, hesap ve favorilerin yedeğe dahil olması | 7 |
 | `test_technical.py` | Hareketli ortalama, trend, 52 haftalık aralık | 7 |
 | `test_models.py` | Veritabanı tabloları | 5 |
 | `test_data_quality.py` | Tek günlük fiyat sıçramaları | 4 |
 | `test_ml_job.py` | Gece tahmin işi, tahmin ve karne API'leri | 3 |
 | `test_fund_status.py` | SPK kararıyla kapatılan fonlar | 3 |
+| `test_favorites.py` | Favorilerde tahmin karnesi özeti, sanal portföy pozisyonu, kapatılmış/eski verili fon uyarısı, kullanıcıya özel olma | 3 |
 | `test_api.py` | Sağlık kontrolü | 1 |
-| **Toplam** | | **188** |
+| **Toplam** | | **192** |
 
 ## 7.3 Uçtan uca test
 
@@ -61,14 +62,15 @@ Sanal portföy akışı gerçek bir alış emri verip iptal eder. Portföy boşs
 | Ya o zaman alsaydım? | Bağlantıyla gelen 2 fonun sonucu ve grafik; tarih 03.10.2022 yapılıp yeniden hesaplanınca alış günü 2022 olur ve yıllıklandırılmış getiri görünür |
 | Döviz ve altın | Anlık kur tablosu, TCMB sekmesi; çevrimdışında "Son bilinen kurlar … en son X tarihinde güncellendi" notu |
 | Model performansı | Sonuç tabloları (3+), aylık hata grafiği, ufka göre karne ve hata grafiği, kaydedilen tahminlerin karnesi |
+| Kullanıcı girişi ve favoriler | Girişsiz sanal portföy ve Favorilerim'de giriş kartı; kayıtta kısa şifre uyarısı; arayüzden geçici `.example` hesabı açılıp aynı sayfaya dönülür; sanal portföy akışı bu hesapla; fon listesinde her satırda yıldız; fon detayında ve sıralamalarda favori ekleme; Favorilerim'de tahmin karnesi sütunu ve tek tıkla karşılaştırma; ana sayfa favori özeti; Hesabım'da anketteki profilin hesaba aktarıldığı, favori sayısı, şifre değiştirme; kullanıcı menüsünden çıkış; yanlış şifre mesajı; yeni şifreyle giriş; arayüzden hesap silme. Tur yarıda kalırsa hesap API ile silinir; gerçek kullanıcı verisine dokunulmaz |
 | Her sayfada | Yatay taşma yok; konsol ve sayfa hatası yok; 5xx dönen API isteği yok; localhost dışına istek yok |
 
-**Sonuçlar (13.11.2026; tahmin karnesi adımları eklendikten sonra).**
+**Sonuçlar (13.11.2026; tahmin karnesi, kullanıcı girişi ve favori adımları eklendikten sonra).**
 
 | Koşul | Açık, 1280 px | Koyu, 1280 px | Açık, 390 px | Koyu, 390 px | Toplam |
 |---|---|---|---|---|---|
-| İnternet var | 55/55 | 55/55 | 55/55 | 55/55 | 220/220 |
-| İnternet yok (Bölüm 7.4) | 56/56 | 56/56 | 56/56 | 56/56 | 224/224 |
+| İnternet var | 84/84 | 84/84 | 84/84 | 84/84 | 336/336 |
+| İnternet yok (Bölüm 7.4) | 85/85 | 85/85 | 85/85 | 85/85 | 340/340 |
 
 Bütün turlarda konsol hatası, sayfa hatası, 5xx yanıtı ve dış istek kaydedilmedi. Çevrimdışı turda bir adım fazladır: "son bilinen kurlar" notunun görünmesi.
 
@@ -148,4 +150,4 @@ Canlı demo bozulursa kullanılmak üzere 4 dakikalık bir demo videosunun senar
 - İnternet kesintisi proxy ile canlandırıldı; Wi-Fi kapatılarak yapılacak deneme sunum bilgisayarında yapılacak.
 - Başlatma dosyaları Windows içindir. Sanal ortamın ve `node_modules`'ün bir kez, internet varken kurulmuş olması gerekir.
 - Uçtan uca test yalnızca Edge (Chromium) ile yapıldı; Firefox ve Safari denenmedi.
-- Ekran okuyucuyla deneme yapılmadı (Bölüm 4.8).
+- Ekran okuyucuyla deneme yapılmadı (Bölüm 4.9).

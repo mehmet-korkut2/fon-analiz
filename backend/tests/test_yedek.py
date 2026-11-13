@@ -116,3 +116,21 @@ def test_corrupt_gzip_rejected(tmp_path):
     with pytest.raises(yedek.YedekHata):
         yedek.restore(b, db, dest)
     assert count(db, "funds") == 1
+
+
+def test_favorites_and_accounts_included_in_backup(tmp_path):
+    db, dest = tmp_path / "fon.db", tmp_path / "backups"
+    make_db(db)
+    con = sqlite3.connect(db)
+    con.executescript("CREATE TABLE users (id INTEGER); CREATE TABLE favorites (user_id INTEGER, fund_code TEXT);"
+                      "INSERT INTO users VALUES (1); INSERT INTO favorites VALUES (1, 'AAA'), (1, 'BBB');")
+    con.commit()
+    con.close()
+    b = yedek.backup(db, dest)
+    assert yedek.check(b)["counts"]["favorites"] == 2 and yedek.check(b)["counts"]["users"] == 1
+    con = sqlite3.connect(db)
+    con.execute("DELETE FROM favorites")
+    con.commit()
+    con.close()
+    yedek.restore(b, db, dest)
+    assert count(db, "favorites") == 2

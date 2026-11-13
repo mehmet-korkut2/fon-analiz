@@ -56,6 +56,7 @@ const FLOWS = [
   ]],
   ['Fon listesi', '/fonlar', [
     ['25 satır', `__t.all('.funds-table tbody tr').length === 25`],
+    ['Her satırda yıldız', `__t.all('.funds-table tbody .fav-btn').length === 25`],
     ['Büyüklüğe göre sıralama', `(async () => { __t.click('.funds-table th button', 'Büyüklük');
       await __t.until(() => __t.q('.funds-table tbody tr td:nth-last-child(2)')?.textContent.includes('milyar'));
       return __t.q('.funds-table tbody tr td:nth-last-child(2)').textContent })()`],
@@ -149,12 +150,23 @@ const FLOWS = [
     ['Yıldıza bas', `(async () => { __t.click('.detail-actions .fav-btn'); await __t.until(() => __t.q('.detail-actions .fav-btn[aria-pressed=true]'));
       return __t.q('.detail-actions .fav-btn').textContent })()`],
   ]],
+  ['Sıralamalarda yıldız', '/siralamalar', [
+    ['İlk fonu favoriye ekle', `(async () => { const b = __t.all('.rank-list .fav-btn').find((x) => x.getAttribute('aria-pressed') === 'false'
+      && !x.getAttribute('aria-label').startsWith('TTE')); b.click(); await __t.until(() => b.getAttribute('aria-pressed') === 'true');
+      return b.getAttribute('aria-label') })()`],
+  ]],
   ['Favorilerim', '/favoriler', [
-    ['TTE listede', `(async () => { await __t.until(() => __t.all('.fav-table tbody tr').length); return __t.q('.fav-table tbody').textContent.includes('TTE') })()`],
+    ['İki favori, TTE listede', `(async () => { await __t.until(() => __t.all('.fav-table tbody tr').length === 2); return __t.q('.fav-table tbody').textContent.includes('TTE') })()`],
+    ['Tahmin karnesi ve fiyat sütunları', `!!__t.byText('.fav-table th', 'Tahmin karnesi') && __t.all('.fav-hits').length >= 1 && __t.q('.fav-hits').textContent`],
+    ['Tek tıkla karşılaştır', `(async () => { __t.click('.fav-actions button'); await __t.until(() => location.pathname === '/karsilastir' && location.search.split(',').length === 2)
+      await __t.until(() => __t.all('.chip .fav-btn[aria-pressed=true]').length === 2); return location.search })()`],
+  ]],
+  ['Ana sayfa favori özeti', '/', [
+    ['İki favori kartı', `(async () => { await __t.until(() => __t.all('.fav-mini li').length === 2); return __t.q('.fav-mini').textContent.includes('TTE') })()`],
   ]],
   ['Hesabım', '/hesabim', [
     ['Anketteki profil hesaba aktarıldı', `!!__t.byText('.account-link', 'Risk profili') && !__t.byText('.account-link', 'Risk profili').textContent.includes('Anketi doldur')`],
-    ['Favori sayısı', `__t.byText('.account-link', 'Favoriler')?.textContent.includes('1 fon')`],
+    ['Favori sayısı', `__t.byText('.account-link', 'Favoriler')?.textContent.includes('2 fon')`],
     ['Şifre değiştir', `(async () => { const f = __t.all('.auth-form input[type=password]');
       const set = (e, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(e, v); e.dispatchEvent(new Event('input', { bubbles: true })) }
       set(f[0], __cred.pw); set(f[1], __cred.pw2); set(f[2], __cred.pw2)

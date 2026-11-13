@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getCompare } from '../api/client'
+import FavoriteButton from '../components/FavoriteButton'
 import FundPicker from '../components/FundPicker'
 import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
 import RiskBar from '../components/RiskBar'
@@ -156,6 +157,7 @@ export default function Compare() {
             <span className="swatch" style={{ background: SERIES[i] }} />
             <Link to={`/fonlar/${code}`} className="num"><strong>{code}</strong></Link>
             {funds.find((f) => f.code === code) && <span className="chip-name">{funds.find((f) => f.code === code).name}</span>}
+            <FavoriteButton code={code} compact />
             <button type="button" className="chip-x" aria-label={`${code} fonunu çıkar`} onClick={() => remove(code)}>×</button>
           </span>
         ))}

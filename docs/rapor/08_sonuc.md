@@ -8,7 +8,7 @@ Bu projede TEFAS'taki yatırım fonlarını analiz eden, karşılaştıran ve ri
 
 **Sayfalar.** Fon listesi, fon detayı (teknik göstergeler dahil), karşılaştırma, sıralamalar, risk anketi ve öneriler, sanal portföy, model performansı ve döviz sayfalarından oluşur.
 
-**Testler.** Uygulamayı 155 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
+**Testler.** Uygulamayı 192 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
 
 **Sunum hazırlığı.** Uygulama sunum bilgisayarında tek tıkla açılır ve internet yokken de son verilerle çalışır.
 
@@ -113,6 +113,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 - **Farklı piyasa koşulları:** Öneri sisteminin ve ML'nin başka bir faiz rejimini kapsayan veriyle yeniden sınanması; LSTM'in bu durumda yeniden değerlendirilmesi (Bölüm 6.8).
 - **Yayına alma:** PostgreSQL, backend ve ön yüz için barındırma, gece işinin zamanlanmış görev servisine taşınması, alan adı, Alembic'e geçiş. TEFAS verisi için resmî kaynak (Borsa İstanbul veri yayın ürünleri) (Bölüm 2.9).
 - **İzne bağlı veriler:** MKK'nın yazılı izniyle KAP portföy dağılım raporlarından varlık dağılımı ve fonların yönetim ücreti (Bölüm 2.8, 2.9).
+- **Borsa İstanbul hisse analizi:** Hisse senetleri için analiz şimdilik eklenmedi (13.11.2026 kararı). Gerekçeler: (1) Hisse fiyat verisi Borsa İstanbul'un veri lisansına tabidir; Borsa İstanbul piyasa verilerini ücretli veri ürünleri olarak sunar (takas verisi örneği [32]; TEFAS için benzer durum Bölüm 2.9). Ücretsiz kaynakların (ör. finans siteleri ve programlama arayüzleri) kullanım koşulları, verinin saklanması ve bir uygulamada gösterilmesi bakımından belirsizdir. (2) Temel analiz için gereken veriler (finansal tablolar, özel durum açıklamaları) KAP'ta yayımlanır ve KAP'ın kullanım koşulu, MKK'nın yazılı izni olmadan kopyalamayı ve ileride kullanılmak üzere saklamayı yasaklar [15] (Bölüm 2.8). Lisanslı veri ya da izin alınırsa, mevcut fiyat tabanlı altyapı (metrikler, teknik göstergeler, tahmin karnesi, sanal portföy) hisselere büyük ölçüde olduğu gibi uyarlanabilir: bu bileşenler yalnızca günlük fiyat serisine dayanır; sanal portföyde fon valörü yerine pay piyasasının takas kuralları (T+2) kullanılması gerekir.
 - **Kullanıcı özellikleri:** E-posta doğrulaması ve şifre sıfırlama, iki aşamalı doğrulama, birden fazla sanal portföy, sanal portföyde komisyon ve stopaj.
 - **Erişilebilirlik:** Ekran okuyucuyla deneme ve sayfada tema seçimi.
 

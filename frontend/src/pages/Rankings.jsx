@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getCategories, getRankings } from '../api/client'
 import RiskBar from '../components/RiskBar'
+import FavoriteButton from '../components/FavoriteButton'
 import { num, pct, signClass, trDate } from '../format'
 
 const RETURN_PERIODS = [
@@ -49,6 +50,7 @@ function RankingCard({ list, periodLabel }) {
                 </span>
               </Link>
               <span className="rank-value num">{meta.fmt(f.value)}</span>
+              <FavoriteButton code={f.code} compact />
             </li>
           ))}
         </ol>

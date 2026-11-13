@@ -29,7 +29,8 @@ def main():
     print(f"Yedek alındı: {r.path}")
     print(f"  {size} · süre {dec(r.seconds)} sn")
     print(f"  {c.get('funds', 0)} fon · {thousands(c.get('prices', 0))} fiyat · {thousands(c.get('forecast_days', 0))} tahmin kaydı · "
-          f"{c.get('sanal_emirler', 0)} sanal emir · son fiyat {info['latest_price_date']}")
+          f"{c.get('users', 0)} hesap · {c.get('favorites', 0)} favori · {c.get('sanal_emirler', 0)} sanal emir · "
+          f"son fiyat {info['latest_price_date']}")
 
 
 def dec(v: float) -> str:

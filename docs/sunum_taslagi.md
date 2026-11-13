@@ -161,8 +161,8 @@ Süre hedefi: 12–15 dakika anlatım + 4 dakikalık canlı demo (ya da `docs/de
 
 ## 13. Test ve sunum hazırlığı
 
-- 155 otomatik test (metrikler, API, öneri, ML sızıntısı, tahmin karnesi, sanal portföy, yedek)
-- Uçtan uca test: açık/koyu, masaüstü/390 px; internetle 220/220, internetsiz 224/224
+- 192 otomatik test (metrikler, API, öneri, ML sızıntısı, tahmin karnesi, kullanıcı girişi ve güvenlik, favoriler, sanal portföy, yedek)
+- Uçtan uca test: açık/koyu, masaüstü/390 px; internetle 336/336, internetsiz 340/340
 - Tek tıkla başlatma, internetsiz çalışma (son bilinen kurlar), yedek ve geri yükleme
 - Kullanıcı testi: 6 görev, 5 soruluk anket [DOLDUR: katılımcı sayısı ve sonuç]
 
