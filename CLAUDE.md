@@ -45,6 +45,8 @@ uvicorn app.main:app --reload
 pytest
 python -m scripts.yedekle [--not sunum-oncesi]  # backups/fon_<tarih>.db.gz (gzip; süre ve boyut yazar)
 python -m scripts.geri_yukle [--liste | <dosya>]  # .db.gz ve eski .db; varsayılan en son yedek; önce backend'i durdur
+python -m scripts.hesaplar                     # e-posta, ad, oluşturma tarihi (şifre bilgisi yok)
+python -m scripts.sifre_sifirla --eposta <adres>  # yeni şifre gizli sorulur, bütün oturumlar kapanır
 python -m scripts.tefas_yukle --limit 0        # tüm fonlar, son 5 yıl
 python -m scripts.metrik_hesapla
 

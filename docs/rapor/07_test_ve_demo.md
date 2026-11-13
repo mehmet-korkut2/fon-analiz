@@ -8,7 +8,7 @@ Bu aşamada uygulamanın uçtan uca doğru çalıştığını göstermeyi, sunum
 
 ## 7.2 Otomatik testler
 
-Backend'de 192 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
+Backend'de 201 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
 
 **Tablo 7.1** Test dosyalarına göre otomatik testler
 
@@ -30,9 +30,10 @@ Backend'de 192 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz 
 | `test_data_quality.py` | Tek günlük fiyat sıçramaları | 4 |
 | `test_ml_job.py` | Gece tahmin işi, tahmin ve karne API'leri | 3 |
 | `test_fund_status.py` | SPK kararıyla kapatılan fonlar | 3 |
+| `test_hesap_betikleri.py` | Yerel şifre sıfırlama (`scripts.sifre_sifirla`) ve hesap listesi (`scripts.hesaplar`): oturumların kapanması, kural, şifrenin gizli kalması | 9 |
 | `test_favorites.py` | Favorilerde tahmin karnesi özeti, sanal portföy pozisyonu, kapatılmış/eski verili fon uyarısı, kullanıcıya özel olma | 3 |
 | `test_api.py` | Sağlık kontrolü | 1 |
-| **Toplam** | | **192** |
+| **Toplam** | | **201** |
 
 ## 7.3 Uçtan uca test
 

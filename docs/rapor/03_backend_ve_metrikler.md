@@ -161,18 +161,20 @@ Girişte her zaman yeni belirteç verilir (oturum sabitlemeye karşı). Şifre d
 
 **Testler.** `tests/test_auth.py` (33 test): kayıt, giriş, yanlış şifre ve bilinmeyen e-postanın aynı yanıtı alması, art arda hatalı girişte bekleme ve sürenin ikiye katlanması, IP sınırı, çıkış sonrası eski belirtecin geçersizliği, süresi dolan oturum, giriş gerektiren 10 uç noktada girişsiz 401, herkese açık sayfaların girişsiz çalışması, CSRF başlığı, iki kullanıcının birbirinin portföyünü, emrini, favorisini ve profilini görememesi, şifre değişince diğer oturumların kapanması, giriş öncesi portföyün yalnızca ilk hesaba aktarılması, hesap silme. Kullanıcı süzgeci kasıtlı olarak kaldırıldığında veri ayrımı testinin kaldığını da denedik.
 
-**Kısıtlar.** E-posta doğrulaması ve şifre sıfırlama yoktur (e-posta gönderen bir servis gerektirir); şifresini unutan kullanıcı hesabına erişemez. İki aşamalı doğrulama yoktur. Kayıt ekranı bir e-postanın kayıtlı olduğunu söyler. Uygulama HTTPS olmadan yerelde çalıştığından çerezin `Secure` bayrağı kapalıdır.
+**Yerel şifre sıfırlama.** E-posta gönderen bir servis kurmadan, şifresini unutan kullanıcı için bilgisayardan çalışan bir komut ekledik: `python -m scripts.sifre_sifirla --eposta <adres>`. Yeni şifre ekrana yazılmadan iki kez sorulur (`getpass`); komut satırında, ortam değişkeninde ya da günlükte yer almaz. Şifre kuralı uygulanır, kullanıcının bütün açık oturumları kapatılır (başka cihazlarda giriş yapmış olsa da yeniden giriş yapması gerekir) ve hatalı giriş beklemesi sıfırlanır. Mevcut şifre sorulmaz; komutu yalnızca bu bilgisayardaki veritabanına erişebilen kişi çalıştırabildiği için bu, uygulamanın yerel çalışma biçimiyle uyumludur. `python -m scripts.hesaplar` hesapları listeler: yalnızca e-posta, ad ve oluşturma tarihi; şifre özeti sorguya hiç alınmaz. 9 test: eski şifrenin geçmemesi ve yeninin geçmesi, tarayıcıdaki oturumun kapanması, beklemenin sıfırlanması, kısa/uzun ve uyuşmayan şifrede şifrenin değişmemesi, kayıtlı olmayan e-postada şifre sorulmaması, yeni şifrenin ekrana basılmaması, hesap listesinde şifre bilgisi bulunmaması. Bu testlerden biri, şifre değiştikten sonra betiğin kapanmış veritabanı oturumuna erişip başarı mesajını yazamadan çöktüğü bir hatayı yakaladı; hata düzeltildi.
+
+**Kısıtlar.** E-posta doğrulaması yoktur. Şifre sıfırlama kullanıcının kendisi tarafından yapılamaz; şifresini unutan kullanıcı, uygulamanın çalıştığı bilgisayarda yukarıdaki komutu çalıştırması için bilgisayarın sahibine başvurmalıdır (e-postayla sıfırlama, yayına alınırsa gerekir). İki aşamalı doğrulama yoktur. Kayıt ekranı bir e-postanın kayıtlı olduğunu söyler. Uygulama HTTPS olmadan yerelde çalıştığından çerezin `Secure` bayrağı kapalıdır.
 
 ## 3.8 Testler
 
-Backend'de toplam 192 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
+Backend'de toplam 201 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
 
 - **Metrik tanımları:** Bilinen sentetik serilerle.
 - **API davranışları:** Süzme, sıralama, sayfalama, Türkçe arama, eski verili ve kapatılmış fonların dışlanması.
 - **Diğer kurallar:** Veri kalitesi ve SPK işaretleme; teknik göstergeler; fon büyüklüğünün öneriye katılmaması.
 - **Veri toplama ve çalışma ortamı:** TEFAS ve döviz yanıtlarının ayrıştırılması, gece güncellemesi, internet yokken güncellemenin atlanması ve son bilinen kurlar, yedek ve geri yükleme.
 - **Sanal portföy:** Emir günü ve son işlem saati, valör ve hafta sonu, ileri fiyat, tatil gününde sonraki fiyat, valör bilgisi olmayan fon, nakit yetersizliği (bekleyen alışlar dahil), kısmi ve tam satış ile ortalama maliyet, bekleyen satıştaki payların yeniden satılamaması, iptal, sıfırlama, kapatılmış ve eski verili fon, günlük değer ve para piyasası kıyası, "Ya o zaman alsaydım?" hesabı ve yıllıklandırma sınırı (18 test).
-- **Kullanıcı girişi ve güvenlik:** Bölüm 3.7 (33 test).
+- **Kullanıcı girişi ve güvenlik:** Bölüm 3.7 (33 test; yerel şifre sıfırlama ve hesap listesi komutları 9 test).
 - **Diğer bölümler:** Öneri sistemi ve makine öğrenmesi modülü (Bölüm 5 ve 6).
 
 Her değişiklikten sonra bütün testler çalıştırıldı.

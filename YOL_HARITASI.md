@@ -61,6 +61,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] Sanal Portföy: hayali parayla alış/satış (TEFAS valörü ve son işlem saatine göre bekleyen emir, ileri fiyat, kısmi satış, bloke nakit, para piyasası medyanı kıyası, her gece yeniden değerleme) ve "Ya o zaman alsaydım?" (en fazla 4 fon, yıllıklandırılmış getiri). Mantık `app/services/sanal_portfoy.py`, rapor 3.6 ve 4.5
 - [x] Favori fonlar (13.11.2026, hesaba bağlı): fon listesi, detay, karşılaştırma ve sıralamalarda ☆/★; Favorilerim'de fiyat, günlük değişim, 1 ay/1 yıl, risk, tahmin karnesi özeti (son 10 günün 1 günlük tahmini), sanal portföy pozisyonu; kapatılmış/eski verili uyarısı; tek tıkla karşılaştırma; ana sayfada özet; mobilde kart düzeni; yedeğe dahil. Rapor 4.6
 - [x] Kullanıcı girişi (13.11.2026): kayıt, giriş, çıkış, şifre değiştirme, hesap silme; Argon2id, HttpOnly çerezde sunucu tarafı oturum (JWT değil), CSRF başlığı, art arda hatalı girişte artan bekleme (30 sn → 15 dk). Sanal portföy, kayıtlı risk profili ve favoriler hesaba özel; giriş öncesi sanal portföy ilk hesaba aktarılır. 33 test, rapor 3.7 (güvenlik kararları ve tehdit/önlem tablosu)
+- [x] Yerel şifre sıfırlama ve hesap listesi (13.11.2026): `python -m scripts.sifre_sifirla --eposta <adres>` (yeni şifre getpass ile gizli, kural, bütün oturumlar kapanır, bekleme sıfırlanır), `python -m scripts.hesaplar` (e-posta, ad, oluşturma tarihi; şifre bilgisi yok). 9 test, rapor 3.7
 
 ## 5. Risk profili ve öneri ✅
 
@@ -126,7 +127,7 @@ Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işler
 - [ ] Alan adı (GitHub Student Pack ile ücretsiz)
 - [ ] Alembic migration'larına geçiş
 - [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta (kapsam dışı bırakıldı; rapor 8.6)
-- [ ] Kullanıcı girişi: e-posta doğrulaması, şifre sıfırlama, iki aşamalı doğrulama; yayına alınırsa çerezde `Secure` (`COOKIE_SECURE=true`)
+- [ ] Kullanıcı girişi: e-posta doğrulaması, e-postayla şifre sıfırlama (şimdilik yerel komut var), iki aşamalı doğrulama; yayına alınırsa çerezde `Secure` (`COOKIE_SECURE=true`)
 - [ ] Borsa İstanbul hisse analizi (13.11.2026'da ertelendi; rapor 8.6): hisse fiyat verisi Borsa İstanbul lisansına tabi, ücretsiz kaynakların kullanım koşulları belirsiz; temel analiz verileri (bilanço, özel durum açıklamaları) KAP'ta ve KAP koşulları izinsiz saklama/kullanıma izin vermiyor. Lisans/izin olursa metrikler, teknik göstergeler, tahmin karnesi ve sanal portföy (T+2 takasla) hisselere uyarlanabilir
 
 ---

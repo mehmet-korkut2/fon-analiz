@@ -253,3 +253,27 @@ def delete_account(db: Session, user: User, password: str) -> None:
     db.execute(delete(LoginThrottle).where(LoginThrottle.key == f"email:{user.email}"))
     db.delete(user)
     db.commit()
+
+
+# --- yerel yönetim (scripts/sifre_sifirla.py, scripts/hesaplar.py) ---------------------------------
+
+def reset_password(db: Session, email: str, new: str) -> tuple[User, int]:
+    """Bilgisayardan şifre sıfırlama (e-posta altyapısı yok). Mevcut şifre istenmez; bu yüzden yalnızca
+    veritabanına erişimi olan (bilgisayarın sahibi) çalıştırabilir. Kurala uyar, kullanıcının bütün oturumlarını
+    kapatır ve hatalı giriş sayacını sıfırlar. Dönen değer: kullanıcı ve kapatılan oturum sayısı."""
+    email = normalize_email(email)
+    user = db.scalars(select(User).where(User.email == email)).first()
+    if user is None:
+        raise AuthHata(f"{email} adresiyle kayıtlı hesap yok.", 404)
+    user.password_hash = hash_password(new)
+    user.password_changed_at = now()
+    db.commit()
+    closed = end_other_sessions(db, user)
+    clear_failures(db, email)
+    return user, closed
+
+
+def list_accounts(db: Session) -> list[dict]:
+    """Hesaplar: yalnızca e-posta, ad ve oluşturma tarihi (şifre bilgisi hiçbir zaman döndürülmez)."""
+    rows = db.execute(select(User.email, User.full_name, User.created_at).order_by(User.created_at, User.id)).all()
+    return [{"email": e, "name": n, "created_at": c} for e, n, c in rows]

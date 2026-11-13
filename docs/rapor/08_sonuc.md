@@ -8,7 +8,7 @@ Bu projede TEFAS'taki yatırım fonlarını analiz eden, karşılaştıran ve ri
 
 **Sayfalar.** Fon listesi, fon detayı (teknik göstergeler dahil), karşılaştırma, sıralamalar, risk anketi ve öneriler, sanal portföy, model performansı ve döviz sayfalarından oluşur.
 
-**Testler.** Uygulamayı 192 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
+**Testler.** Uygulamayı 201 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
 
 **Sunum hazırlığı.** Uygulama sunum bilgisayarında tek tıkla açılır ve internet yokken de son verilerle çalışır.
 
@@ -85,7 +85,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 
 **Uygulama.**
 
-- Yereldir. Kullanıcı girişinde e-posta doğrulaması, şifre sıfırlama ve iki aşamalı doğrulama yoktur (Bölüm 3.7).
+- Yereldir. Kullanıcı girişinde e-posta doğrulaması ve iki aşamalı doğrulama yoktur; şifre yalnızca bilgisayardan bir komutla sıfırlanabilir, kullanıcı kendisi sıfırlayamaz (Bölüm 3.7).
 - Şema değişiklikleri bir migration aracıyla yönetilmez.
 - İnternetsiz çalışma proxy ile canlandırılarak denendi.
 - Ekran okuyucuyla deneme yapılmadı.
@@ -114,7 +114,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 - **Yayına alma:** PostgreSQL, backend ve ön yüz için barındırma, gece işinin zamanlanmış görev servisine taşınması, alan adı, Alembic'e geçiş. TEFAS verisi için resmî kaynak (Borsa İstanbul veri yayın ürünleri) (Bölüm 2.9).
 - **İzne bağlı veriler:** MKK'nın yazılı izniyle KAP portföy dağılım raporlarından varlık dağılımı ve fonların yönetim ücreti (Bölüm 2.8, 2.9).
 - **Borsa İstanbul hisse analizi:** Hisse senetleri için analiz şimdilik eklenmedi (13.11.2026 kararı). Gerekçeler: (1) Hisse fiyat verisi Borsa İstanbul'un veri lisansına tabidir; Borsa İstanbul piyasa verilerini ücretli veri ürünleri olarak sunar (takas verisi örneği [32]; TEFAS için benzer durum Bölüm 2.9). Ücretsiz kaynakların (ör. finans siteleri ve programlama arayüzleri) kullanım koşulları, verinin saklanması ve bir uygulamada gösterilmesi bakımından belirsizdir. (2) Temel analiz için gereken veriler (finansal tablolar, özel durum açıklamaları) KAP'ta yayımlanır ve KAP'ın kullanım koşulu, MKK'nın yazılı izni olmadan kopyalamayı ve ileride kullanılmak üzere saklamayı yasaklar [15] (Bölüm 2.8). Lisanslı veri ya da izin alınırsa, mevcut fiyat tabanlı altyapı (metrikler, teknik göstergeler, tahmin karnesi, sanal portföy) hisselere büyük ölçüde olduğu gibi uyarlanabilir: bu bileşenler yalnızca günlük fiyat serisine dayanır; sanal portföyde fon valörü yerine pay piyasasının takas kuralları (T+2) kullanılması gerekir.
-- **Kullanıcı özellikleri:** E-posta doğrulaması ve şifre sıfırlama, iki aşamalı doğrulama, birden fazla sanal portföy, sanal portföyde komisyon ve stopaj.
+- **Kullanıcı özellikleri:** E-posta doğrulaması ve e-postayla şifre sıfırlama (yerel komutun yerine), iki aşamalı doğrulama, birden fazla sanal portföy, sanal portföyde komisyon ve stopaj.
 - **Erişilebilirlik:** Ekran okuyucuyla deneme ve sayfada tema seçimi.
 
 ## 8.7 Kişisel değerlendirme

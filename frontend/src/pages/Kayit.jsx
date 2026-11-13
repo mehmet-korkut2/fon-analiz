@@ -68,7 +68,7 @@ export default function Kayit() {
           {busy ? 'Hesap oluşturuluyor...' : 'Hesap oluştur'}
         </button>
         <p className="small muted">Zaten hesabın var mı? <Link to={`/giris${params.get('sonra') ? `?sonra=${encodeURIComponent(next)}` : ''}`}>Giriş yap</Link></p>
-        <p className="small muted">Şifren düz metin olarak saklanmaz (Argon2id ile özetlenir). E-posta doğrulaması ve şifre sıfırlama yoktur; şifreni unutma.</p>
+        <p className="small muted">Şifren düz metin olarak saklanmaz (Argon2id ile özetlenir). E-posta doğrulaması ve e-postayla şifre sıfırlama yoktur; şifreni unutursan uygulamanın çalıştığı bilgisayardan sıfırlanabilir.</p>
       </form>
     </section>
   )
