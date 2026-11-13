@@ -8,13 +8,14 @@ Bu aşamada uygulamanın uçtan uca doğru çalıştığını göstermeyi, sunum
 
 ## 7.2 Otomatik testler
 
-Backend'de 131 otomatik test bulunmaktadır (Bölüm 3.7; 15.10.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
+Backend'de 155 otomatik test bulunmaktadır (Bölüm 3.7; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
 
 **Tablo 7.1** Test dosyalarına göre otomatik testler
 
 | Dosya | Kapsam | Test |
 |---|---|---|
 | `test_funds_api.py` | Fon listesi, detay, fiyat, teknik gösterge, büyüklük API'leri | 23 |
+| `test_horizons.py` | Tahmin karnesi: sızıntı, tatil takvimi ve hedef tarih, aralık içi/dışı, ufka göre ayrı kalibrasyon, canlı/geriye dönük ayrımı, yöntem sürümü | 21 |
 | `test_sanal_portfoy.py` | Sanal portföy ve "Ya o zaman alsaydım?" | 18 |
 | `test_recommender.py` | Öneri puanı, portföy, geriye dönük test | 17 |
 | `test_sources.py` | TEFAS, TCMB ve anlık kur ayrıştırıcıları; internetsiz döviz (son bilinen kurlar) | 11 |
@@ -22,14 +23,14 @@ Backend'de 131 otomatik test bulunmaktadır (Bölüm 3.7; 15.10.2026). Ön yüz 
 | `test_ml.py` | ML özellikleri, modeller, değerlendirme | 9 |
 | `test_metrics.py` | Getiri, volatilite, Sharpe, maksimum düşüş | 8 |
 | `test_updater.py` | Gece güncellemesi, büyüklük ve profil; internet yokken atlama, bağlantı kopunca durma | 9 |
-| `test_yedek.py` | Yedek alma, geri yükleme, güvenlik kopyası, geçersiz yedeğin reddi | 3 |
+| `test_yedek.py` | Yedek alma, sıkıştırma, geri yükleme (sıkıştırılmış ve eski yedek), güvenlik kopyası, geçersiz ve yarım yedeğin reddi | 6 |
 | `test_technical.py` | Hareketli ortalama, trend, 52 haftalık aralık | 7 |
 | `test_models.py` | Veritabanı tabloları | 5 |
 | `test_data_quality.py` | Tek günlük fiyat sıçramaları | 4 |
-| `test_ml_job.py` | Gece tahmin işi | 3 |
+| `test_ml_job.py` | Gece tahmin işi, tahmin ve karne API'leri | 3 |
 | `test_fund_status.py` | SPK kararıyla kapatılan fonlar | 3 |
 | `test_api.py` | Sağlık kontrolü | 1 |
-| **Toplam** | | **131** |
+| **Toplam** | | **155** |
 
 ## 7.3 Uçtan uca test
 
@@ -50,7 +51,7 @@ Sanal portföy akışı gerçek bir alış emri verip iptal eder. Portföy boşs
 |---|---|
 | Ana sayfa | Başlık, kategori kutuları (9), öne çıkan 8 fon, risk anketi kartı; "altın" araması fon listesini süzülmüş açar |
 | Fon listesi | 25 satır; "Büyüklük" sütununa göre sıralama (ilk satır milyar TL); sonraki sayfa |
-| Fon detayı ve teknik göstergeler | Fiyat grafiği; 50 ve 200 günlük ortalama çizgileri açılır; trend etiketi ve 52 haftalık aralık; dönem 3Y; tahmin kartı ve hesaplayıcı; fon büyüklüğü ve yatırımcı sayısı; KAP bağlantısı kap.org.tr'ye gider; "Sanal portföyde dene" bağlantısı |
+| Fon detayı ve teknik göstergeler | Fiyat grafiği; 50 ve 200 günlük ortalama çizgileri açılır; trend etiketi ve 52 haftalık aralık; dönem 3Y; tahmin kartı ve hesaplayıcı; tahmin karnesi (grafik, 21 satırlık tablo, kaynak etiketi, 5 ufuklu özet; canlı güne geçince "Bekleniyor"); fon büyüklüğü ve yatırımcı sayısı; KAP bağlantısı kap.org.tr'ye gider; "Sanal portföyde dene" bağlantısı |
 | Karşılaştırma | 4 fon çizgisi, metrik tablosu (10+ satır), logaritmik ölçek |
 | Sıralamalar | 3 liste, her birinde 10 fon |
 | Risk anketi | 9 soru ekrandaki düğmelerle yanıtlanır, profil kartı çıkar |
@@ -58,15 +59,15 @@ Sanal portföy akışı gerçek bir alış emri verip iptal eder. Portföy boşs
 | Sanal portföy | Simülasyon uyarısı; fon arama ve seçim (valör bilgisi görünür); 5.000 TL alış emri; emir bekleyenlerde ve nakit "ayrılan" olarak görünür; emir iptal edilir; işlem geçmişi |
 | Ya o zaman alsaydım? | Bağlantıyla gelen 2 fonun sonucu ve grafik; tarih 03.10.2022 yapılıp yeniden hesaplanınca alış günü 2022 olur ve yıllıklandırılmış getiri görünür |
 | Döviz ve altın | Anlık kur tablosu, TCMB sekmesi; çevrimdışında "Son bilinen kurlar … en son X tarihinde güncellendi" notu |
-| Model performansı | Sonuç tabloları (3+), aylık hata grafiği |
+| Model performansı | Sonuç tabloları (3+), aylık hata grafiği, ufka göre karne ve hata grafiği, kaydedilen tahminlerin karnesi |
 | Her sayfada | Yatay taşma yok; konsol ve sayfa hatası yok; 5xx dönen API isteği yok; localhost dışına istek yok |
 
-**Sonuçlar (15.10.2026).**
+**Sonuçlar (13.11.2026; tahmin karnesi adımları eklendikten sonra).**
 
 | Koşul | Açık, 1280 px | Koyu, 1280 px | Açık, 390 px | Koyu, 390 px | Toplam |
 |---|---|---|---|---|---|
-| İnternet var | 51/51 | 51/51 | 51/51 | 51/51 | 204/204 |
-| İnternet yok (Bölüm 7.4) | 52/52 | 52/52 | 52/52 | 52/52 | 208/208 |
+| İnternet var | 55/55 | 55/55 | 55/55 | 55/55 | 220/220 |
+| İnternet yok (Bölüm 7.4) | 56/56 | 56/56 | 56/56 | 56/56 | 224/224 |
 
 Bütün turlarda konsol hatası, sayfa hatası, 5xx yanıtı ve dış istek kaydedilmedi. Çevrimdışı turda bir adım fazladır: "son bilinen kurlar" notunun görünmesi.
 
@@ -108,11 +109,12 @@ Denemede site 13 saniyede açıldı. `FonAnaliz_Durdur.bat`, 8000 ve 5173 portla
 
 **Yedek ve geri yükleme.**
 
-- `python -m scripts.yedekle` veritabanının tarihli bir kopyasını proje kökündeki `backups/` klasörüne alır (ör. `fon_2026-10-15_142530.db`; `--not sunum-oncesi` ile dosya adına not eklenir).
-- Kopya SQLite'ın çevrim içi yedekleme API'siyle alınır; backend çalışırken de tutarlıdır. Alındıktan sonra bütünlük denetiminden geçirilir.
+- `python -m scripts.yedekle` veritabanının tarihli, gzip ile sıkıştırılmış bir kopyasını proje kökündeki `backups/` klasörüne alır (ör. `fon_2026-11-13_163024.db.gz`; `--not sunum-oncesi` ile dosya adına not eklenir). Süreyi, yedeğin ve veritabanının boyutunu yazar.
+- Kopya SQLite'ın çevrim içi yedekleme API'siyle alınır; backend çalışırken de tutarlıdır. Sıkıştırılmadan önce bütünlük denetiminden geçirilir.
+- Tahmin karnesiyle veritabanı büyüdüğü için (Bölüm 6.10) yedekleri sıkıştırmaya başladık. 13.11.2026'da 303,6 MB'lık veritabanının yedeği 79,5 MB tuttu (%26) ve 17,4 saniye sürdü; geri yükleme 16,6 saniye sürdü.
 - Veritabanı tek dosya olduğu için fon verisi, metrikler, tahminler, sanal portföy ve son bilinen kurlar birlikte yedeklenir.
-- `python -m scripts.geri_yukle` en son yedeği, `python -m scripts.geri_yukle <dosya>` seçilen yedeği geri yükler; `--liste` yedekleri listeler.
-- Geri yüklemeden önce mevcut veritabanının güvenlik kopyası alınır (`geri_yukleme_oncesi_*.db`). Geçersiz ya da başka bir projeye ait dosya reddedilir. Backend çalışıyorsa önce durdurulması istenir.
+- `python -m scripts.geri_yukle` en son yedeği, `python -m scripts.geri_yukle <dosya>` seçilen yedeği geri yükler; `--liste` yedekleri listeler. Sıkıştırılmış (`.db.gz`) ve önceki sıkıştırılmamış (`.db`) yedekleri açar.
+- Geri yüklemeden önce mevcut veritabanının güvenlik kopyası alınır (`geri_yukleme_oncesi_*.db.gz`). Geçersiz, yarım kalmış ya da başka bir projeye ait dosya reddedilir. Backend çalışıyorsa önce durdurulması istenir.
 - `backups/` git'e girmez. Gerçek veritabanıyla denemede yedek 85 MB tuttu ve geri yükleme sonrası 1.071 fon ile son fiyat günü korundu.
 
 ## 7.5 Kullanıcı testi
@@ -137,6 +139,8 @@ Canlı demo bozulursa kullanılmak üzere 4 dakikalık bir demo videosunun senar
 | Uçtan uca testin ilk çevrimdışı denemesinde sayfalar hiç açılmadı | Tarayıcı ayarı (`<-loopback>`) localhost'u da kapalı proxy'ye yönlendiriyordu | localhost proxy'den açıkça muaf tutuldu |
 | "Ya o zaman alsaydım?" testinde yeni tarih denenmeden adım geçiyordu | Koşul, eski sonuçta da bulunan "%" işaretine bakıyordu | Adım, alış gününün gerçekten seçilen yıla dönmesini bekliyor |
 | Başlatma dosyası etkileşimsiz pencerede hata veriyordu | `timeout` komutu klavye girişi istiyor | Bekleme `ping` ile yapılıyor |
+| Tahmin karnesini gerçek veritabanında ilk çalıştırmada yeni tablo eksik sütunla bulundu | API testleri `app.main`'i içe aktarınca `init_db()` gerçek `fon.db`'de eksik tabloları oluşturuyor; tablo, son sütun eklenmeden önce oluşmuştu | Boş tablo kaldırılıp doğru şemayla yeniden oluşturuldu. `tests/conftest.py` testlerde veritabanını geçici bir dosyaya yönlendiriyor; test sonrası `fon.db`'nin değişmediği doğrulandı |
+| Her gece tahminler siliniyordu; tahmin karnesi için geçmiş yoktu | Gece işi tabloyu silip yalnızca son günün 21 günlük tahminini yazıyordu | Tahminler gün gün ve kalıcı saklanıyor; silinmeden önceki 844 kayıt kurtarılıp aktarıldı (Bölüm 6.10) |
 
 ## 7.8 Kısıtlar
 

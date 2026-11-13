@@ -8,7 +8,7 @@ Bu projede TEFAS'taki yatırım fonlarını analiz eden, karşılaştıran ve ri
 
 **Sayfalar.** Fon listesi, fon detayı (teknik göstergeler dahil), karşılaştırma, sıralamalar, risk anketi ve öneriler, sanal portföy, model performansı ve döviz sayfalarından oluşur.
 
-**Testler.** Uygulamayı 131 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
+**Testler.** Uygulamayı 155 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
 
 **Sunum hazırlığı.** Uygulama sunum bilgisayarında tek tıkla açılır ve internet yokken de son verilerle çalışır.
 

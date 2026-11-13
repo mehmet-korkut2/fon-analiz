@@ -230,18 +230,61 @@ def aylik_hata(con):
     save(fig, "sekil_6_1_aylik_hata.png")
 
 
+def ufuk_hata(con):
+    """Şekil 6.2: ufka göre (1..21 işlem günü) ortalama mutlak sapma ve %80 aralığın kapsaması, risk grubuna göre."""
+    import json
+
+    row = con.execute("select payload from ml_reports order by created_at desc, id desc limit 1").fetchone()
+    hz = json.loads(row[0]).get("horizons") if row else None
+    if not hz:
+        print("ufka göre değerlendirme yok, sekil_6_2 atlandı")
+        return
+    r = pd.DataFrame(hz["rows"])
+    groups = [("1-2", BLUE, "Risk 1–2"), ("3-4", ORANGE, "Risk 3–4"), ("5-7", AQUA, "Risk 5–7"), ("bilinmiyor", YELLOW, "Risk değeri yok")]
+    fig, (a, b) = plt.subplots(1, 2, figsize=(7.5, 3))
+    for g, color, label in groups:
+        s = r[r["group"] == g].sort_values("horizon")
+        a.plot(s["horizon"], s["mae_pct"], color=color, lw=1.8, label=label)
+        b.plot(s["horizon"], s["coverage"], color=color, lw=1.8, label=label)
+    b.axhline(0.8, color=MUTED, lw=1, ls="--")
+    b.text(21, 0.802, "hedef %80", color=MUTED, fontsize=7, ha="right", va="bottom")
+    for ax in (a, b):
+        ax.set_xticks([1, 2, 5, 10, 21])
+        ax.set_xlabel("Ufuk (işlem günü)")
+    pct_axis(a, decimals=0)
+    pct_axis(b, decimals=0)
+    b.set_ylim(0.6, 1.0)
+    a.set_title("Ortalama mutlak sapma")
+    b.set_title("%80 aralığın kapsaması")
+    a.legend(fontsize=7, loc="upper left")
+    fig.tight_layout()
+    save(fig, "sekil_6_2_ufuk_hata.png")
+
+
+# sırayla; ilk argüman: "prices" (fiyat tablosu), "con" (bağlantı) ya da yok
+FIGURES = {
+    "mimari": None, "fon_sayisi": "prices", "spk_fonlari": "prices", "pazartesi": "prices", "sharpe_vol": "con",
+    "risk_getiri": "con", "kayan_pencere": "con", "aylik_hata": "con", "ufuk_hata": "con",
+}
+
+
 def main():
+    """python -m scripts.rapor_gorselleri            # bütün şekiller
+    python -m scripts.rapor_gorselleri ufuk_hata  # yalnızca seçilenler (diğer şekiller değişmez)"""
+    import sys
+
+    only = set(sys.argv[1:]) or set(FIGURES)
+    if only - set(FIGURES):
+        raise SystemExit(f"Bilinmeyen şekil: {', '.join(sorted(only - set(FIGURES)))}. Seçenekler: {', '.join(FIGURES)}")
     OUT.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(db_path())
-    prices = pd.read_sql("select fund_code code, date, price from prices", con, parse_dates=["date"])
-    mimari()
-    fon_sayisi(prices)
-    spk_fonlari(prices)
-    pazartesi(prices)
-    sharpe_vol(con)
-    risk_getiri(con)
-    kayan_pencere(con)
-    aylik_hata(con)
+    args = {"con": con, None: None}
+    if any(FIGURES[n] == "prices" for n in only):
+        args["prices"] = pd.read_sql("select fund_code code, date, price from prices", con, parse_dates=["date"])
+    for name, arg in FIGURES.items():
+        if name in only:
+            fn = globals()[name]
+            fn() if arg is None else fn(args[arg])
 
 
 if __name__ == "__main__":

@@ -91,6 +91,121 @@ function MonthlyChart({ monthly }) {
   )
 }
 
+// --- Ufka göre tahmin karnesi (report.horizons: test dönemi, her işlem günü başlangıç) ---------------
+const KEY_H = [1, 2, 5, 10, 21]
+const H_LABEL = { 1: '1 gün', 2: '2 gün', 5: '1 hafta', 10: '2 hafta', 21: '1 ay' }
+const GROUP_ORDER = ['1-2', '3-4', '5-7', 'bilinmiyor']
+const GROUP_COLORS = { '1-2': SERIES[0], '3-4': SERIES[1], '5-7': SERIES[2], bilinmiyor: SERIES[3] }
+const SRC = { canli: 'Canlı', geriye_donuk: 'Geriye dönük' }
+
+function HorizonTable({ rows }) {
+  const get = (h, g) => rows.find((r) => r.horizon === h && r.group === g)
+  return (
+    <div className="table-wrap">
+      <table className="ml-table">
+        <thead>
+          <tr>
+            <th rowSpan={2}>Risk grubu</th>
+            {KEY_H.map((h) => <th key={h} colSpan={2} className="c">{H_LABEL[h]}</th>)}
+          </tr>
+          <tr>{KEY_H.map((h) => [<th key={`${h}c`} className="r">Kapsama</th>, <th key={`${h}m`} className="r">Ort. sapma</th>])}</tr>
+        </thead>
+        <tbody>
+          {[...GROUP_ORDER, 'tumu'].map((g) => (
+            <tr key={g}>
+              <th scope="row">{g === 'tumu' ? <strong>Tümü</strong> : <><span className="swatch" style={{ background: GROUP_COLORS[g] }} /> {GROUPS[g]}</>}</th>
+              {KEY_H.map((h) => {
+                const r = get(h, g)
+                return [<td key={`${h}c`} className="r num">{p(r?.coverage, 1)}</td>, <td key={`${h}m`} className="r num">{p(r?.mae_pct)}</td>]
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function HorizonChart({ rows }) {
+  const data = useMemo(() => Array.from({ length: 21 }, (_, i) => {
+    const h = i + 1
+    const o = { h }
+    for (const g of GROUP_ORDER) o[g] = rows.find((r) => r.horizon === h && r.group === g)?.mae_pct
+    return o
+  }), [rows])
+  return (
+    <>
+      <div className="legend">
+        {GROUP_ORDER.map((g) => (
+          <span key={g} className="legend-item"><span className="legend-line" style={{ background: GROUP_COLORS[g] }} /><strong>{GROUPS[g]}</strong></span>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={280}>
+        <LineChart data={data} margin={{ top: 8, right: 8, bottom: 16, left: 0 }}>
+          <CartesianGrid vertical={false} stroke={GRID} />
+          <XAxis dataKey="h" type="number" domain={[1, 21]} ticks={KEY_H} interval={0} padding={{ left: 10, right: 10 }} tickLine={false} axisLine={{ stroke: GRID }} tick={{ fontSize: 12, fill: INK_MUTED }}
+            label={{ value: 'Ufuk (işlem günü)', position: 'insideBottom', offset: -10, fontSize: 12, fill: INK_MUTED }} />
+          <YAxis width={44} orientation="right" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: INK_MUTED }}
+            tickFormatter={(v) => `${num(v * 100, 1)}%`} />
+          <Tooltip
+            formatter={(v, g) => [p(v), GROUPS[g]]}
+            labelFormatter={(h) => `${h}. işlem günü${H_LABEL[h] ? ` (${H_LABEL[h]})` : ''}`}
+            contentStyle={{ borderRadius: 8, borderColor: 'var(--line)', background: 'var(--surface)', color: 'var(--ink)', fontSize: 13 }}
+          />
+          {GROUP_ORDER.map((g) => (
+            <Line key={g} type="linear" dataKey={g} stroke={GROUP_COLORS[g]} strokeWidth={2} dot={false} isAnimationActive={false}
+              activeDot={{ r: 4, stroke: C.surface, strokeWidth: 2 }} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </>
+  )
+}
+
+function LiveScorecard({ sc }) {
+  const rows = sc.rows.filter((r) => r.risk_group === 'tumu' && KEY_H.includes(r.horizon))
+  // sütun grubu: kaynak + yöntem sürümü (sürümler ayrı sayılır)
+  const sources = [...new Set(rows.map((r) => `${r.source}|${r.method_version}`))]
+    .sort((a, b) => (a.startsWith('canli') ? 0 : 1) - (b.startsWith('canli') ? 0 : 1) || b.localeCompare(a))
+  const label = (g) => { const [s, v] = g.split('|'); return `${SRC[s]} · ${v}` }
+  return (
+    <>
+      <div className="table-wrap">
+        <table className="ml-table score-summary">
+          <thead>
+            <tr><th rowSpan={2}>Ufuk</th>{sources.map((s) => <th key={s} colSpan={3} className="c">{label(s)}</th>)}</tr>
+            <tr>{sources.map((s) => [<th key={`${s}c`} className="r">Aralıkta kalma</th>, <th key={`${s}m`} className="r">Ort. mutlak sapma</th>, <th key={`${s}n`} className="r">Tahmin</th>])}</tr>
+          </thead>
+          <tbody>
+            {KEY_H.map((h) => (
+              <tr key={h}>
+                <th scope="row">{H_LABEL[h]}</th>
+                {sources.map((s) => {
+                  const r = rows.find((x) => `${x.source}|${x.method_version}` === s && x.horizon === h)
+                  return [<td key={`${s}c`} className="r num">{p(r?.coverage, 1)}</td>, <td key={`${s}m`} className="r num">{p(r?.mae_pct)}</td>,
+                    <td key={`${s}n`} className="r num">{r ? r.n.toLocaleString('tr-TR') : 0}</td>]
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted small">
+        {['canli', 'geriye_donuk'].map((s) => {
+          const c = sc.counts[s]
+          return c ? `${SRC[s]}: ${c.days} tahmin günü, ${c.records.toLocaleString('tr-TR')} kayıt, ${c.realized.toLocaleString('tr-TR')} gerçekleşti` : null
+        }).filter(Boolean).join(' · ')}. Veri tarihi {trDate(sc.data_as_of)}. Aynı günün tahminleri birbirine bağlıdır
+        (bütün fonlar aynı piyasa hareketini yaşar); az sayıda tahmin gününe dayanan yüzdeler dalgalı olabilir.
+      </p>
+      {sc.versions && (
+        <ul className="small method-list">
+          {Object.entries(sc.versions).map(([v, d]) => <li key={v}><strong>{v}:</strong> {d}</li>)}
+        </ul>
+      )}
+    </>
+  )
+}
+
 export default function ModelPerformance() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -195,7 +310,60 @@ export default function ModelPerformance() {
         </details>
       </div>
 
-      <h2>Sitede gösterilen tahminin aralığı</h2>
+      {r.horizons?.rows && (
+        <>
+          <h2>Ufka göre tahmin karnesi</h2>
+          <div className="panel">
+            <p className="small">
+              Sitede gösterilen tahmin (drift) her fon için 1'den 21'e kadar her işlem günü ufkunda ayrı yapılır; %80 aralık da her ufuk ve
+              risk grubu için ayrı kurulur (yalnızca o güne kadar gerçekleşmiş hatalarla). Aşağıda test dönemindeki
+              ({trDate(r.horizons.test[0])} – {trDate(r.horizons.test[1])}, {r.horizons.origins} işlem günü) her gün başlatılan tahminlerin sonuçları var.
+              Kapsama: gerçekleşen fiyatın %80 aralığın içinde kalma oranı (hedef %80). Ort. sapma: |gerçekleşen − tahmin| / tahmin.
+            </p>
+            <HorizonTable rows={r.horizons.rows} />
+            <h3 className="sub">Ufuk uzadıkça hata nasıl büyüyor?</h3>
+            <p className="muted small">Ortalama mutlak sapma, risk grubuna göre. Hata kabaca ufkun karekökü ile büyür; riskli fonlarda çok daha hızlı.</p>
+            <HorizonChart rows={r.horizons.rows} />
+            <details className="price-table">
+              <summary>Bütün ufuklar (tablo)</summary>
+              <div className="table-wrap">
+                <table className="ml-table">
+                  <thead><tr><th>Ufuk</th><th>Risk grubu</th><th className="r">Tahmin</th><th className="r">Kapsama</th><th className="r">Ort. sapma</th><th className="r">Ort. yanlılık</th><th className="r">Aralık genişliği</th></tr></thead>
+                  <tbody>
+                    {r.horizons.rows.map((x) => (
+                      <tr key={`${x.horizon}-${x.group}`}>
+                        <td className="num">{x.horizon}</td><td>{x.group === 'tumu' ? 'Tümü' : GROUPS[x.group]}</td>
+                        <td className="r num">{x.n.toLocaleString('tr-TR')}</td><td className="r num">{p(x.coverage, 1)}</td>
+                        <td className="r num">{p(x.mae_pct)}</td><td className="r num">{sp(x.bias_pct)}</td><td className="r num">{p(x.width_pct)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <p className="muted small">
+              Hız için değerlendirmede aralık ayda bir (ayın ilk işlem günü) yeniden kurulur; sitedeki canlı tahminde her gece kurulur.
+              Ardışık günlerin tahminleri örtüşür; tahmin sayısı bağımsız gözlem sayısı değildir.
+            </p>
+          </div>
+        </>
+      )}
+
+      {data.scorecard && (
+        <>
+          <h2>Kaydedilen tahminlerin karnesi (bütün fonlar)</h2>
+          <div className="panel">
+            <p className="small">
+              Her gece kaydedilen tahminlerin gerçekleşenle karşılaştırması. <span className="source-badge is-live">Canlı</span> tahminler
+              o günün gece güncellemesinde kaydedildi; <span className="source-badge is-back">Geriye dönük</span> olanlar sonradan, yalnızca
+              o tarihe kadarki veriyle hesaplandı. İkisi ayrı sayılır. Fon bazında karne fon sayfalarında.
+            </p>
+            <LiveScorecard sc={data.scorecard} />
+          </div>
+        </>
+      )}
+
+      <h2>İlk yöntem: aylık başlangıçlarla 21 günlük aralık</h2>
       <div className="table-wrap">
         <table className="ml-table">
           <thead><tr><th>Risk grubu</th><th className="r">Alt uç (hata %10)</th><th className="r">Üst uç (hata %90)</th><th className="r">Test dönemi kapsamı</th></tr></thead>
@@ -206,7 +374,7 @@ export default function ModelPerformance() {
           </tbody>
         </table>
       </div>
-      <p className="muted small">Aralık, drift tahmininin geçmiş hatalarından (risk grubuna göre) kurulur. Kapsam: test döneminde, her ay sadece o güne kadarki hatalarla kurulan aralığın gerçekleşmeyi içerme oranı; hedef %80.</p>
+      <p className="muted small">Aralık, drift tahmininin geçmiş hatalarından (risk grubuna göre) kurulur. Kapsam: test döneminde, her ay sadece o güne kadarki hatalarla kurulan aralığın gerçekleşmeyi içerme oranı; hedef %80. Yalnızca ayın ilk işlem günü başlatılan tahminlerle kurulduğu için ufka göre karneyle birebir aynı değildir; sitede artık ufka göre aralık kullanılıyor.</p>
 
       <h2>Risk grubu ayrıntıları</h2>
       {Object.entries(r.groups).map(([g, rows]) => (

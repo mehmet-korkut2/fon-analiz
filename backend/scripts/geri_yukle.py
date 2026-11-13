@@ -1,13 +1,15 @@
 """Bir yedeği veritabanının yerine koyar. Varsayılan: backups/ içindeki en son yedek.
 
-Önce mevcut veritabanının güvenlik kopyası alınır (backups/geri_yukleme_oncesi_*.db).
+Sıkıştırılmış (.db.gz) ve eski sıkıştırılmamış (.db) yedekleri açar.
+Önce mevcut veritabanının güvenlik kopyası alınır (backups/geri_yukleme_oncesi_*.db.gz).
 Backend çalışıyorsa önce durdurun (FonAnaliz_Durdur.bat); yoksa --zorla gerekir.
 
     python -m scripts.geri_yukle --liste                       # yedekleri listele
     python -m scripts.geri_yukle                               # en son yedeği geri yükle
-    python -m scripts.geri_yukle fon_2026-10-15_142530.db      # seçilen yedeği geri yükle
+    python -m scripts.geri_yukle fon_2026-11-13_160000.db.gz   # seçilen yedeği geri yükle
 """
 import argparse
+import time
 from pathlib import Path
 
 from app.services import yedek
@@ -49,11 +51,13 @@ def main():
     if yedek.backend_running() and not args.zorla:
         raise SystemExit("Backend çalışıyor görünüyor (port 8000). Önce FonAnaliz_Durdur.bat ile durdurun "
                          "ya da --zorla ile devam edin.")
+    t0 = time.perf_counter()
     try:
         safety = yedek.restore(src)
     except yedek.YedekHata as e:
         raise SystemExit(f"Geri yüklenemedi: {e}")
-    print(f"Geri yüklendi: {src.name} -> {yedek.db_file()}")
+    secs = f"{time.perf_counter() - t0:.1f}".replace(".", ",")
+    print(f"Geri yüklendi: {src.name} -> {yedek.db_file()} ({secs} sn)")
     print(f"  {describe(yedek.db_file())}")
     if safety:
         print(f"  Önceki veritabanının kopyası: {safety}")

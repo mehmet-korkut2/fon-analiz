@@ -105,21 +105,69 @@ LSTM, daha uzun bir veri dönemi (birden fazla faiz rejimi) ya da fon portföy i
 Önceden belirlenen karar kuralı gereği, başarı ölçütünü karşılayamayan LightGBM'in tahminleri platformda gösterilmemiştir. Bunun yerine fon detay sayfasında, testlerde en isabetli çıkan yöntem olan drift'e dayalı **"geçmiş eğilime dayalı tahmin"** gösterilmektedir:
 
 - Tahmin: fonun son bir yıllık getirisinin aylık karşılığı.
-- %80 aralık: drift'in aynı risk grubundaki geçmiş hatalarının %10 ve %90 dilimleri (konformal yöntem [28], [29]). Aralığın test dönemindeki kapsama oranı kullanıcıya gösterilmektedir: risk 1–2 grubunda %73,4, 3–4'te %75,0, 5–7'de %75,7, risk değeri bulunmayan fonlarda %82,6.
+- %80 aralık: drift'in aynı risk grubundaki geçmiş hatalarının %10 ve %90 dilimleri (konformal yöntem [28], [29]). Aralığın test dönemindeki kapsama oranı kullanıcıya gösterilmektedir. İlk sürümde aralık yalnızca 21 günlük ufuk için ve ayın ilk işlem günü başlatılan tahminlerle kurulmuştu (kapsama: risk 1–2 grubunda %73,4, 3–4'te %75,0, 5–7'de %75,7, risk değeri bulunmayan fonlarda %82,6). 13.11.2026'dan itibaren her ufuk için ayrı kurulmaktadır (Bölüm 6.10); 21 günlük ufukta kapsama %74,0 / %83,3 / %83,2 / %88,6'dır.
 - Etiket: "Bu bir ML tahmini değildir; testlerde en isabetli yöntem fonun geçmiş ortalama getirisinin sürmesi varsayımı çıktı."
-- Fiyat grafiğinde bir aylık tahmin konisi ve tutara göre beklenen değer ile aralığı TL olarak gösteren bir hesaplayıcı; öneri sayfasında örnek portföy için aynı hesabı yapan bir planlayıcı. Her ikisinde "eğitim amaçlı örnek dağılımdır, yatırım tavsiyesi değildir" uyarısı yer almaktadır.
+- Fiyat grafiğinde bir aylık tahmin konisi (her işlem günü için ayrı tahmin ve aralık; resmî tatiller atlanır) ve tutara göre beklenen değer ile aralığı TL olarak gösteren bir hesaplayıcı; öneri sayfasında örnek portföy için aynı hesabı yapan bir planlayıcı. Her ikisinde "eğitim amaçlı örnek dağılımdır, yatırım tavsiyesi değildir" uyarısı yer almaktadır.
 - "Model performansı" sayfasında, başarısız olanlar dahil bütün sonuçlar ve keşif analizi ayrı olarak yayımlanmaktadır.
 
 Tahminler her gece, değerlendirme raporu ise ayda bir otomatik olarak yenilenmektedir (gece işi yaklaşık 10 saniye; aylık rapor yaklaşık 20 saniye ek süre).
 
-## 6.10 Sınırlamalar
+## 6.10 Gün gün tahmin ve tahmin karnesi
+
+Bir tahminin ne kadar güvenilir olduğunu kullanıcıya göstermenin en doğrudan yolu, geçmişte yapılan tahminleri gerçekleşenle yan yana koymaktır. Bu amaçla platforma bir **tahmin karnesi** ekledik. İlk sürümde her gece yalnızca 21 günlük tahmin üretiliyor ve bir önceki gecenin tahminleri siliniyordu; bu yüzden karne için geçmiş birikmemişti (13.11.2026'da veritabanında yalnızca 22.10.2026 tarihli 844 kayıt vardı).
+
+**Gün gün tahmin.** Her gece, her fon için 1'den 21'e kadar her işlem günü ufkunda ayrı bir tahmin üretip kalıcı olarak saklıyoruz: tahmin günü, o günkü fiyat, ufuk, hedef tarih, tahmin edilen fiyat, %80 aralığın alt ve üst sınırı, yöntem ve yöntem sürümü. Tahmin, drift'in ufka genellenmiş hâlidir: h günlük ufukta (1 + son 1 yıllık getiri)^(h/252) − 1. Kayıtlar hiçbir zaman güncellenmez ya da silinmez; gerçekleşen fiyat tabloya yazılmaz, karşılaştırma anında fiyat tablosundan okunur. Her kayıtta yöntemin adı ve sürümü (`drift-konformal v1`) bulunur; yöntem ileride değişirse eski kayıtlar yapıldıkları sürümle kalır ve yeniden hesaplanmaz. Silinmeden önce kurtarılan 22.10.2026 kayıtları farklı bir yöntemle yapıldığı için `v0` olarak işaretlenmiştir.
+
+**Hedef tarih.** Ufuk işlem günüyle tanımlıdır. Hedef tarihi hafta sonları ve Türkiye'nin resmî tatilleri (dinî bayramlar dahil; `holidays` kütüphanesi) atlanarak hesaplıyoruz. Bu takvimi 14.10.2021–22.10.2026 arasındaki 1.264 fiyat günüyle karşılaştırdık; fark çıkmadı. Arife günleri yarım gün olsa da TEFAS fiyat yayınladığı için işlem günü sayılır. Gerçekleşen değer, fiyat verisindeki h'inci işlem gününden ölçülür; böylece takvimde olmayan bir kapanış olursa hedef tarih veriden düzelir.
+
+**Ufka göre konformal aralık.** Önceki aralık yalnızca 21 günlük ufka göre kalibre edilmişti; 1 günlük bir tahmin için bu aralık çok geniş kalırdı. Artık her ufuk h ve risk grubu için aralığı ayrı kuruyoruz: t günündeki tahminin aralığı, drift'in geçmişte her işlem gününden başlatılan h günlük tahminlerinin hatalarından, **yalnızca hedef günü t'den önce gelmiş olanlar** kullanılarak hesaplanan %10 ve %90 dilimleridir. Bir grupta 50'den az hata varsa bütün grupların hataları kullanılır. Ayrıca t günündeki uygunluk denetimi (fiyatı güncel mi, son bir yılda yeterli fiyatı var mı) için t gününün temizlenmemiş fiyatına bakıyoruz; tek günlük hata temizliği t+1'e baktığı için bu, Bölüm 6.5'teki özellik hesabında kalan küçük bir sızıntıyı da kapatır. Sızıntı olmadığını, t'den sonraki bütün fiyatlar bozulduğunda t günündeki tahminin ve aralığın değişmediğini göstererek test ettik.
+
+**Değerlendirme.** Aynı test döneminde (01.10.2024–30.09.2026, 502 işlem günü) her işlem günü başlatılan tahminleri değerlendirdik. Hız için bu değerlendirmede aralığı ayda bir, ayın ilk işlem günü yeniden kurduk (kalibrasyon günü her zaman tahmin gününden önce ya da aynı gündür); sitedeki canlı tahminde aralık her gece kurulur.
+
+**Tablo 6.3** Ufka göre %80 aralığın kapsaması ve ortalama mutlak sapma (test dönemi, her ufukta 364.465 tahmin; sapma = |gerçekleşen − tahmin| / tahmin)
+
+| Risk grubu | 1 gün | 2 gün | 1 hafta | 2 hafta | 1 ay |
+|---|---|---|---|---|---|
+| Risk 1–2 | %78,7 / %0,10 | %77,0 / %0,14 | %78,7 / %0,16 | %77,3 / %0,28 | %74,0 / %0,62 |
+| Risk 3–4 | %80,7 / %0,31 | %81,1 / %0,46 | %81,7 / %0,78 | %82,5 / %1,15 | %83,3 / %1,85 |
+| Risk 5–7 | %80,4 / %0,94 | %80,7 / %1,40 | %80,5 / %2,35 | %82,1 / %3,35 | %83,2 / %5,21 |
+| Risk değeri yok | %84,5 / %0,34 | %85,1 / %0,51 | %85,8 / %0,85 | %86,9 / %1,26 | %88,6 / %1,98 |
+| **Tümü** | **%80,6 / %0,64** | **%80,7 / %0,96** | **%81,0 / %1,60** | **%81,9 / %2,30** | **%82,3 / %3,61** |
+
+![Şekil 6.2 Ufka göre ortalama mutlak sapma ve %80 aralığın kapsaması](gorseller/sekil_6_2_ufuk_hata.png)
+
+Bütün fonlarda kapsama her ufukta hedefe yakındır (%80,6–%82,3). Hata ufukla birlikte büyür; büyüme kabaca ufkun kareköküyle orantılıdır ve risk 5–7 grubunda en hızlıdır (1 günde %0,94'ten 1 ayda %5,21'e). Risk 1–2 grubunda aralık ufuk uzadıkça hedefin altında kalmaktadır (1 ayda %74,0). Olası neden, bu gruptaki para piyasası benzeri fonların getirisinin faiz değişiklikleriyle dönemden döneme kayması ve geçmiş hataların bu kaymayı eksik temsil etmesidir; bunu ayrıca test etmedik. Risk değeri bulunmayan fonlarda ise aralık gereğinden geniştir. Her ufukta ortalama sapma hafif negatiftir (1 ayda −%0,36): fonlar ortalamada geçmiş eğilimlerinin biraz altında kalmıştır. Ardışık günlerin tahminleri birbiriyle örtüştüğü için tahmin sayısı bağımsız gözlem sayısı değildir.
+
+İlk sürümdeki aylık başlangıçlı 21 günlük aralığın aynı test dönemindeki kapsaması %72,3–%82,5 idi (13.11.2026 verisiyle). Fark, aralığın kurulduğu hata havuzundan (her işlem günü yerine yalnızca aybaşları) ve değerlendirilen tahmin günlerinden kaynaklanmaktadır.
+
+**Canlı ve geriye dönük kayıtlar.** Karneyi dolu başlatmak için son 60 işlem günü (20.08–12.11.2026) için tahminleri geriye dönük hesapladık: 1.052.184 kayıt. Bu hesapta her gün yalnızca o tarihe kadarki fiyatlar ve o tarihe kadar gerçekleşmiş hatalar kullanılmıştır. Yine de bu kayıtlar o gün yapılmış tahminler değildir. Bu yüzden veritabanında ve arayüzde **canlı** (o günün gece işinde kaydedilen) ve **geriye dönük** kayıtlar kesin olarak ayrı etiketlenmiş, istatistikleri ayrı hesaplanmıştır. Geriye dönük kayıtlarda "Geriye dönük hesaplanmıştır" uyarısı gösterilir. İlk canlı kayıtlar 22.10.2026 (`v0`, yalnızca 21 günlük) ve 13.11.2026 (`v1`, 860 fon × 21 ufuk = 18.060 kayıt) tarihlidir.
+
+**Tablo 6.4** Geriye dönük kayıtların karnesi (20.08–12.11.2026, bütün fonlar, 13.11.2026 itibarıyla gerçekleşenler)
+
+| Ufuk | Tahmin günü | Gerçekleşen tahmin | Aralıkta kalma | Ort. mutlak sapma | Ort. sapma |
+|---|---|---|---|---|---|
+| 1 gün | 60 | 50.104 | %79,5 | %0,69 | −%0,15 |
+| 2 gün | 59 | 49.246 | %80,4 | %1,02 | −%0,30 |
+| 1 hafta | 56 | 46.676 | %79,0 | %1,77 | −%0,81 |
+| 2 hafta | 51 | 42.415 | %78,9 | %2,66 | −%1,92 |
+| 1 ay | 40 | 33.120 | %71,5 | %4,99 | −%4,48 |
+
+Kısa ufuklarda kapsama hedefe yakındır. 1 aylık ufukta kapsama %71,5'e düşmüş ve ortalama sapma −%4,48 olmuştur: bu dönemde fonlar geçmiş eğilimlerinin belirgin biçimde altında kalmıştır. Bütün fonlar aynı piyasa hareketini yaşadığı ve 40 tahmin günü birbiriyle örtüştüğü için bu sonuç tek bir piyasa döneminin etkisini taşır; uzun dönemli test sonucunun (Tablo 6.3) yerine geçmez.
+
+**Arayüz.** Fon detay sayfasındaki karnede son 30 tahmin günü arasından seçim yapılır. Seçilen tahmin için tahmin çizgisi, %80 aralık gölgesi ve gerçekleşen fiyat aynı grafikte gösterilir; gün gün tabloda ufuk, hedef tarih, tahmin, aralık, gerçekleşen fiyat, sapma (TL ve %) ve aralıkta olup olmadığı yer alır. Henüz gelmemiş günler "bekleniyor" olarak görünür. Sayfanın altında fonun 1 gün, 2 gün, 1 hafta, 2 hafta ve 1 aylık ufuklardaki aralıkta kalma oranı ve ortalama sapması, canlı ve geriye dönük ayrı olarak özetlenir. Model performansı sayfasında Tablo 6.3, Şekil 6.2'ye karşılık gelen grafik ve bütün fonların karnesi yer alır.
+
+**Maliyet.** Gece işine ek süre yaklaşık 12 saniyedir (kalibrasyon 1,6 sn; bütün fonların karne özeti 9,8 sn). Karne özeti bütün kayıtları okuduğu için süresi kayıt sayısıyla doğrusal artar (bir yılda yaklaşık 40 sn). Bir gecenin kayıtları yaklaşık 3,7 MB yer tutar (kayıt başına ~205 bayt, indeksler dahil); bu, yılda yaklaşık 0,9 GB demektir. Veritabanı 13.11.2026'da 303,6 MB'tır. Bu nedenle yedekler artık gzip ile sıkıştırılmaktadır (Bölüm 7.4). Fonun karnesi 36–47 ms'de gelir.
+
+## 6.11 Sınırlamalar
 
 - Test dönemi yaklaşık iki yıldır ve tek bir yüksek faiz ortamını kapsar; sonuçlar başka piyasa koşullarına genellenemez.
 - 24 aylık test, model ile referans arasındaki küçük farkların istatistiksel olarak ayırt edilmesi için kısadır.
 - Fonların kategori ve risk değeri için yalnızca güncel değerlere erişilebilmiştir; geçmiş tarihlerdeki tahminlerde de güncel değerler kullanılmıştır.
 - ARIMA, hesaplama maliyeti nedeniyle 40 fonluk bir örnekte değerlendirilmiştir.
+- Tahmin karnesinin canlı kayıtları 13.11.2026'da başlamıştır; ilk aylarda karnenin büyük kısmı geriye dönük hesaplanmış kayıtlardan oluşur. Geriye dönük kayıtlarda fonların işleme kapalı olup olmadığı ve risk değeri için bugünkü bilgi kullanılmıştır.
+- Ufka göre aralık, risk 1–2 grubunda uzun ufuklarda hedeften dar kalmaktadır (1 ayda %74,0).
 - Eylül 2026'daki SPK kararıyla kapatılan fonların sert değer kayıpları test dönemine dahildir; bu, yöntemin gerçek riskleri dışlamadan test edildiğini gösterirken sonuçların o aya duyarlı olmasına da yol açar.
 
-## 6.11 Sonuç
+## 6.12 Sonuç
 
-Bir aylık fon getirisini tahmin etmek için kurulan LightGBM modeli, gelecekten bilgi sızdırmayan walk-forward bir testte fonun geçmiş ortalama getirisinin sürmesini varsayan basit drift yöntemini hiçbir risk grubunda geçememiştir; fon bazında ARIMA ise drift ile pratikte aynı sonucu vermiştir. Bu bulgu, kısa vadeli fon getirilerinin büyük ölçüde öngörülemez olduğu yönündeki genel kabulle tutarlıdır. Çalışmanın katkısı, bir modelin yalnızca kurulmasıyla değil, önceden tanımlanmış bir ölçüte göre test edilmesiyle değerlendirilmesi ve sonucun —olumsuz da olsa— kullanıcıya şeffaf biçimde yansıtılmasıdır: platform, testte en isabetli çıkan yöntemi açık bir etiketle ve ölçülmüş kapsama oranına sahip bir aralıkla göstermekte, makine öğrenmesi modellerinin sonuçlarını ise ayrı bir sayfada bütünüyle yayımlamaktadır.
+Bir aylık fon getirisini tahmin etmek için kurulan LightGBM modeli, gelecekten bilgi sızdırmayan walk-forward bir testte fonun geçmiş ortalama getirisinin sürmesini varsayan basit drift yöntemini hiçbir risk grubunda geçememiştir; fon bazında ARIMA ise drift ile pratikte aynı sonucu vermiştir. Bu bulgu, kısa vadeli fon getirilerinin büyük ölçüde öngörülemez olduğu yönündeki genel kabulle tutarlıdır. Çalışmanın katkısı, bir modelin yalnızca kurulmasıyla değil, önceden tanımlanmış bir ölçüte göre test edilmesiyle değerlendirilmesi ve sonucun —olumsuz da olsa— kullanıcıya şeffaf biçimde yansıtılmasıdır: platform, testte en isabetli çıkan yöntemi açık bir etiketle ve ölçülmüş kapsama oranına sahip bir aralıkla göstermekte, makine öğrenmesi modellerinin sonuçlarını ise ayrı bir sayfada bütünüyle yayımlamaktadır. Tahmin karnesi bu şeffaflığı her fon ve her gün için sürdürmektedir: her tahmin kaydedilir, gerçekleşenle karşılaştırılır ve canlı tahminler geriye dönük hesaplananlardan ayrı tutulur.

@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getForecast, getFund, getFundPrices, getTechnical } from '../api/client'
 import ForecastCard from '../components/ForecastCard'
+import ForecastScorecard from '../components/ForecastScorecard'
 import RiskBar from '../components/RiskBar'
 import TechnicalSummary from '../components/TechnicalSummary'
 import { num, pct, signClass, trDate } from '../format'
@@ -77,30 +78,13 @@ function ChartTooltip({ active, payload, shown }) {
   )
 }
 
-// Son tarihten sonraki n iş günü (hafta sonu atlanır; resmi tatiller bilinmediği için dahil)
-function nextBusinessDays(lastIso, n) {
-  const out = []
-  const d = new Date(`${lastIso}T00:00:00Z`)
-  while (out.length < n) {
-    d.setUTCDate(d.getUTCDate() + 1)
-    const wd = d.getUTCDay()
-    if (wd !== 0 && wd !== 6) out.push(d.toISOString().slice(0, 10))
-  }
-  return out
-}
-
-// Tahmin konisi: çizgi son fiyattan doğrusal ilerler; bant, zamanın kareköküyle genişleyip 21. günde
-// konformal %10-90 aralığına ulaşır (ara günler yaklaşık).
+// Tahmin konisi: 1..21 işlem günü için backend'in kaydettiği yol (hedef günler resmi tatilleri atlar; her
+// günün %80 aralığı o ufka ayrı kalibre edilmiştir). Getiriler tahmin günündeki fiyata göre.
 function withForecast(points, f) {
-  if (!f || !points.length) return points
+  if (!f?.path?.length || !points.length) return points
   const last = points[points.length - 1]
   const base = last.price
-  const h = f.horizon_days
-  const future = nextBusinessDays(last.date, h).map((date, i) => {
-    const k = (i + 1) / h
-    const mid = f.pred_return * k
-    return { date, fc: base * (1 + mid), band: [base * (1 + mid + (f.lo - f.pred_return) * Math.sqrt(k)), base * (1 + mid + (f.hi - f.pred_return) * Math.sqrt(k))] }
-  })
+  const future = f.path.map((x) => ({ date: x.target_date, fc: base * (1 + x.pred_return), band: [base * (1 + x.lo), base * (1 + x.hi)] }))
   return [...points.slice(0, -1), { ...last, fc: base, band: [base, base] }, ...future]
 }
 
@@ -355,7 +339,7 @@ export default function FundDetail() {
         {forecast && prices && prices.length > 1 && (
           <p className="muted small chart-note">
             <span className="legend-line legend-dashed" style={{ borderColor: FORECAST }} /> Kesikli çizgi: geçmiş eğilime dayalı
-            1 aylık tahmin; açık alan: %80 aralık (ara günlerdeki genişlik yaklaşık).
+            1 aylık tahmin; açık alan: %80 aralık (her gün için ayrı hesaplanır, tatiller atlanır).
           </p>
         )}
         {tech && prices && prices.length > 1 && (
@@ -398,6 +382,7 @@ export default function FundDetail() {
       </div>
 
       <ForecastCard forecast={forecast} unavailable={forecastMissing} />
+      <ForecastScorecard code={fund.code} />
 
       {(fund.total_value != null || fund.investor_count != null) && (
         <>

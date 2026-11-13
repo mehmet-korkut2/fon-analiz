@@ -440,6 +440,28 @@ a.tag:hover { border-color: var(--brand); }
 .badge-ok, .badge-fail { padding: 1px 8px; border-radius: 999px; font-size: 12px; }
 .badge-ok { background: var(--brand-soft); color: var(--brand-ink); }
 .badge-fail { background: var(--danger-soft); color: var(--danger-ink); }
+
+/* Tahmin karnesi (ForecastScorecard) */
+.scorecard h2, .scorecard h3 { margin: 0; }
+.scorecard h3 { font-size: 16px; margin-top: 8px; }
+.scorecard.is-loading { opacity: .6; }
+.scorecard-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end; }
+.scorecard-head > div { flex: 1 1 280px; }
+.scorecard-head p { margin: 4px 0 0; }
+.score-pick { display: flex; flex-direction: column; gap: 4px; max-width: 100%; }
+.score-pick select { font: inherit; padding: 8px 10px; border: 1px solid var(--input-line); border-radius: 8px; max-width: 100%; }
+.source-badge { padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.source-badge.is-live { background: var(--brand-soft); color: var(--brand-ink); }
+.source-badge.is-back { background: var(--warn-soft); color: var(--warn-ink); border: 1px dashed var(--warn); }
+.source-note { margin: 0; padding: 8px 12px; border-radius: 8px; line-height: 1.5; }
+.source-note.is-live { background: var(--brand-soft); color: var(--brand-ink); }
+.source-note.is-back { background: var(--warn-soft); color: var(--warn-ink); }
+.legend-swatch { display: inline-block; width: 14px; height: 10px; border-radius: 2px; opacity: .3; }
+.score-table td, .score-table th { white-space: nowrap; }
+.score-table tr.is-pending td { color: var(--ink-2); }
+.score-summary th.c, .ml-table th.c { text-align: center; }
+.mlp h3.sub { margin: 8px 0 0; font-size: 16px; }
+.mlp .score-summary, .score-summary { min-width: 520px; }
 .importance { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .importance li { display: grid; grid-template-columns: 120px minmax(0, 1fr) 52px; gap: 8px; align-items: center; }
 .imp-track { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }

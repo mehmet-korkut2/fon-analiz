@@ -67,6 +67,11 @@ const FLOWS = [
     ['Trend ve 52 haftalık aralık', `!!__t.q('.tech-trend') && !!__t.q('.range-dot') && __t.q('.tech-trend').textContent`],
     ['Dönem 3Y', `(async () => { __t.click('.seg button', '3Y'); await __t.until(() => location.search.includes('donem=3Y')); return true })()`],
     ['Tahmin kartı ve hesaplayıcı', `!!__t.byText('h2', 'Geçmiş eğilime dayalı tahmin') && !!__t.q('.calc input')`],
+    ['Tahmin karnesi: grafik, 21 satır, kaynak etiketi', `(async () => { await __t.until(() => __t.all('.score-table tbody tr').length === 21);
+      return !!__t.q('.scorecard .recharts-line') && !!__t.q('.scorecard .source-badge') && __t.all('.score-summary tbody tr').length === 5 })()`],
+    ['Tahmin karnesi: canlı güne geç (bekleniyor)', `(async () => { const s = __t.q('.score-pick select'); const live = [...s.options].find((o) => o.value.endsWith('|canli'));
+      const set = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set; set.call(s, live.value); s.dispatchEvent(new Event('change', { bubbles: true }));
+      await __t.until(() => __t.q('.source-note.is-live')); return __t.q('.score-table tbody').textContent.includes('Bekleniyor') })()`],
     ['Fon büyüklüğü ve yatırımcı', `__t.byText('.card', 'Fon büyüklüğü')?.textContent.includes('TL')`],
     ['KAP bağlantısı (TEFAS)', `__t.q('.kap-link a')?.href.startsWith('https://www.kap.org.tr/')`],
     ['Sanal portföyde dene', `__t.byText('.detail-actions a', 'Sanal portföyde dene')?.getAttribute('href') === '/sanal-portfoy?fon=TTE'`],
@@ -132,6 +137,8 @@ const FLOWS = [
   ['Model performansı', '/model-performansi', [
     ['Sonuç tabloları', `__t.all('.ml-table').length >= 3`],
     ['Aylık hata grafiği', `__t.all('.recharts-line').length >= 4`],
+    ['Ufka göre karne ve hata grafiği', `!!__t.byText('h2', 'Ufka göre tahmin karnesi') && __t.all('.recharts-line').length >= 8`],
+    ['Kaydedilen tahminlerin karnesi', `!!__t.byText('h2', 'Kaydedilen tahminlerin karnesi') && __t.all('.score-summary tbody tr').length === 5`],
   ]],
 ]
 

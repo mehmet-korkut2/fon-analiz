@@ -21,7 +21,8 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
   - `app/services/metrics.py` + `metrics_job.py`: getiri, volatilite, Sharpe, maks. düşüş
   - `app/services/risk_survey.py` + `recommender.py`: risk anketi, öneri puanlaması (dengeli profilde riskli fon kotası), örnek portföy, kayan pencereli geriye dönük test (yöntem ve gerekçeler: `docs/oneri_sistemi.md`). Geriye dönük test ~1 dk sürer; gece güncellemesinden sonra hesaplanıp `backtest_windows` tablosuna yazılır, API oradan okur
   - `app/services/fund_status.py`, `data_quality.py`: SPK kararıyla kapatılan fonlar, fiyat sıçramaları
-  - `app/ml/`: 1 aylık getiri tahmini (features, models, evaluation, report, job). LightGBM drift'i geçemedi; sitede ML tahmini değil, drift + konformal %80 aralık gösterilir (`forecasts` her gece, `ml_reports` 28 günde bir). Ayrıntı: `docs/ml_tahmin.md`, rapor bölümü `docs/rapor/06_ml_tahmin.md`
+  - `app/ml/`: 1 aylık getiri tahmini (features, models, evaluation, report, job). LightGBM drift'i geçemedi; sitede ML tahmini değil, drift + konformal %80 aralık gösterilir (`ml_reports` 28 günde bir). Ayrıntı: `docs/ml_tahmin.md`, rapor bölümü `docs/rapor/06_ml_tahmin.md`
+  - Tahmin karnesi (`app/ml/horizons.py`, `trading_calendar.py`): her gece her fon için 1..21 işlem günü ufkunda drift + ufka ve risk grubuna ayrı kalibre edilmiş konformal %80 aralık `forecast_days`'e eklenir (silinmez; `source` = `canli` / `geriye_donuk`, son 60 işlem gününün eksikleri geriye dönük doldurulur, yalnızca o tarihe kadarki veriyle). Gerçekleşen fiyat `prices`'tan okunur (verideki h'inci işlem günü). Bütün fonların özeti `forecast_summaries`. Takvim: `holidays` paketi (Türkiye), fiyat verisiyle doğrulandı. Eski `forecasts` tablosu ilk çalıştırmada aktarılıp kaldırılır. Tablo ~2,9 MB/gece büyür
   - `app/services/technical.py`: 50/200 günlük ortalama, trend, 52 haftalık aralık (`/api/funds/{kod}/technical`)
   - `app/services/sanal_portfoy.py`: Sanal Portföy (hayali para, tek kullanıcı; tablolar sanal_portfoy, sanal_emirler, sanal_degerler). Nakit/pozisyon emir kayıtlarından hesaplanır. Valör: alış = TEFAS `fonGeriAlisValor`, satış = `fonSatisValor` (adlar ters görünür; yabancı hisse fonunda 1 / 3). İleri fiyat: hedef günün fiyatı biliniyorsa sonraki iş günü. Gece güncellemesinden sonra `process()`
   - `app/services/fx.py`: TCMB today.xml (resmi) + Truncgil v4 (anlık)
@@ -41,8 +42,8 @@ Planın tamamı ve ilerleme durumu: `YOL_HARITASI.md` (biten maddeleri `[x]` ile
 # backend (backend klasöründe, .venv aktifken)
 uvicorn app.main:app --reload
 pytest
-python -m scripts.yedekle [--not sunum-oncesi]  # backups/fon_<tarih>.db
-python -m scripts.geri_yukle [--liste | <dosya>]  # varsayılan en son yedek; önce backend'i durdur
+python -m scripts.yedekle [--not sunum-oncesi]  # backups/fon_<tarih>.db.gz (gzip; süre ve boyut yazar)
+python -m scripts.geri_yukle [--liste | <dosya>]  # .db.gz ve eski .db; varsayılan en son yedek; önce backend'i durdur
 python -m scripts.tefas_yukle --limit 0        # tüm fonlar, son 5 yıl
 python -m scripts.metrik_hesapla
 

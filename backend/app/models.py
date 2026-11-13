@@ -185,22 +185,47 @@ class BacktestWindow(Base):
 
 
 
-class Forecast(Base):
-    """Sitede gösterilen 1 aylık tahmin (geçmiş eğilim = drift) ve konformal %80 aralık. Her gece
-    yenilenir, sadece en son tarih tutulur (app/ml/job.py). Ham getiri, ondalık kesir."""
+SOURCE_LIVE = "canli"  # tahmin gününün gece işinde, o günkü veriyle kaydedildi
+SOURCE_BACKFILL = "geriye_donuk"  # sonradan, yalnızca o tarihe kadarki veriyle hesaplandı
 
-    __tablename__ = "forecasts"
+
+class ForecastDay(Base):
+    """Gün gün tahmin (tahmin karnesi): her tahmin günü x fon x ufuk (1..21 işlem günü) için drift
+    tahmini ve ufka göre kalibre edilmiş konformal %80 aralık (app/ml/horizons.py). Kayıtlar silinmez.
+    Gerçekleşen fiyat burada tutulmaz, `prices`'tan okunur. Fiyatlar TL (fon birim fiyatı)."""
+
+    __tablename__ = "forecast_days"
+    __table_args__ = (UniqueConstraint("fund_code", "as_of", "horizon", "source", name="uq_forecast_day"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"), index=True)
-    as_of: Mapped[date] = mapped_column(Date)  # tahminin yapıldığı son fiyat tarihi
-    horizon_days: Mapped[int] = mapped_column(Integer)  # işlem günü
-    method: Mapped[str] = mapped_column(String(20))  # drift
-    pred_return: Mapped[float] = mapped_column(Float)
-    lo: Mapped[float] = mapped_column(Float)  # %10 dilimi
-    hi: Mapped[float] = mapped_column(Float)  # %90 dilimi
+    # fon sorgusu (fund_code, as_of) bu benzersiz indeksin önekini kullanır; ayrı fund_code indeksi gerekmez
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"))
+    as_of: Mapped[date] = mapped_column(Date, index=True)  # tahmin günü (o günün fiyatı biliniyor)
+    base_price: Mapped[float] = mapped_column(Float)  # tahmin günündeki fiyat
+    horizon: Mapped[int] = mapped_column(Integer)  # işlem günü, 1..21
+    target_date: Mapped[date] = mapped_column(Date)  # takvimle hesaplanan hedef gün
+    pred_price: Mapped[float] = mapped_column(Float)
+    lo_price: Mapped[float] = mapped_column(Float)  # %10 dilimi
+    hi_price: Mapped[float] = mapped_column(Float)  # %90 dilimi
+    method: Mapped[str] = mapped_column(String(30))  # yöntem adı: drift-konformal
+    # yöntemin sürümü (app/ml/horizons.METHOD_VERSIONS). Kayıt yapıldığı sürümle kalır; yöntem değişince
+    # eski kayıtlar yeniden hesaplanmaz.
+    method_version: Mapped[str] = mapped_column(String(12))
+    source: Mapped[str] = mapped_column(String(12))  # canli | geriye_donuk
     risk_group: Mapped[str] = mapped_column(String(12))
-    coverage: Mapped[float | None] = mapped_column(Float)  # bu risk grubunda aralığın test dönemi kapsama oranı
+    calib_n: Mapped[int | None] = mapped_column(Integer)  # aralığın kurulduğu geçmiş hata sayısı
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class ForecastSummary(Base):
+    """Tahmin karnesinin bütün fonlar üzerinden özeti (ufuk x risk grubu x kaynak); her gece yeniden
+    hesaplanır, model performansı sayfası buradan okur. Yalnızca son satır kullanılır."""
+
+    __tablename__ = "forecast_summaries"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    data_as_of: Mapped[date] = mapped_column(Date)
+    payload: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 

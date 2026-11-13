@@ -123,6 +123,19 @@ def render(rep):
         print(f"| {GROUP_LABELS[g]} | {pct(v['q10'])} | {pct(v['q90'])} | {n} | {pct(v['coverage'], 1)} |")
     print()
 
+    hz = rep.get("horizons")
+    if hz and hz.get("rows"):
+        labels = {**GROUP_LABELS, "tumu": "Tümü"}
+        print("## 7b. Ufka göre (1..21 işlem günü): drift ve ufka ayrı kalibre edilmiş %80 aralık\n")
+        print(f"Test dönemi {hz['test'][0]} – {hz['test'][1]}, {hz['origins']} işlem günü (her gün başlangıç); aralık ayda bir, "
+              "hedef günü o günden önce gelmiş hatalarla kurulur. Sapma: (gerçekleşen - tahmin) / tahmin.\n")
+        print("| Ufuk | Risk grubu | Tahmin | Kapsama | Ort. mutlak sapma | Ort. sapma | Aralık genişliği |\n|---|---|---|---|---|---|---|")
+        for r in hz["rows"]:
+            if r["horizon"] in (1, 2, 5, 10, 21):
+                print(f"| {r['horizon']} | {labels[r['group']]} | {thousands(r['n'])} | {pct(r['coverage'], 1)} | {pct(r['mae_pct'])} | "
+                      f"{pct(r['bias_pct'])} | {pct(r['width_pct'])} |")
+        print()
+
     if rep.get("arima"):
         a = rep["arima"]
         print(f"## 8. ARIMA ({a['funds']} fonluk tabakalı örnek)\n")

@@ -7,7 +7,7 @@ Backend klasöründe, `.venv` aktifken çalıştır.
 | `python -m scripts.baglanti_testi` | TEFAS ve döviz kaynaklarına ulaşılabildiğini kontrol eder, örnek veriyi gösterir |
 | `python -m scripts.tefas_yukle --limit 10` | İlk 10 fonun listesini ve son 5 yıllık fiyatlarını veritabanına yükler |
 | `python -m scripts.tefas_yukle --fon TTE --ay 60` | Tek fonun son 5 yıllık fiyatlarını yükler |
-| `python -m scripts.yedekle [--not ad]` | Veritabanının tarihli yedeğini proje kökündeki `backups/` klasörüne alır (sanal portföy ve son kurlar dahil) |
+| `python -m scripts.yedekle [--not ad] [--sikistirma]` | Veritabanının tarihli, gzip ile sıkıştırılmış yedeğini (`.db.gz`) proje kökündeki `backups/` klasörüne alır (sanal portföy, tahminler ve son kurlar dahil); süreyi ve boyutu yazar |
 | `python -m scripts.geri_yukle [--liste] [dosya]` | En son (ya da seçilen) yedeği geri yükler; önce mevcut veritabanının güvenlik kopyasını alır. Backend'i önce durdurun |
 | `python -m scripts.fon_bilgisi_yukle` | Bütün fonların güncel büyüklüğünü, yatırımcı sayısını ve profilini (KAP bağlantısı, valör, son işlem saati) TEFAS'tan alır (~18 dk; gece güncellemesi bunu zaten yapar) |
 | `python -m scripts.metrik_hesapla` | Tüm fonların getiri, volatilite, Sharpe ve maks. düşüş metriklerini yeniden hesaplar |

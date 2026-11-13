@@ -81,20 +81,26 @@ Son güncelleme: 13 Ekim 2026
 - [x] ARIMA veya Prophet (ARIMA, 40 fonluk örnek)
 - [x] LSTM: değerlendirildi, kapsam dışı bırakıldı (gerekçe: `docs/rapor/06_ml_tahmin.md`, 6.8)
 - [x] Model karşılaştırma tablosu (rapora girecek) (`docs/rapor/06_ml_tahmin.md`; LightGBM drift'i geçemedi)
-- [x] `forecasts` tablosu ve gece toplu tahmin
+- [x] `forecasts` tablosu ve gece toplu tahmin (13.11.2026'da `forecast_days` ile değiştirildi, aşağıda)
 - [x] Endpoint: `GET /api/funds/{kod}/forecast`
 - [x] Fon detayında tahmin çizgisi ve güven aralığı (geçmiş eğilime dayalı tahmin + konformal %80 aralık)
 - [x] "Yatırım tavsiyesi değildir" uyarısı
+- [x] Tahmin karnesi (13.11.2026): her gece her fon için 1–21 işlem günü ufkunda tahmin, kalıcı (`forecast_days`, silinmez; yöntem + sürüm `drift-konformal v1`)
+- [x] Ufka ve risk grubuna göre ayrı konformal %80 aralık (yalnızca hedef günü gelmiş hatalarla); test döneminde kapsama %80,6–%82,3 (rapor 6.10)
+- [x] Resmî tatil takvimi (`holidays`), 5 yıllık fiyat günleriyle doğrulandı
+- [x] Canlı / geriye dönük ayrımı; son 60 işlem günü geriye dönük dolduruldu; eski 844 canlı kayıt `v0` olarak kurtarıldı
+- [x] Fon detayında karne (tarih seçici, grafik, gün gün tablo, "bekleniyor", ufuk özeti); model performansında ufka göre karne ve hata grafiği
+- [x] Testler (`test_horizons.py`, 21) ve rapor 6.10, Şekil 6.2, Tablo 6.3–6.4
 
 > Zaman sıkışırsa en kolay sadeleştirilecek kısım bu aşama. Basit bir model de yeterli.
 
 ## 7. Test, yayın, rapor, sunum
 
-- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 204/204, internetsiz 208/208 (rapor 7.3)
+- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 220/220, internetsiz 224/224 (13.11.2026, tahmin karnesi adımlarıyla; rapor 7.3)
 - [x] Tek tıkla başlatma: `FonAnaliz_Baslat.bat` (backend + frontend + tarayıcı, hazır olunca açar) ve `FonAnaliz_Durdur.bat`; eski 1–4 numaralı bat dosyaları kaldırıldı
 - [x] İnternetsiz çalışma: döviz son bilinen kurlar ("en son X tarihinde güncellendi"), güncelleme internet yoksa sessizce atlanır, bağlantı koparsa durur
 - [ ] İnternetsiz çalışmayı sunum bilgisayarında Wi-Fi kapatarak bir kez daha dene
-- [x] Sunum öncesi veritabanı yedeği ve geri yükleme komutu: `python -m scripts.yedekle`, `python -m scripts.geri_yukle` (sanal portföy dahil, `backups/` git'e girmez)
+- [x] Sunum öncesi veritabanı yedeği ve geri yükleme komutu: `python -m scripts.yedekle`, `python -m scripts.geri_yukle` (sanal portföy dahil, `backups/` git'e girmez); 13.11.2026'dan beri gzip ile sıkıştırılmış (303,6 MB → 79,5 MB, 17 sn), süre ve boyut yazılır
 - [x] Kullanıcı testi materyali: `docs/kullanici_testi.md` (6 görev, gözlem alanı, 5 soruluk anket; yazdırmak için .pdf)
 - [ ] Kullanıcı testi: 3–5 kişiye kullandır, sonuçları rapor 7.5'e yaz
 - [x] Rapor: 00–08 bölümleri ve kaynakça tamamlandı, Word/PDF `docs/rapor/cikti/` (`python -m scripts.rapor_olustur`); sayılar, şekil/tablo numaraları ve atıf sırası denetlendi

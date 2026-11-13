@@ -290,6 +290,14 @@ class BacktestOut(BaseModel):
     windows: list[BacktestWindowOut]
 
 
+class ForecastPathPoint(BaseModel):
+    horizon: int
+    target_date: date
+    pred_return: float
+    lo: float
+    hi: float
+
+
 class ForecastOut(BaseModel):
     code: str
     as_of: date
@@ -301,15 +309,75 @@ class ForecastOut(BaseModel):
     hi: float
     risk_group: str
     risk_group_label: str
-    coverage: float | None  # aralığın test dönemindeki kapsama oranı (bu risk grubunda)
+    coverage: float | None  # aralığın test dönemindeki kapsama oranı (bu risk grubunda, 21 günlük ufuk)
     note: str  # "Bu bir ML tahmini değildir; ..."
     model_note: str | None = None  # LightGBM'in bu risk grubundaki sonucu
+    source: str = "canli"  # canli | geriye_donuk
+    method_version: str | None = None  # yöntem sürümü (ör. v1)
+    path: list[ForecastPathPoint] = []  # 1..21 işlem günü (grafikteki koni)
+
+
+class ScorecardDay(BaseModel):
+    as_of: date
+    source: str  # canli | geriye_donuk
+    horizons: int  # bu günde kaç ufuk kaydı var (eski canlı kayıtlarda yalnızca 21)
+    realized: int  # kaçı gerçekleşti
+    method: str
+    method_version: str
+
+
+class ScorecardRow(BaseModel):
+    horizon: int
+    target_date: date  # takvimle hesaplanan hedef gün
+    realized_date: date | None  # verideki gerçek h'inci işlem günü (gerçekleştiyse)
+    pred_price: float
+    lo_price: float
+    hi_price: float
+    realized_price: float | None  # None: bekleniyor
+    error_tl: float | None
+    error_pct: float | None  # (gerçekleşen - tahmin) / tahmin
+    in_band: bool | None
+    calib_n: int | None
+
+
+class ScorecardSelected(BaseModel):
+    as_of: date
+    source: str
+    method: str
+    method_version: str
+    method_note: str | None
+    risk_group: str
+    base_price: float
+    rows: list[ScorecardRow]
+
+
+class ScorecardSummary(BaseModel):
+    source: str
+    method_version: str
+    horizon: int
+    label: str
+    n: int  # gerçekleşmiş tahmin sayısı
+    days: int
+    coverage: float | None
+    mae_pct: float | None
+    bias_pct: float | None
+
+
+class ScorecardOut(BaseModel):
+    code: str
+    data_as_of: date | None
+    days: list[ScorecardDay]  # son 30 tahmin günü (yeniden eskiye)
+    selected: ScorecardSelected | None
+    summary: list[ScorecardSummary]
+    note: str
+    backfill_note: str
 
 
 class MlPerformanceOut(BaseModel):
     created_at: str
     data_as_of: date
     report: dict  # app/ml/report.build_report çıktısı
+    scorecard: dict | None = None  # tahmin karnesi özeti (app/ml/horizons.summarize_all), her gece
 
 
 # --- Sanal portföy -----------------------------------------------------------------

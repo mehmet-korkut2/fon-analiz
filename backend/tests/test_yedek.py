@@ -1,3 +1,4 @@
+import gzip
 import sqlite3
 import time
 
@@ -29,7 +30,8 @@ def test_backup_restore_roundtrip_with_safety_copy(tmp_path):
     db, dest = tmp_path / "fon.db", tmp_path / "backups"
     make_db(db, funds=("AAA", "BBB"), emir=3)
     b = yedek.backup(db, dest, label="sunum öncesi!")
-    assert b.name.startswith("fon_") and b.name.endswith("_sunum_öncesi.db")
+    assert b.name.startswith("fon_") and b.name.endswith("_sunum_öncesi.db.gz")
+    assert gzip.open(b).read(16) == b"SQLite format 3\x00"  # gzip ile sıkıştırılmış SQLite
     assert yedek.check(b)["counts"] == {"funds": 2, "prices": 1, "sanal_emirler": 3}  # sanal portföy dahil
 
     # veritabanı bozuldu / değişti
@@ -41,7 +43,9 @@ def test_backup_restore_roundtrip_with_safety_copy(tmp_path):
 
     safety = yedek.restore(b, db, dest)
     assert count(db, "funds") == 2 and count(db, "sanal_emirler") == 3
-    assert safety.name.startswith(yedek.SAFETY_PREFIX) and count(safety, "funds") == 0
+    assert safety.name.startswith(yedek.SAFETY_PREFIX) and safety.name.endswith(".db.gz")
+    with yedek.opened(safety) as raw:
+        assert count(raw, "funds") == 0
     assert yedek.list_backups(dest) == [b]  # güvenlik kopyası listede değil
 
 
@@ -72,3 +76,43 @@ def test_invalid_backup_rejected(tmp_path):
     assert count(db, "funds") == 1  # mevcut veritabanı bozulmadı
     with pytest.raises(yedek.YedekHata, match="bulunamadı"):
         yedek.backup(tmp_path / "yok.db", dest)
+
+
+def test_stats_and_compression_shrinks(tmp_path):
+    db, dest = tmp_path / "fon.db", tmp_path / "backups"
+    make_db(db)
+    con = sqlite3.connect(db)
+    con.executemany("INSERT INTO prices VALUES (?, ?)", [(f"2026-01-{i % 28 + 1:02d}", 1.0) for i in range(20000)])
+    con.commit()
+    con.close()
+    r = yedek.backup_with_stats(db, dest)
+    assert r.path.suffixes[-2:] == [".db", ".gz"] and r.seconds >= 0
+    assert r.size_bytes == r.path.stat().st_size and r.size_bytes < r.raw_bytes / 3
+    assert not list(dest.glob("*.tmp"))  # geçici dosya kalmadı
+    plain = yedek.backup_with_stats(db, dest, compress=False)
+    assert plain.path.suffix == ".db" and plain.size_bytes == plain.raw_bytes
+
+
+def test_restore_old_uncompressed_backup_and_list_both(tmp_path):
+    db, dest = tmp_path / "fon.db", tmp_path / "backups"
+    make_db(db, funds=("AAA", "BBB"))
+    old = yedek.backup(db, dest, compress=False)  # önceki sürümün .db yedeği
+    time.sleep(0.05)
+    new = yedek.backup(db, dest)
+    assert yedek.list_backups(dest) == [old, new]
+    con = sqlite3.connect(db)
+    con.execute("DELETE FROM funds")
+    con.commit()
+    con.close()
+    yedek.restore(old, db, dest)
+    assert count(db, "funds") == 2
+
+
+def test_corrupt_gzip_rejected(tmp_path):
+    db, dest = tmp_path / "fon.db", tmp_path / "backups"
+    make_db(db)
+    b = yedek.backup(db, dest)
+    b.write_bytes(b.read_bytes()[:40])  # yarım kalmış dosya
+    with pytest.raises(yedek.YedekHata):
+        yedek.restore(b, db, dest)
+    assert count(db, "funds") == 1

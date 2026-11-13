@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.ml.features import HORIZON
-from app.models import BacktestWindow, Forecast, Fund
+from app.ml.horizons import latest_forecasts
+from app.models import BacktestWindow, Fund
 from app.routers.funds import fund_out, stale_cutoff
 from app.schemas import (
     BacktestOut,
@@ -104,7 +105,7 @@ def recommendations(
     if not rec.portfolio.empty and rec.as_of:
         start = (pd.Timestamp(rec.as_of) - pd.DateOffset(months=12)).date()
         perf = R.performance(db, list(rec.portfolio["code"]), start, rec.as_of, R.money_market_codes(db))
-    forecasts = {f.fund_code: f for f in db.scalars(select(Forecast).where(Forecast.fund_code.in_(list(rec.portfolio["code"]))))}
+    forecasts = latest_forecasts(db, list(rec.portfolio["code"]))
     port = _portfolio(rec, perf, forecasts)
     rule = PROFILE_RULES[profile]
     return RecommendationsOut(

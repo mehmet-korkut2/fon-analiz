@@ -59,7 +59,7 @@ Hesaplaması uzun süren işler (metrikler, kayan pencereli geriye dönük test,
 
 - `fund_metrics`: önceden hesaplanmış metrikler.
 - `backtest_windows`: kayan pencereli test sonuçları.
-- `forecasts`: günlük tahminler.
+- `forecast_days`: gün gün tahminler (her fon, tahmin günü ve 1–21 işlem günü ufku için; tahmin karnesi, Bölüm 6.10).
 - `ml_reports`: ML değerlendirme raporları.
 
 - `sanal_portfoy`, `sanal_emirler`, `sanal_degerler`: sanal portföyün ayarı, emirleri ve günlük değeri (Bölüm 3.6).

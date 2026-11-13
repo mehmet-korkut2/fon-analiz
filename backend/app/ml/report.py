@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from app.ml import evaluation as E
+from app.ml import horizons as H
 from app.ml.features import HORIZON, RISK_GROUPS
 from app.ml.models import BASELINES, BEST_PARAMS, Arima, Drift, LightGBM, LightGBMRank, select_arima_order
 
@@ -107,7 +108,7 @@ def arima_section(panel, data: pd.DataFrame, test: list, preds: pd.DataFrame) ->
 
 
 def build_report(panel, data: pd.DataFrame, *, do_tune: bool = False, arima: bool = False, explore: bool = True,
-                 log=lambda m: None) -> dict:
+                 log=lambda m: None, dp=None) -> dict:
     valid, test = split_origins(data)
     params, tuning = (tune(data, valid) if do_tune else (dict(BEST_PARAMS), None))
     log(f"parametreler: {params}")
@@ -162,6 +163,9 @@ def build_report(panel, data: pd.DataFrame, *, do_tune: bool = False, arima: boo
         "arima": None, "exploration": None,
     }
     log("ana sonuçlar bitti")
+    # ufka göre (1..21 gün) drift aralığı: her işlem günü başlangıç, test dönemi aynı (app/ml/horizons.py)
+    report["horizons"] = H.evaluate(dp if dp is not None else H.DriftPanel(panel), TEST[0], TEST[1])
+    log("ufka göre değerlendirme bitti")
 
     if explore:
         rank = LightGBMRank(**params)

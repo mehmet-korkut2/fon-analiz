@@ -46,6 +46,7 @@ class Panel:
     raw_filled: pd.DataFrame  # temizlenmemiş fiyatlar, ileri doldurulmuş (t gününün kendi fiyatı için)
     meta: pd.DataFrame  # index fon: category (kategorik), risk_level
     mm_codes: list[str]
+    raw_seen: pd.DataFrame | None = None  # o gün ham fiyat var mı (temizlikten bağımsız; app/ml/horizons.py)
 
 
 def make_panel(prices: pd.DataFrame, meta: pd.DataFrame, raw: pd.DataFrame | None = None) -> Panel:
@@ -55,7 +56,7 @@ def make_panel(prices: pd.DataFrame, meta: pd.DataFrame, raw: pd.DataFrame | Non
     prices = prices.sort_index()
     raw = prices if raw is None else raw.reindex(index=prices.index, columns=prices.columns)
     mm = [c for c in meta.index[meta["category"] == RISK_FREE_CATEGORY] if c in prices.columns]
-    return Panel(prices, prices.ffill(), raw.ffill(), meta, mm)
+    return Panel(prices, prices.ffill(), raw.ffill(), meta, mm, raw.notna() | prices.notna())
 
 
 def load_panel(db: Session) -> Panel:
