@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
 from app.models import Fund, FundMetrics, Price
-from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, MetricsOut, PricePoint, TechnicalOut
+from app.schemas import CategoryOut, FundDetail, FundOut, FundPage, FundRealOut, MetricsOut, PricePoint, RealPeriodOut, TechnicalOut
+from app.services import inflation
 from app.services.fund_status import STATUS_ACTIVE, is_tradable
 from app.services.metrics import MIN_VOL_FOR_SHARPE
 from app.services.metrics_job import STALE_AFTER_DAYS
@@ -23,13 +24,14 @@ SAMPLE_FUNDS = [
     FundOut(code="CCC", name="Örnek Altın Fonu", category="Kıymetli Madenler", risk_level=5, price=0.8765),
 ]
 
-SortField = Literal["code", "name", "ret_1m", "ret_3m", "ret_6m", "ret_1y", "ret_ytd", "ret_3y", "volatility_1y", "sharpe_1y", "max_drawdown_1y", "risk_level", "total_value", "investor_count"]
+SortField = Literal["code", "name", "ret_1m", "ret_3m", "ret_6m", "ret_1y", "ret_ytd", "ret_3y", "volatility_1y", "sharpe_1y", "max_drawdown_1y", "risk_level", "total_value", "investor_count", "real_ret_1y"]
 SORT_COLUMNS = {
     "code": Fund.code, "name": Fund.name, "risk_level": Fund.risk_level,
     "total_value": Fund.total_value, "investor_count": Fund.investor_count,
     "ret_1m": FundMetrics.ret_1m, "ret_3m": FundMetrics.ret_3m, "ret_6m": FundMetrics.ret_6m,
     "ret_1y": FundMetrics.ret_1y, "ret_ytd": FundMetrics.ret_ytd, "ret_3y": FundMetrics.ret_3y, "volatility_1y": FundMetrics.volatility_1y,
     "sharpe_1y": FundMetrics.sharpe_1y, "max_drawdown_1y": FundMetrics.max_drawdown_1y,
+    "real_ret_1y": FundMetrics.real_ret_1y,
 }
 
 
@@ -81,6 +83,7 @@ def list_funds(
     include_inactive: bool = False,
     include_stale: bool = Query(False, description="Verisi güncellenmeyen fonları da getir"),
     include_closed: bool = Query(False, description="SPK kararıyla işleme kapatılan fonları da getir"),
+    beats_inflation: bool = Query(False, description="Yalnızca son 1 yılda enflasyonu yenen fonlar (reel getiri > 0)"),
     db: Session = Depends(get_db),
 ):
     if db.scalar(select(func.count()).select_from(Fund)) == 0:
@@ -107,6 +110,8 @@ def list_funds(
         stmt = stmt.where(Fund.risk_level >= risk_min)
     if risk_max:
         stmt = stmt.where(Fund.risk_level <= risk_max)
+    if beats_inflation:
+        stmt = stmt.where(FundMetrics.real_ret_1y > 0)
 
     total = db.scalar(select(func.count()).select_from(stmt.subquery()))
     col = SORT_COLUMNS[sort]
@@ -202,3 +207,18 @@ def get_technical(
         select(Price.date, Price.price).where(Price.fund_code == code, Price.date >= load_from).order_by(Price.date)
     ).all()
     return technical([(d, p) for d, p in rows], since)
+
+
+@router.get("/{code}/real", response_model=FundRealOut)
+def get_real_returns(code: str, db: Session = Depends(get_db)):
+    """Enflasyona göre reel getiri: 1, 3, 6, 12, 36 ay; dönem sonu açıklanmış son TÜFE ayının son günü."""
+    code = code.upper()
+    if db.get(Fund, code) is None:
+        raise HTTPException(404, f"{code} kodlu fon bulunamadı.")
+    r = inflation.fund_real(db, code)
+    if not r["available"]:
+        return FundRealOut(code=code, available=False, message=r["message"])
+    periods = [RealPeriodOut(months=p.months, label=p.label, start=p.start, end=p.end, nominal=p.nominal,
+                             inflation=p.inflation, real=p.real, beat=p.beat) for p in r["periods"]]
+    return FundRealOut(code=code, available=True, last_month=r["last_month"], end=r["end"], source_note=r["source_note"],
+                       base_year=r["base_year"], periods=periods)

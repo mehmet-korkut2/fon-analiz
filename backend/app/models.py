@@ -131,6 +131,10 @@ class FundMetrics(Base):
     sharpe_1y: Mapped[float | None] = mapped_column(Float, index=True)
     max_drawdown_1y: Mapped[float | None] = mapped_column(Float)  # negatif sayı, ör. -0.12
     data_points: Mapped[int] = mapped_column(Integer)  # son 1 yıldaki fiyat sayısı
+    # Enflasyona göre 1 yıllık reel getiri (app/services/inflation.py): dönem sonu açıklanmış son TÜFE ayının son
+    # günü (real_as_of); TÜFE verisi yoksa ya da fonun o günlerde fiyatı yoksa boş.
+    real_ret_1y: Mapped[float | None] = mapped_column(Float)
+    real_as_of: Mapped[date | None] = mapped_column(Date)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
     fund: Mapped[Fund] = relationship(back_populates="metrics")
@@ -339,6 +343,18 @@ class SanalDeger(Base):
     holdings: Mapped[float] = mapped_column(Float)
     total: Mapped[float] = mapped_column(Float)
     benchmark: Mapped[float | None] = mapped_column(Float)  # aynı para para piyasası medyanında olsaydı
+
+
+class CpiMonth(Base):
+    """Aylık TÜFE genel endeksi (TÜİK; TCMB EVDS web servisinden, app/services/inflation.py). Ay, ayın ilk günüyle
+    tutulur. Kaynak koşulu: kaynak gösterilerek kullanılabilir ve yayımlanabilir (rapor 2.9 ve 3.8)."""
+
+    __tablename__ = "cpi_monthly"
+
+    month: Mapped[date] = mapped_column(Date, primary_key=True)
+    value: Mapped[float] = mapped_column(Float)
+    series_code: Mapped[str] = mapped_column(String(40))  # TP.TUKFIY2025.GENEL
+    fetched_at: Mapped[datetime] = mapped_column(DateTime)
 
 
 class FxSnapshot(Base):

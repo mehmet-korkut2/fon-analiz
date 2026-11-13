@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # Boş bırakılırsa para piyasası fonlarının 1 yıllık medyan getirisi kullanılır.
     risk_free_rate: float | None = None
 
+    # TCMB EVDS web servisi (TÜFE için; app/services/inflation.py). Anahtar yalnızca .env'de durur, git'e girmez,
+    # hiçbir yerde yazdırılmaz ya da loglanmaz. Boşsa reel getiri bölümü "enflasyon verisi yok" der.
+    evds_api_key: str | None = None
+
     # Kullanıcı oturumu (app/services/auth.py). Uygulama http://localhost'ta çalıştığı için Secure kapalı;
     # HTTPS ile yayına alınırsa COOKIE_SECURE=true yapılmalı.
     session_days: int = 14

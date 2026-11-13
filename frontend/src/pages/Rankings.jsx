@@ -8,6 +8,7 @@ import { num, pct, signClass, trDate } from '../format'
 const RETURN_PERIODS = [
   ['ret_1m', '1 ay'], ['ret_3m', '3 ay'], ['ret_6m', '6 ay'],
   ['ret_ytd', 'Yılbaşından bu yana'], ['ret_1y', '1 yıl'], ['ret_3y', '3 yıl'],
+  ['real_ret_1y', '1 yıl reel (enflasyona göre)'],
 ]
 const DEFAULT_PERIOD = 'ret_1y'
 
@@ -47,6 +48,11 @@ function RankingCard({ list, periodLabel }) {
                 <span><strong className="num">{f.code}</strong> <span className="rank-name">{f.name}</span></span>
                 <span className="muted small rank-meta">
                   {f.category ?? 'Kategorisiz'} <RiskBar level={f.risk_level} />
+                  {f.metrics?.real_ret_1y != null && (
+                    <span className="rank-real" title="1 yıllık reel getiri (enflasyona göre)">
+                      reel <span className={signClass(f.metrics.real_ret_1y)}>{pct(f.metrics.real_ret_1y)}</span>
+                    </span>
+                  )}
                 </span>
               </Link>
               <span className="rank-value num">{meta.fmt(f.value)}</span>
@@ -63,6 +69,7 @@ export default function Rankings() {
   const [params, setParams] = useSearchParams()
   const category = params.get('kategori') || ''
   const period = RETURN_PERIODS.some(([k]) => k === params.get('donem')) ? params.get('donem') : DEFAULT_PERIOD
+  const beats = params.get('enflasyon') === '1'
   const [categories, setCategories] = useState([])
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -74,12 +81,12 @@ export default function Rankings() {
   useEffect(() => {
     let ignore = false
     setLoading(true)
-    getRankings({ category: category || undefined, period, limit: 10 })
+    getRankings({ category: category || undefined, period, limit: 10, beats_inflation: beats || undefined })
       .then((d) => { if (!ignore) { setData(d); setError(null) } })
       .catch(() => { if (!ignore) setError('Sıralamalar yüklenemedi. Backend çalışıyor mu?') })
       .finally(() => { if (!ignore) setLoading(false) })
     return () => { ignore = true }
-  }, [category, period])
+  }, [category, period, beats])
 
   const setParam = (name, value, fallback) => setParams((p) => {
     const next = new URLSearchParams(p)
@@ -114,6 +121,10 @@ export default function Rankings() {
           <select value={period} onChange={(e) => setParam('donem', e.target.value, DEFAULT_PERIOD)}>
             {RETURN_PERIODS.map(([k, label]) => <option key={k} value={k}>Getiri: {label}</option>)}
           </select>
+        </label>
+        <label className="check" title="Son 1 yılda reel getirisi pozitif olan fonlar (açıklanmış son TÜFE ayına göre)">
+          <input type="checkbox" checked={beats} onChange={(e) => setParam('enflasyon', e.target.checked ? '1' : '')} />
+          Yalnızca enflasyonu yenenler (1 yıl)
         </label>
       </div>
 

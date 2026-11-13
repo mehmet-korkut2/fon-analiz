@@ -49,6 +49,7 @@ const FLOWS = [
     ['Başlık', `__t.q('h1')?.textContent.includes('Fonları karşılaştır')`],
     ['Kategori kutuları', `__t.all('.cat-tile').length >= 5 && __t.all('.cat-tile').length + ' kategori'`],
     ['Öne çıkan fonlar (8)', `__t.all('.featured-table tbody tr').length === 8`],
+    ['Enflasyonu yenen fonlar özeti', `(async () => { await __t.until(() => __t.q('.infl-big')); return __t.all('.infl-cats li').length >= 5 && __t.q('.infl-headline').textContent.slice(0, 70) })()`],
     ['Risk anketi kartı', `!!__t.byText('.home-cta a', 'anket') || !!__t.byText('.home-cta a', 'Önerileri')`],
     ['Arama: "altın" → fon listesi', `(async () => { __t.type('#home-q', 'altın'); __t.click('.home-search button');
       await __t.until(() => location.pathname === '/fonlar' && __t.all('.funds-table tbody tr td.fund-name').length);
@@ -57,6 +58,12 @@ const FLOWS = [
   ['Fon listesi', '/fonlar', [
     ['25 satır', `__t.all('.funds-table tbody tr').length === 25`],
     ['Her satırda yıldız', `__t.all('.funds-table tbody .fav-btn').length === 25`],
+    ['1 yıl reel sütunu', `!!__t.byText('.funds-table th', '1 yıl reel')`],
+    ['Enflasyonu yenenler filtresi', `(async () => { const c = __t.byText('label.check', 'enflasyonu yenenler').querySelector('input'); c.click();
+      await __t.until(() => __t.all('.funds-table tbody tr').length > 0 && !__t.q('.table-wrap.is-loading'));
+      const i = [...__t.all('.funds-table thead th')].findIndex((th) => th.textContent.includes('1 yıl reel'));
+      const vals = __t.all('.funds-table tbody tr').map((tr) => tr.children[i]?.textContent.trim());
+      c.click(); return vals.length > 0 && vals.every((v) => v.startsWith('+')) && vals.length + ' fon, hepsi pozitif' })()`],
     ['Büyüklüğe göre sıralama', `(async () => { __t.click('.funds-table th button', 'Büyüklük');
       await __t.until(() => __t.q('.funds-table tbody tr td:nth-last-child(2)')?.textContent.includes('milyar'));
       return __t.q('.funds-table tbody tr td:nth-last-child(2)').textContent })()`],
@@ -69,6 +76,8 @@ const FLOWS = [
     ['Trend ve 52 haftalık aralık', `!!__t.q('.tech-trend') && !!__t.q('.range-dot') && __t.q('.tech-trend').textContent`],
     ['Dönem 3Y', `(async () => { __t.click('.seg button', '3Y'); await __t.until(() => location.search.includes('donem=3Y')); return true })()`],
     ['Tahmin kartı ve hesaplayıcı', `!!__t.byText('h2', 'Geçmiş eğilime dayalı tahmin') && !!__t.q('.calc input')`],
+    ['Reel getiri tablosu (5 dönem, etiket)', `(async () => { await __t.until(() => __t.all('.real-table tbody tr').length === 5);
+      return __t.all('.real-table .beat-yes, .real-table .beat-no').length >= 4 && __t.q('.real-panel p').textContent.slice(0, 40) })()`],
     ['Tahmin karnesi: grafik, 21 satır, kaynak etiketi', `(async () => { await __t.until(() => __t.all('.score-table tbody tr').length === 21);
       return !!__t.q('.scorecard .recharts-line') && !!__t.q('.scorecard .source-badge') && __t.all('.score-summary tbody tr').length === 5 })()`],
     ['Tahmin karnesi: canlı güne geç (bekleniyor)', `(async () => { const s = __t.q('.score-pick select'); const live = [...s.options].find((o) => o.value.endsWith('|canli'));
@@ -85,6 +94,11 @@ const FLOWS = [
   ]],
   ['Sıralamalar', '/siralamalar', [
     ['3 liste × 10 fon', `__t.all('.rank-card').length === 3 && __t.all('.rank-card').every((c) => c.querySelectorAll('li').length === 10)`],
+    ['Enflasyonu yenenler filtresi', `(async () => { __t.byText('label.check', 'enflasyonu yenenler').querySelector('input').click();
+      // liste yenilenene kadar bekle: bütün reel değerler pozitif olmalı (eski liste bir an görünebilir)
+      await __t.until(() => location.search.includes('enflasyon=1') && __t.all('.rank-real').length > 0
+        && __t.all('.rank-real span').every((s) => s.textContent.trim().startsWith('+')));
+      return __t.all('.rank-real').length + ' fonda reel getiri pozitif' })()`],
   ]],
   ['Risk anketi', '/risk-anketi', [
     ['9 soruyu yanıtla', `(async () => {
@@ -128,6 +142,7 @@ const FLOWS = [
   ]],
   ['Sanal portföy', '/sanal-portfoy', [
     ['Uyarı metni', `__t.q('.sim-warning')?.textContent.includes('Bu hayali parayla yapılan bir simülasyondur')`],
+    ['Alım gücü kartı', `(async () => { await __t.until(() => __t.byText('.card', 'Alım gücü')); return __t.byText('.card', 'Alım gücü').textContent.slice(0, 90) })()`],
     ['Fon seç (TTE)', `(async () => { __t.type('#buy-fund', 'TTE'); await __t.until(() => __t.byText('.picker-results button', 'TTE'));
       __t.byText('.picker-results button', 'TTE').click(); await __t.until(() => __t.q('.sim-valor')); return __t.q('.sim-valor').textContent.slice(0, 80) })()`],
     ['Alış emri ver', `(async () => { __t.type('#buy-amount', '5.000'); __t.click('.sim-form button[type=submit]');
@@ -139,6 +154,7 @@ const FLOWS = [
   ]],
   ['Ya o zaman alsaydım?', '/sanal-portfoy?mod=geriye&fon=TTE,AFT', [
     ['2 fonun sonucu', `__t.all('.whatif-table tbody tr').length === 2`],
+    ['Alım gücü sütunu', `!!__t.byText('.whatif-table th', 'Alım gücü') && __t.all('.whatif-table td[data-label="Alım gücü"]').every((td) => td.textContent.includes('TL'))`],
     ['Grafik', `__t.all('.recharts-line').length >= 3`],
     ['4 yıl önce: yıllıklandırılmış getiri', `(async () => { __t.type('#wi-date', '2022-10-03');
       await __t.until(() => __t.q('#wi-date').value === '2022-10-03'); __t.click('.sim-form button[type=submit]');

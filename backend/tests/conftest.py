@@ -13,6 +13,7 @@ _TMP = Path(tempfile.mkdtemp(prefix="fon_test_"))
 os.environ["DATABASE_URL"] = f"sqlite:///{(_TMP / 'test.db').as_posix()}"
 os.environ["SCHEDULER_ENABLED"] = "false"
 os.environ["CATCH_UP_ON_STARTUP"] = "false"
+os.environ["EVDS_API_KEY"] = ""  # testler gerçek EVDS anahtarını kullanmaz, internete çıkmaz
 
 
 def pytest_sessionstart(session):

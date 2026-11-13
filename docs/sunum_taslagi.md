@@ -161,8 +161,8 @@ Süre hedefi: 12–15 dakika anlatım + 4 dakikalık canlı demo (ya da `docs/de
 
 ## 13. Test ve sunum hazırlığı
 
-- 201 otomatik test (metrikler, API, öneri, ML sızıntısı, tahmin karnesi, kullanıcı girişi ve güvenlik, favoriler, sanal portföy, yedek)
-- Uçtan uca test: açık/koyu, masaüstü/390 px; internetle 336/336, internetsiz 340/340
+- 223 otomatik test (metrikler, API, öneri, ML sızıntısı, tahmin karnesi, kullanıcı girişi ve güvenlik, favoriler, enflasyon ve reel getiri, sanal portföy, yedek)
+- Uçtan uca test: açık/koyu, masaüstü/390 px; internetle 364/364, internetsiz 368/368
 - Tek tıkla başlatma, internetsiz çalışma (son bilinen kurlar), yedek ve geri yükleme
 - Kullanıcı testi: 6 görev, 5 soruluk anket [DOLDUR: katılımcı sayısı ve sonuç]
 
@@ -177,7 +177,7 @@ Süre hedefi: 12–15 dakika anlatım + 4 dakikalık canlı demo (ya da `docs/de
 - Katkılar: çalışan veri hattı, veri kalitesi yönetimi, takvim etkisinin tespiti, dürüst test
 - Bulgu: kısa vadeli fon getirisi büyük ölçüde öngörülemez; basit yöntem en iyisi
 - Kapsam dışı: takas ve haber analizi, RSI/MACD, yönetim ücreti, yayına alma
-- Gelecek: BIST 100/enflasyon kıyası, geçmişin biriktirilmesi, başka faiz rejimi
+- Gelecek: BIST 100 ve mevduat kıyası, geçmişin biriktirilmesi, başka faiz rejimi
 
 **Görsel:** Yok; kısa bir özet cümlesi ve demo'ya geçiş.
 

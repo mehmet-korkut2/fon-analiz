@@ -11,3 +11,6 @@ export const num = (v, d = 2) => (v == null ? '–' : v.toLocaleString('tr-TR', 
 export const signClass = (v) => (v == null ? '' : v > 0 ? 'up' : v < 0 ? 'down' : '')
 
 export const trDate = (iso, opts) => new Date(iso).toLocaleDateString('tr-TR', opts)
+
+// Ay adı: "Ekim 2026" (TÜFE ayları)
+export const monthLabel = (iso) => trDate(iso, { month: 'long', year: 'numeric' })

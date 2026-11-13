@@ -8,6 +8,7 @@ Backend klasöründe, `.venv` aktifken çalıştır.
 | `python -m scripts.tefas_yukle --limit 10` | İlk 10 fonun listesini ve son 5 yıllık fiyatlarını veritabanına yükler |
 | `python -m scripts.tefas_yukle --fon TTE --ay 60` | Tek fonun son 5 yıllık fiyatlarını yükler |
 | `python -m scripts.yedekle [--not ad] [--sikistirma]` | Veritabanının tarihli, gzip ile sıkıştırılmış yedeğini (`.db.gz`) proje kökündeki `backups/` klasörüne alır (sanal portföy, tahminler ve son kurlar dahil); süreyi ve boyutu yazar |
+| `python -m scripts.tufe_yukle [--hepsi]` | TÜFE'yi TCMB EVDS'ten yükler (anahtar `.env`'de `EVDS_API_KEY`, yazdırılmaz) ve reel getiriyi hesaplar; gece güncellemesi yeni ayları kendisi ekler |
 | `python -m scripts.hesaplar` | Hesapları listeler: yalnızca e-posta, ad, oluşturma tarihi (şifre bilgisi asla) |
 | `python -m scripts.sifre_sifirla --eposta <adres>` | Şifresini unutan kullanıcının şifresini sıfırlar: yeni şifre gizli sorulur (getpass), kural uygulanır, bütün oturumları kapanır |
 | `python -m scripts.geri_yukle [--liste] [dosya]` | En son (ya da seçilen) yedeği geri yükler; önce mevcut veritabanının güvenlik kopyasını alır. Backend'i önce durdurun |

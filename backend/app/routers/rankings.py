@@ -12,7 +12,7 @@ from app.schemas import RankedFund, RankingList, RankingsOut
 
 router = APIRouter(prefix="/rankings", tags=["rankings"])
 
-ReturnMetric = Literal["ret_1m", "ret_3m", "ret_6m", "ret_ytd", "ret_1y", "ret_3y"]
+ReturnMetric = Literal["ret_1m", "ret_3m", "ret_6m", "ret_ytd", "ret_1y", "ret_3y", "real_ret_1y"]
 
 
 @router.get("", response_model=RankingsOut)
@@ -20,6 +20,7 @@ def rankings(
     category: str | None = None,
     period: ReturnMetric = Query("ret_1y", description="Getiri sıralamasının dönemi"),
     limit: int = Query(10, ge=1, le=50),
+    beats_inflation: bool = Query(False, description="Yalnızca son 1 yılda enflasyonu yenen fonlar"),
     db: Session = Depends(get_db),
 ):
     """En iyi getiri, en düşük volatilite ve en iyi Sharpe listeleri.
@@ -35,6 +36,8 @@ def rankings(
     )
     if category:
         base = base.where(Fund.category == category)
+    if beats_inflation:
+        base = base.where(FundMetrics.real_ret_1y > 0)
 
     def top(key: str, metric: str, order: str) -> RankingList:
         col = getattr(FundMetrics, metric)

@@ -25,6 +25,8 @@ export const getBacktest = (profile, qualified) => api.get('/recommendations/bac
 // 50/200 günlük ortalama serisi (params prices ile aynı) ve trend / 52 haftalık aralık özeti
 export const getTechnical = (code, params = { months: 12 }) => api.get(`/funds/${code}/technical`, { params }).then((r) => r.data)
 export const getForecast = (code) => api.get(`/funds/${code}/forecast`).then((r) => r.data)
+export const getFundReal = (code) => api.get(`/funds/${code}/real`).then((r) => r.data)
+export const getInflation = () => api.get('/inflation').then((r) => r.data)
 export const getScorecard = (code, params) => api.get(`/funds/${code}/forecast-scorecard`, { params }).then((r) => r.data)
 export const getMlPerformance = () => api.get('/ml/performance').then((r) => r.data)
 export const getFx = (source = 'canli') => api.get('/fx', { params: { source } }).then((r) => r.data)

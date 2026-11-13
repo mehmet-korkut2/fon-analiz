@@ -35,7 +35,7 @@ Bütün oranlar ondalık kesir olarak saklanır (0,25 = %25). Tanımlar (`app/se
 | Dönem getirisi (1, 3, 6 ay, 1 yıl, 3 yıl) | Son fiyat / dönem başındaki (ya da öncesindeki son) fiyat − 1; dönem başında 7 günden eski fiyat varsa hesaplanmaz |
 | Yılbaşından bu yana | Son fiyat / önceki yılın son fiyatı − 1 |
 | Volatilite (1 yıl) | Günlük getirilerin standart sapması × √252 |
-| Sharpe oranı (1 yıl) [20] | (1 yıllık getiri − risksiz getiri) / 1 yıllık volatilite |
+| Sharpe oranı (1 yıl) [23] | (1 yıllık getiri − risksiz getiri) / 1 yıllık volatilite |
 | Maksimum düşüş (1 yıl) | Bir zirveden sonraki en büyük yüzde kayıp |
 
 3 yıllık getiri yıllıklandırılmadan, toplam getiri olarak gösterilir. Metrikler her gece bütün fonlar için yeniden hesaplanıp `fund_metrics` tablosuna yazılır. Bu işlem 1.071 fon için yaklaşık 8,5 saniye sürmektedir. Bu sayede liste sayfası binden fazla fonun metriklerini veritabanından tek sorguyla okuyabilmektedir.
@@ -92,7 +92,7 @@ Sıralamalar sayfasında en yüksek Sharpe oranları gerçek dışı görünüyo
 - **%8 ve %10:** İlk 10'u değiştirmiyor, yalnızca daha fazla fonu dışarıda bırakıyordu.
 - **%5:** Doğal kırılma noktası.
 
-Bu yüzden **1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe oranını hesaplamamaya** karar verdik. %5, SPK/ESMA risk göstergesi yönteminde 3. risk sınıfının üst sınırıdır [21].
+Bu yüzden **1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe oranını hesaplamamaya** karar verdik. %5, SPK/ESMA risk göstergesi yönteminde 3. risk sınıfının üst sınırıdır [24].
 
 - **Etkisi:** 318 fon Sharpe değeri almıyor. Bunların 164'ü serbest, 49'u katılım, 46'sı para piyasası fonu.
 - **Arayüzde:** Bu fonlarda Sharpe yerine "volatilite çok düşük, Sharpe anlamlı değil" notu gösteriliyor.
@@ -126,7 +126,7 @@ Bekleyen emirler her gece güncellemeden sonra, ilgili günün fiyatı geldiğin
 
 Sanal portföy, kaydedilmiş risk profili ve favori fonlar kullanıcıya özeldir; bunlar için hesap gerekir (13.11.2026). Fon listesi, fon detayı, tahmin karnesi, karşılaştırma, sıralamalar, risk anketi, öneriler, model performansı, döviz ve "Ya o zaman alsaydım?" hesaplayıcısı girişsiz kullanılabilir. Uç noktalar: `POST /api/auth/kayit`, `giris`, `cikis`, `sifre`, `DELETE /api/auth/hesap`, `GET /api/auth/ben`; kullanıcıya özel veriler için `GET/POST/DELETE /api/profilim` ve `/api/favoriler` (favori listesi her fon için metrikleri, kapatılmış/eski verili uyarısını, son tahminlerin aralıkta kalma özetini ve kullanıcının sanal portföyündeki pozisyonu da döndürür; Bölüm 4.6). Kod: `app/services/auth.py`, `app/deps.py`, `app/routers/auth.py`, `app/routers/account.py`.
 
-**Şifre saklama.** Şifreler Argon2id ile özetlenir (`argon2-cffi`; zaman maliyeti 3, bellek 64 MiB, paralellik 4, 16 baytlık rastgele tuz; RFC 9106'nın önerdiği düşük bellekli ayar [22]). Bir özet ve bir doğrulama bu bilgisayarda yaklaşık 50 ms sürer. Argon2id'yi bcrypt'e tercih ettik: OWASP'ın şifre saklama rehberinde ilk sırada önerilen algoritmadır ve kullandığımız parametreler rehberdeki en düşük değerlerin üstündedir [23]; bellek zorlamalı olduğu için GPU ile toplu deneme yapmayı pahalılaştırır ve bcrypt'in 72 baytlık şifre sınırı yoktur. Düz şifre hiçbir tabloda ve günlükte bulunmaz; bunu bir test, veritabanının tamamını metne döküp şifreyi arayarak doğrular. Şifre kuralı en az 8, en çok 128 karakterdir. Üst sınır, çok uzun şifrelerle özet hesabını yavaşlatma girişimine karşıdır.
+**Şifre saklama.** Şifreler Argon2id ile özetlenir (`argon2-cffi`; zaman maliyeti 3, bellek 64 MiB, paralellik 4, 16 baytlık rastgele tuz; RFC 9106'nın önerdiği düşük bellekli ayar [25]). Bir özet ve bir doğrulama bu bilgisayarda yaklaşık 50 ms sürer. Argon2id'yi bcrypt'e tercih ettik: OWASP'ın şifre saklama rehberinde ilk sırada önerilen algoritmadır ve kullandığımız parametreler rehberdeki en düşük değerlerin üstündedir [26]; bellek zorlamalı olduğu için GPU ile toplu deneme yapmayı pahalılaştırır ve bcrypt'in 72 baytlık şifre sınırı yoktur. Düz şifre hiçbir tabloda ve günlükte bulunmaz; bunu bir test, veritabanının tamamını metne döküp şifreyi arayarak doğrular. Şifre kuralı en az 8, en çok 128 karakterdir. Üst sınır, çok uzun şifrelerle özet hesabını yavaşlatma girişimine karşıdır.
 
 **Oturum: HttpOnly çerez, JWT değil.** Girişte 256 bitlik rastgele bir belirteç üretilir ve `HttpOnly`, `SameSite=Lax`, `Path=/api` özellikli bir çereze yazılır (14 gün). Veritabanında belirtecin kendisi değil, SHA-256 özeti saklanır; veritabanı ele geçirilse bile oturumlar kullanılamaz. JWT yerine sunucu tarafı oturumu seçmemizin nedenleri:
 
@@ -165,23 +165,61 @@ Girişte her zaman yeni belirteç verilir (oturum sabitlemeye karşı). Şifre d
 
 **Kısıtlar.** E-posta doğrulaması yoktur. Şifre sıfırlama kullanıcının kendisi tarafından yapılamaz; şifresini unutan kullanıcı, uygulamanın çalıştığı bilgisayarda yukarıdaki komutu çalıştırması için bilgisayarın sahibine başvurmalıdır (e-postayla sıfırlama, yayına alınırsa gerekir). İki aşamalı doğrulama yoktur. Kayıt ekranı bir e-postanın kayıtlı olduğunu söyler. Uygulama HTTPS olmadan yerelde çalıştığından çerezin `Secure` bayrağı kapalıdır.
 
-## 3.8 Testler
+## 3.8 Enflasyona göre reel getiri
 
-Backend'de toplam 201 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
+Yüksek enflasyon ortamında bir fonun nominal getirisi tek başına yanıltıcıdır: fiyatı %30 artan bir fon, aynı dönemde fiyatlar genel düzeyi %30 arttıysa alım gücünü korumuştur, artırmamıştır. Bu nedenle her fon için enflasyona göre reel getiriyi hesapladık (13.11.2026). Kod: `app/services/inflation.py`.
+
+**Veri ve seri.** TÜFE'yi TCMB EVDS web servisinden aylık olarak alıyoruz (kullanım koşulları Bölüm 2.9). TÜİK, Ocak 2026'dan itibaren TÜFE'nin baz yılını 2003=100'den 2025=100'e geçirdi [27]. Bu yüzden 2003=100 serisi EVDS'te arşive alınmış; yeni seri kodunu EVDS'in meta veri servisinden doğruladık: `TP.TUKFIY2025.GENEL` (veri grubu `bie_tukfiy2025`, "Genel Endeks", 01.2005–10.2026, kaynak TÜİK). Yeni seri 2005'e kadar geriye zincirlenmiş olarak yayımlandığı için eski seriyle ayrıca zincirleme yapmamız gerekmedi; fiyat verimiz 2021'den başlamaktadır. Yeni serinin geçmişinin tutarlılığını, 2003=100 tabanlı ve hâlâ güncellenen `TP.GENENDEKS.T1` serisiyle karşılaştırarak denetledik: 262 ayda iki serinin aylık değişimleri arasındaki en büyük fark 0,0066 puan, ortalama fark 0,0001 puandır (yuvarlama); Ekim 2025–Ekim 2026 enflasyonu iki seride de %29,77'dir. Reel getiri iki ayın oranını kullandığı için baz yılı sonucu etkilemez.
+
+**Açıklanma ve güncelleme.** TÜİK TÜFE'yi genellikle sonraki ayın 3'ünde saat 10:00'da açıklar; hafta sonu ve tatillerde tarih kayar (2026'da Aralık verisi 5 Ocak'ta, Nisan verisi 4 Mayıs'ta açıklandı). Bir ayın verisi bu nedenle ay bittikten 3–5 gün sonra gelir; herhangi bir günde elimizdeki son TÜFE ayı en az 3, en çok yaklaşık 35 gün geridedir. Gece güncellemesi, beklenen ay veritabanında yoksa EVDS'ten son 12 ayı yeniden alır (olası düzeltmeler için) ve metriklerden önce çalışır. API anahtarı tanımlı değilse, internet yoksa ya da EVDS hata verirse hiçbir şey silinmez, son bilinen veriyle devam edilir; hiç veri yoksa arayüz "Enflasyon verisi yok" der. İlk yükleme `python -m scripts.tufe_yukle` ile yapılır (262 ay).
+
+**Hesap ve dönem hizalaması.** Reel getiri = (1 + nominal getiri) / (1 + enflasyon) − 1. Yalnızca 1, 3, 6, 12 ve 36 aylık dönemlerde hesaplanır; aydan kısa dönemler için aylık TÜFE anlamlı değildir. Dönem sonu, açıklanmış son TÜFE ayının son günüdür (13.11.2026'da Ekim 2026 → 31.10.2026); dönem başı k ay önceki ayın son günüdür. Fon fiyatı o gün ya da öncesindeki son işlem gününün fiyatıdır (hafta sonuna denk gelen ay sonunda cuma fiyatı); en çok 7 gün eski olabilir. Enflasyon = TÜFE(son ay) / TÜFE(k ay önceki ay) − 1. Hangi aya kadar hesaplandığı ekranda yazar. Bu hizalama nedeniyle reel getiri tablosundaki nominal getiri, bugüne kadarki getiriden farklı olabilir (ör. TTE'nin bugüne kadarki 1 yıllık getirisi +%2,8, 31.10.2026'ya hizalı getirisi −%2,7). TÜFE ayın ortalama fiyat düzeyidir, fon fiyatı ise ay sonu değeridir; bu yaygın bir yaklaşımdır ve aylık dönemlerde küçük bir zamanlama farkı yaratır. Eksik TÜFE ayında ya da fonun dönem başında veya sonunda fiyatı yoksa sonuç boş kalır; tahmin edilmez.
+
+**Platformda.** Fon detayında her dönem için nominal getiri, enflasyon ve reel getiri yan yana ve "✓ Enflasyonu yendi / ✗ Yenemedi" etiketiyle gösterilir. Fon listesinde "1 yıl reel" sütunu (sıralanabilir) ve "Yalnızca enflasyonu yenenler (1 yıl)" filtresi, sıralamalarda her fonun reel getirisi, "1 yıl reel" dönemi ve aynı filtre vardır. Sanal portföyde ve "Ya o zaman alsaydım?"da paranın alım gücü gösterilir: bugünkü değer / (1 + başlangıç ayından son TÜFE ayına enflasyon). Başlangıç ayının TÜFE'si henüz açıklanmadıysa alım gücü "henüz açıklanmadı" notuyla boş kalır.
+
+**Ana sayfa özeti ve hayatta kalma yanılgısı.** Ana sayfada son 12 ayda enflasyonu yenen fonların payı kategoriye göre gösterilir. Yalnızca bugün aktif olan fonları saymak, dönem içinde kapanan ya da SPK kararıyla işleme kapatılan (çoğu sert değer kaybetmiş) fonları dışarıda bırakıp sonucu iyimser gösterebilir. Bu yüzden dönem başında fiyatı olan her fonu saydık; dönem içinde fiyatı kesilen fonun dönem sonu değeri son fiyatıdır. Karşılaştırma için yalnızca bugün aktif olanlarla hesaplanan pay da ekranda yazar.
+
+**Tablo 3.2** Son 12 ayda (31.10.2025–31.10.2026, TÜFE %29,77) enflasyonu yenen fonların payı
+
+| Kategori | Tüm fonlar (dönem başında fiyatı olan) | Yalnızca bugün aktif olanlar |
+|---|---|---|
+| **Tümü** | **%36,6 (348 / 950)** | %37,5 (319 / 851) |
+| Serbest | %32,6 (356) | %34,8 (302) |
+| Hisse Senedi | %8,3 (168) | %6,0 (151) |
+| Değişken | %43,7 (135) | %42,6 (129) |
+| Fon Sepeti | %34,2 (79) | %33,8 (77) |
+| Katılım | %57,9 (76) | %59,7 (72) |
+| Borçlanma Araçları | %70,0 (60) | %69,1 (55) |
+| Para Piyasası | %91,3 (46) | %100,0 (39) |
+| Kıymetli Madenler | %0,0 (23) | %0,0 (19) |
+| Karma | %57,1 (7) | %57,1 (7) |
+
+İki evren arasındaki 99 fonun 6'sının fiyatı dönem içinde kesilmiş, 93'ü SPK kararıyla işleme kapatılmış ama fiyatı yayımlanmaya devam etmiştir. Genel fark 0,9 puandır; kategori bazında fark büyüyebilir: para piyasası fonlarında yalnızca aktif fonlar sayılsaydı oran %100 görünürdü, kapatılanlarla birlikte %91,3'tür.
+
+**Öneri sistemi.** Öneri puanlaması değiştirilmedi; reel getiri yalnızca gerekçe metnine eklendi ("… sonuna kadar son 1 yılda enflasyonu yendi: reel getirisi …"). Puanlamayı değiştirmek, geriye dönük testteki seçimleri (Bölüm 5) bugünkü sonuçlarla kıyaslanamaz hâle getirirdi. Bir test, TÜFE eklenip reel getiri hesaplandıktan sonra önerilerin, örnek portföyün ve geriye dönük test sonuçlarının birebir aynı kaldığını doğrular.
+
+**Testler.** `tests/test_inflation.py` (21 test): EVDS yanıtının ayrıştırılması ("2005-1" gibi sıfırsız aylar, boş değerler), anahtarın yalnızca başlıkta gönderilmesi ve hiçbir hata mesajında, sonuçta ya da günlükte yer almaması, anahtar yokken, internet yokken ve EVDS hata verirken verinin korunması, beklenen ay hesabı (ayın 3'ü ve yıl geçişi), formül, dönem hizalaması (hafta sonuna denk gelen ay sonu, TÜFE'den sonraki fiyatların kullanılmaması), eksik ay ve eksik fiyat, alım gücü, liste ve sıralama filtreleri, hayatta kalma yanılgısına karşı özet, özet önbelleği. Ayrıca öneri değişmezliği testi (`test_recommender.py`). Uçtan uca teste ana sayfa özeti, liste ve sıralama filtreleri, fon detayındaki tablo ve alım gücü adımları eklendi.
+
+**Kısıtlar.** TÜFE ayın ortalama fiyat düzeyidir, fon fiyatı ay sonu değeridir. Son TÜFE ayı en çok yaklaşık 35 gün geride kaldığı için reel getiri bugüne kadarki getiriyle aynı dönemi kapsamaz. Vergi ve komisyon hesaba katılmaz. Enflasyon, bireyin kendi harcama sepetini değil, TÜİK'in genel sepetini yansıtır.
+
+## 3.9 Testler
+
+Backend'de toplam 223 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
 
 - **Metrik tanımları:** Bilinen sentetik serilerle.
 - **API davranışları:** Süzme, sıralama, sayfalama, Türkçe arama, eski verili ve kapatılmış fonların dışlanması.
 - **Diğer kurallar:** Veri kalitesi ve SPK işaretleme; teknik göstergeler; fon büyüklüğünün öneriye katılmaması.
 - **Veri toplama ve çalışma ortamı:** TEFAS ve döviz yanıtlarının ayrıştırılması, gece güncellemesi, internet yokken güncellemenin atlanması ve son bilinen kurlar, yedek ve geri yükleme.
 - **Sanal portföy:** Emir günü ve son işlem saati, valör ve hafta sonu, ileri fiyat, tatil gününde sonraki fiyat, valör bilgisi olmayan fon, nakit yetersizliği (bekleyen alışlar dahil), kısmi ve tam satış ile ortalama maliyet, bekleyen satıştaki payların yeniden satılamaması, iptal, sıfırlama, kapatılmış ve eski verili fon, günlük değer ve para piyasası kıyası, "Ya o zaman alsaydım?" hesabı ve yıllıklandırma sınırı (18 test).
+- **Enflasyon ve reel getiri:** Bölüm 3.8 (21 test ve öneri değişmezliği testi).
 - **Kullanıcı girişi ve güvenlik:** Bölüm 3.7 (33 test; yerel şifre sıfırlama ve hesap listesi komutları 9 test).
 - **Diğer bölümler:** Öneri sistemi ve makine öğrenmesi modülü (Bölüm 5 ve 6).
 
 Her değişiklikten sonra bütün testler çalıştırıldı.
 
-## 3.9 Kısıtlar
+## 3.10 Kısıtlar
 
-- Fonların BIST 100, enflasyon ve mevduat ile kıyası ve beta katsayısı hesaplanmadı; bu kıyaslama kapsam dışı bırakıldı ve gelecek çalışmalar arasındadır (Bölüm 8.6).
+- Fonların BIST 100 ve mevduat ile kıyası ve beta katsayısı hesaplanmadı (enflasyona göre reel getiri Bölüm 3.8'de); bu kıyaslama kapsam dışı bırakıldı ve gelecek çalışmalar arasındadır (Bölüm 8.6).
 - Şema değişiklikleri bir migration aracıyla değil, açılışta eksik sütunları ekleyen bir yardımcıyla (`init_db`) yönetilmektedir; Alembic'e geçiş gelecek çalışmalara bırakıldı.
 - Sanal portföy bilgisayardaki veritabanında saklanır (kullanıcı başına bir portföy); komisyon, stopaj ve TEFAS'ın tutar/adet sınırları uygulanmaz. Valör günü hesabında yalnızca hafta sonları atlanır; tatile denk gelen hedef günde sonraki ilk işlem gününün fiyatı kullanılır.
 - Metrikler basit getiriler üzerinden hesaplanmaktadır; vergi, giriş-çıkış komisyonu gibi maliyetler hesaba katılmamaktadır (fon yönetim ücreti fiyata yansımıştır).

@@ -15,6 +15,7 @@ const COLUMNS = [
   ['ret_1m', '1 ay', 'Son 1 aydaki getiri'],
   ['ret_3m', '3 ay', 'Son 3 aydaki getiri'],
   ['ret_1y', '1 yıl', 'Son 1 yıldaki getiri'],
+  ['real_ret_1y', '1 yıl reel', 'Enflasyona göre 1 yıllık reel getiri: (1 + getiri) / (1 + TÜFE artışı) − 1. Dönem sonu açıklanmış son TÜFE ayının son günü (TÜİK, TCMB EVDS).'],
   ['ret_ytd', 'YBB', 'Yılbaşından bu yana getiri'],
   ['ret_3y', '3 yıl', 'Son 3 yıldaki toplam getiri (yıllık değil)'],
   ['volatility_1y', 'Volatilite', 'Fiyatın ne kadar dalgalandığı (yıllık). Yüksekse risk yüksektir.'],
@@ -27,7 +28,7 @@ const INFO_COLUMNS = [
   ['investor_count', 'Yatırımcı', 'Fondaki yatırımcı sayısı (TEFAS, güncel)', count],
 ]
 
-const isReturn = (k) => k.startsWith('ret_')
+const isReturn = (k) => k.startsWith('ret_') || k === 'real_ret_1y'
 
 export default function Funds() {
   const [searchParams] = useSearchParams()
@@ -36,6 +37,7 @@ export default function Funds() {
   const [category, setCategory] = useState(searchParams.get('kategori') || '')
   const [risk, setRisk] = useState('')
   const [showStale, setShowStale] = useState(false)
+  const [beats, setBeats] = useState(searchParams.get('enflasyon') === '1')
   const [sort, setSort] = useState({ key: 'ret_1y', order: 'desc' })
   const [page, setPage] = useState(1)
   const [data, setData] = useState(null)
@@ -44,7 +46,7 @@ export default function Funds() {
   const q = useDebounced(query)
 
   useEffect(() => { getCategories().then(setCategories).catch(() => {}) }, [])
-  useEffect(() => { setPage(1) }, [q, category, risk, sort, showStale])
+  useEffect(() => { setPage(1) }, [q, category, risk, sort, showStale, beats])
 
   useEffect(() => {
     const [riskMin, riskMax] = risk ? risk.split('-').map(Number) : [undefined, undefined]
@@ -53,12 +55,13 @@ export default function Funds() {
       q: q || undefined, category: category || undefined,
       risk_min: riskMin, risk_max: riskMax,
       include_stale: showStale || undefined, include_closed: showStale || undefined,
+      beats_inflation: beats || undefined,
       sort: sort.key, order: sort.order, page, page_size: PAGE_SIZE,
     })
       .then((d) => { setData(d); setError(null) })
       .catch(() => setError('Fonlar yüklenemedi. Backend çalışıyor mu?'))
       .finally(() => setLoading(false))
-  }, [q, category, risk, sort, page, showStale])
+  }, [q, category, risk, sort, page, showStale, beats])
 
   const toggleSort = (key) =>
     setSort((s) => (s.key === key ? { key, order: s.order === 'desc' ? 'asc' : 'desc' } : { key, order: key === 'code' ? 'asc' : 'desc' }))
@@ -112,6 +115,10 @@ export default function Funds() {
         <label className="check" title="Son fiyatı en güncel tarihten 7 günden eski olan ve SPK kararıyla işleme kapatılan fonlar">
           <input type="checkbox" checked={showStale} onChange={(e) => setShowStale(e.target.checked)} />
           Eski verili ve işleme kapatılan fonları da göster
+        </label>
+        <label className="check" title="Son 1 yılda reel getirisi pozitif olan fonlar (dönem sonu açıklanmış son TÜFE ayı)">
+          <input type="checkbox" checked={beats} onChange={(e) => setBeats(e.target.checked)} />
+          Yalnızca enflasyonu yenenler (1 yıl)
         </label>
       </div>
 

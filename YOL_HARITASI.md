@@ -60,6 +60,7 @@ Son güncelleme: 13 Ekim 2026
 - [x] Mobil uyum
 - [x] Sanal Portföy: hayali parayla alış/satış (TEFAS valörü ve son işlem saatine göre bekleyen emir, ileri fiyat, kısmi satış, bloke nakit, para piyasası medyanı kıyası, her gece yeniden değerleme) ve "Ya o zaman alsaydım?" (en fazla 4 fon, yıllıklandırılmış getiri). Mantık `app/services/sanal_portfoy.py`, rapor 3.6 ve 4.5
 - [x] Favori fonlar (13.11.2026, hesaba bağlı): fon listesi, detay, karşılaştırma ve sıralamalarda ☆/★; Favorilerim'de fiyat, günlük değişim, 1 ay/1 yıl, risk, tahmin karnesi özeti (son 10 günün 1 günlük tahmini), sanal portföy pozisyonu; kapatılmış/eski verili uyarısı; tek tıkla karşılaştırma; ana sayfada özet; mobilde kart düzeni; yedeğe dahil. Rapor 4.6
+- [x] Enflasyona göre reel getiri (13.11.2026): TÜFE TCMB EVDS'ten (`TP.TUKFIY2025.GENEL`, 2025=100, 01.2005'ten; anahtarla doğrulandı, zincirleme gerekmedi), `cpi_monthly` tablosu, gece işinde ve açılışta güncellenir, internetsiz/anahtarsız son bilinen veriyle; 1/3/6/12/36 ay, dönem sonu son TÜFE ayının son günü. Fon detayında tablo ve "enflasyonu yendi" etiketi, listede ve sıralamalarda "1 yıl reel" ve filtre, sanal portföy ve "Ya o zaman"da alım gücü, ana sayfada kategoriye göre özet (kapanan fonlar dahil). Öneri puanı değişmedi, yalnızca gerekçe. `python -m scripts.tufe_yukle`. 22 test, rapor 3.8 ve 2.9
 - [x] Kullanıcı girişi (13.11.2026): kayıt, giriş, çıkış, şifre değiştirme, hesap silme; Argon2id, HttpOnly çerezde sunucu tarafı oturum (JWT değil), CSRF başlığı, art arda hatalı girişte artan bekleme (30 sn → 15 dk). Sanal portföy, kayıtlı risk profili ve favoriler hesaba özel; giriş öncesi sanal portföy ilk hesaba aktarılır. 33 test, rapor 3.7 (güvenlik kararları ve tehdit/önlem tablosu)
 - [x] Yerel şifre sıfırlama ve hesap listesi (13.11.2026): `python -m scripts.sifre_sifirla --eposta <adres>` (yeni şifre getpass ile gizli, kural, bütün oturumlar kapanır, bekleme sıfırlanır), `python -m scripts.hesaplar` (e-posta, ad, oluşturma tarihi; şifre bilgisi yok). 9 test, rapor 3.7
 
@@ -97,7 +98,7 @@ Son güncelleme: 13 Ekim 2026
 
 ## 7. Test, yayın, rapor, sunum
 
-- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 336/336, internetsiz 340/340 (13.11.2026, tahmin karnesi, kullanıcı girişi ve favori adımlarıyla; rapor 7.3)
+- [x] Uçtan uca test, hata düzeltme: `frontend/scripts/uctan_uca.mjs`, 12 sayfa/akış × açık/koyu × 1280/390 px; internetle 364/364, internetsiz 368/368 (13.11.2026, tahmin karnesi, kullanıcı girişi, favori ve enflasyon adımlarıyla; rapor 7.3)
 - [x] Tek tıkla başlatma: `FonAnaliz_Baslat.bat` (backend + frontend + tarayıcı, hazır olunca açar) ve `FonAnaliz_Durdur.bat`; eski 1–4 numaralı bat dosyaları kaldırıldı
 - [x] İnternetsiz çalışma: döviz son bilinen kurlar ("en son X tarihinde güncellendi"), güncelleme internet yoksa sessizce atlanır, bağlantı koparsa durur
 - [ ] İnternetsiz çalışmayı sunum bilgisayarında Wi-Fi kapatarak bir kez daha dene
@@ -126,7 +127,7 @@ Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işler
 - [ ] Günlük güncellemeyi Render Cron Job veya GitHub Actions'a taşı (ücretsiz Render sunucusu uykuya geçer)
 - [ ] Alan adı (GitHub Student Pack ile ücretsiz)
 - [ ] Alembic migration'larına geçiş
-- [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta (kapsam dışı bırakıldı; rapor 8.6)
+- [ ] Kıyaslama: BIST 100, mevduat; beta (kapsam dışı bırakıldı; rapor 8.6). Enflasyon kıyası yapıldı (aşağıda, rapor 3.8)
 - [ ] Kullanıcı girişi: e-posta doğrulaması, e-postayla şifre sıfırlama (şimdilik yerel komut var), iki aşamalı doğrulama; yayına alınırsa çerezde `Secure` (`COOKIE_SECURE=true`)
 - [ ] Borsa İstanbul hisse analizi (13.11.2026'da ertelendi; rapor 8.6): hisse fiyat verisi Borsa İstanbul lisansına tabi, ücretsiz kaynakların kullanım koşulları belirsiz; temel analiz verileri (bilanço, özel durum açıklamaları) KAP'ta ve KAP koşulları izinsiz saklama/kullanıma izin vermiyor. Lisans/izin olursa metrikler, teknik göstergeler, tahmin karnesi ve sanal portföy (T+2 takasla) hisselere uyarlanabilir
 

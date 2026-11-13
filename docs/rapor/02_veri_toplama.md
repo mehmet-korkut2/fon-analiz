@@ -177,6 +177,26 @@ Saklamayı ya da göstermeyi yasaklayan bir hüküm yoktur. Ancak TEFAS dışar�
 
 **Truncgil Finans.** Hiçbir kullanım koşulu bulamadık. Ürün sayfasındaki "Terms of Use" ve "Privacy Policy" bağlantıları boştur. API belgesinde [19] lisans ya da koşul alanı yoktur; tek kısıt, bir uç nokta için belirtilen "30 saniyede 2 istek" sınırıdır. Ürün sayfasında API'nin anahtarsız ve açık olduğu belirtilmektedir. Kullanımı kısıtlayan bir metin yoktur, ama açık bir izin de verilmemiştir. Kaynak, verinin doğruluğu için de hiçbir taahhütte bulunmamaktadır. Bu nedenle bu kurlar arayüzde resmî TCMB kurlarından ayrı bir sekmede, kaynağı belirtilerek gösterilmektedir.
 
+**TCMB EVDS.** Enflasyona göre reel getiri (Bölüm 3.8) için TÜFE'yi TCMB'nin Elektronik Veri Dağıtım Sistemi'nden (EVDS) alıyoruz (13.11.2026). EVDS'in kendi "Kullanım Şartları" metni [20] şöyledir:
+
+> "EVDS uygulaması, EVDS web servisi ve EVDS MCP'de sunulan veriler kaynak gösterilmek koşuluyla üçüncü kişiler tarafından kullanılabilir ve yayımlanabilir."
+>
+> "EVDS uygulaması, EVDS web servisi ve EVDS MCP üzerinden sunulan veriler başka bir üründe veya yayında ticari veya ticari olmayan amaçla dahi kullanıldığında, ürünün kullanıcılarına ve abonelerine herhangi bir ek ücret olarak yansıtılmaz."
+>
+> "EVDS uygulaması, EVDS web servisi ve EVDS MCP tarafından sağlanan bilgiler çoğunlukla doğrudan TCMB tarafından sağlanmakla birlikte, dış kaynaklardan temin edilen veriler de bulunmaktadır. Dış kaynaklardan temin edilen veriler ilgili kuruluşların sorumluluğundadır ve TCMB bu içeriklere ilişkin hiçbir yükümlülük üstlenmemektedir."
+>
+> "TCMB gerekli gördüğü takdirde EVDS bileşenleri üzerinde sorgu sayısı, eşzamanlı bağlantı sayısı veya benzeri teknik limitler uygulayabilir ve bu limitleri önceden bildirimde bulunmaksızın değiştirebilir."
+
+Veriler kaynak gösterilerek kullanılabilir ve yayımlanabilir; kullanıcıdan ek ücret alınamaz. Saklama hakkında hüküm yoktur. Web servisi kayıtlı kullanıcıya verilen kişisel bir API anahtarı ister; anahtar HTTP isteğinin `key` başlığında gönderilir [21]. Anahtarı yalnızca yerel `.env` dosyasında tutuyoruz; dosya git'e girmez, anahtar hiçbir yanıtta ve günlükte yer almaz (bunu bir testle ve çalışan uygulamada denetledik).
+
+**TÜİK.** TÜFE, TÜİK'in verisidir; EVDS şartlarına göre dış kaynaklı veriler ilgili kuruluşun sorumluluğundadır. TÜİK'in "Yasal Uyarı" metni [22] şöyledir:
+
+> "TÜİK web sitesi, hiçbir kişi ve/veya kuruluşa herhangi bir konuda herhangi bir taahhüdü içermemektedir. İnternet sitemizden, yayınlarımızdan veya veri tabanlarımızdan elde edilen verilerin, kaynak gösterilmek suretiyle herhangi bir izine gerek duymaksızın yeniden kullanımı mümkündür."
+>
+> "Site içerisindeki bilgilerin bir kısmı doğrudan, bir kısmı da diğer kaynaklardan sağlanarak TÜİK tarafından yayımlanmakta olup, telif hakkı ve diğer her türlü hakkı TÜİK'e aittir."
+
+Veriler kaynak gösterilerek izin gerekmeden yeniden kullanılabilir. Arayüzde ve raporda kaynağı "TÜFE (2025=100): TÜİK. TCMB EVDS aracılığıyla alınmıştır." olarak belirtiyoruz.
+
 **Tablo 2.2** Veri kaynaklarının kullanım koşulları
 
 | Kaynak | Göstermek | Saklamak | Not | Projedeki kullanım |
@@ -185,10 +205,12 @@ Saklamayı ya da göstermeyi yasaklayan bir hüküm yoktur. Ancak TEFAS dışar�
 | TCMB | Kaynak göstererek serbest | Hüküm yok | Ticari kullanım yazılı izne bağlı | Gösterge kurları, kaynak belirtilerek |
 | TEFAS | Açık yasak yok | Açık yasak yok | Dış API sunulmuyor; iç adresler kullanılıyor | Fon listesi, fiyatlar, güncel büyüklük ve yatırımcı sayısı, KAP bağlantısı |
 | Truncgil | Koşul yok | Koşul yok | Hiçbir taahhüt yok | Anlık kurlar, ayrı sekmede |
+| TCMB EVDS | Kaynak göstererek serbest | Hüküm yok | Kişisel API anahtarı gerekir; kullanıcıdan ek ücret alınamaz; TCMB teknik sınır koyabilir | TÜFE (aylık), kaynak belirtilerek (Bölüm 3.8) |
+| TÜİK | Kaynak göstererek, izin gerekmeden yeniden kullanılabilir | Hüküm yok | Telif TÜİK'e ait | TÜFE'nin asıl kaynağı; EVDS üzerinden alınıyor |
 
 **Yönetim ücreti.** Fonların yıllık yönetim ücretini göstermek için kaynak aradık (15.10.2026). TEFAS'ın sayfalarında (fon karşılaştırma, terimler sözlüğü, sıkça sorulan sorular) ve fon sayfasının kullandığı uç noktalarda (`fonBilgiGetir`, `fonProfilBilgiGetir`) yönetim ücreti alanı yoktur; profil yalnızca giriş ve çıkış komisyonunu verir. Yönetim ücreti resmî olarak fon izahnamesinde ve KAP'ta yayımlanır; KAP verisini kullanmadığımız için (Bölüm 2.8) bu özelliği kapsam dışı bıraktık (Bölüm 8.5). Getiri hesaplarımız bundan etkilenmez, çünkü yönetim ücreti fon fiyatına zaten yansımıştır.
 
-**Değerlendirme.** Bu inceleme sonucunda kod değişikliği yapmadık. Daha sonra internetsiz çalışma için TCMB ve Truncgil'in son yanıtını veritabanında saklamaya başladık (Bölüm 7.4); iki kaynakta da saklamayı kısıtlayan bir hüküm yoktur. KAP dışındaki kaynaklarda kullanımımızı açıkça yasaklayan bir hüküm bulunmamaktadır. Ancak TEFAS ve Truncgil erişimi açık bir izne değil, yasak bulunmamasına dayanmaktadır. Uygulama yayına alınacak ya da ticari amaçla kullanılacak olursa TEFAS verisi için Borsa İstanbul'un veri yayın ürünleri, KAP verisi için MKK'nın yazılı izni gerekecektir.
+**Değerlendirme.** Bu inceleme sonucunda kod değişikliği yapmadık. Daha sonra internetsiz çalışma için TCMB ve Truncgil'in son yanıtını veritabanında saklamaya başladık (Bölüm 7.4); iki kaynakta da saklamayı kısıtlayan bir hüküm yoktur. KAP dışındaki kaynaklarda kullanımımızı açıkça yasaklayan bir hüküm bulunmamaktadır. EVDS ve TÜİK kaynak gösterilerek kullanıma açıkça izin vermektedir. Ancak TEFAS ve Truncgil erişimi açık bir izne değil, yasak bulunmamasına dayanmaktadır. Uygulama yayına alınacak ya da ticari amaçla kullanılacak olursa TEFAS verisi için Borsa İstanbul'un veri yayın ürünleri, KAP verisi için MKK'nın yazılı izni gerekecektir.
 
 ## 2.10 Kısıtlar
 

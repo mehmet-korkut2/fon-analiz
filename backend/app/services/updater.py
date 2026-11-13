@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Fund, Price
-from app.services import fund_status, metrics_job, recommender, sanal_portfoy
+from app.services import fund_status, inflation, metrics_job, recommender, sanal_portfoy
 from app.services.tefas_client import FundInfo, FundPrice, TefasClient, TefasError, internet_available
 
 log = logging.getLogger(__name__)
@@ -40,6 +40,7 @@ class UpdateResult:
     metrics: dict | None = None
     ml: dict | None = None
     sanal: dict | None = None
+    inflation: dict | None = None  # TÜFE güncellemesi (ayda bir yeni veri)
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self):
@@ -187,6 +188,11 @@ def run_update(
                     log.info("[%s/%s] işlendi, şimdiye kadar %s yeni fiyat.", i, len(funds), result.new_prices)
 
             if recompute_metrics:
+                try:  # metriklerden önce: reel getiri son TÜFE ayıyla hesaplansın
+                    result.inflation = inflation.update(db, online=online)
+                except Exception as e:
+                    log.exception("TÜFE güncellemesi başarısız")
+                    result.errors.append(f"TÜFE: {e}")
                 try:
                     result.metrics = metrics_job.recompute_all(db)
                 except Exception as e:  # metrik hatası fiyat güncellemesini boşa çıkarmasın

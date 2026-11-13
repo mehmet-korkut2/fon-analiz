@@ -22,7 +22,8 @@ from sqlalchemy import func, select
 from app.config import settings
 from app.database import SessionLocal
 from app.models import FundMetrics, Price
-from app.services import metrics_job
+from app.services import inflation, metrics_job
+from app.services.tefas_client import internet_available
 from app.services.updater import run_update
 
 log = logging.getLogger(__name__)
@@ -60,11 +61,16 @@ def catch_up():
     expected = expected_latest_date(datetime.now(ZoneInfo(settings.timezone)))
     if latest < expected:
         log.info("Veri eski (son fiyat %s, beklenen %s). Güncelleme başlatılıyor.", latest, expected)
-        run_update(fund_type="YAT", months=1)
-    elif not has_metrics:
-        log.info("Metrik tablosu boş, hesaplanıyor.")
-        with SessionLocal() as db:
-            metrics_job.recompute_all(db)
+        run_update(fund_type="YAT", months=1)  # TÜFE'yi de günceller
+        return
+    with SessionLocal() as db:
+        # fiyatlar güncel ama yeni bir TÜFE ayı açıklanmış olabilir (anahtar ya da internet yoksa hızlıca atlanır)
+        new_cpi = inflation.update(db, online=internet_available).get("added")
+        if new_cpi or not has_metrics:
+            log.info("Metrikler hesaplanıyor (%s).", "yeni TÜFE ayı" if new_cpi else "metrik tablosu boş")
+            metrics_job.recompute_all(db)  # enflasyon özetini de ısıtır
+        else:
+            inflation.beat_summary_cached(db)  # ana sayfadaki enflasyon özeti ilk istekte beklemesin
 
 
 def start() -> BackgroundScheduler | None:

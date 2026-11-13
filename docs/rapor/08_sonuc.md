@@ -8,7 +8,7 @@ Bu projede TEFAS'taki yatırım fonlarını analiz eden, karşılaştıran ve ri
 
 **Sayfalar.** Fon listesi, fon detayı (teknik göstergeler dahil), karşılaştırma, sıralamalar, risk anketi ve öneriler, sanal portföy, model performansı ve döviz sayfalarından oluşur.
 
-**Testler.** Uygulamayı 201 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
+**Testler.** Uygulamayı 223 otomatik testle ve gerçek tarayıcıda dört turda (açık/koyu tema, masaüstü/telefon) çalışan uçtan uca testle doğruladık.
 
 **Sunum hazırlığı.** Uygulama sunum bilgisayarında tek tıkla açılır ve internet yokken de son verilerle çalışır.
 
@@ -81,7 +81,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 - Kayan pencereli test ve ML testi aynı tek faiz rejimini kapsar ve 24 dönemden oluşur. Dönemler örtüştüğü için bağımsız değildir; küçük farklar istatistiksel olarak ayırt edilemez.
 - Öneri ağırlıkları uzman görüşüne dayanır, optimize edilmedi.
 - Metriklerde ve sanal portföyde komisyon, stopaj ve alım-satım masrafı yoktur.
-- Fonlar BIST 100, enflasyon ve mevduatla kıyaslanmadı; beta hesaplanmadı. Bu kıyaslama kapsam dışı bırakıldı (Bölüm 8.6).
+- Fonlar BIST 100 ve mevduatla kıyaslanmadı; beta hesaplanmadı (Bölüm 8.6). Enflasyona göre reel getiri eklendi (Bölüm 3.8); TÜFE aylık ortalama, fon fiyatı ay sonu değeridir ve son TÜFE ayı en çok yaklaşık 35 gün geride kalır.
 
 **Uygulama.**
 
@@ -97,7 +97,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 
 | Konu | Neden kapsam dışı | Ne olursa yapılabilir |
 |---|---|---|
-| Takas analizi | Takas (aracı kurum dağılımı) verisi borsada işlem gören paylar içindir; TEFAS'ta işlem gören yatırım fonları için karşılığı yoktur. Bir fonun içindeki hisselerin takas verisini kullanmak için fonun portföy içeriğini bilmek gerekirdi; portföy dağılımı da elimizde yok (Bölüm 2.8). Takas verisi ayrıca ücretsiz ve açık bir kaynaktan alınamıyor: 1 Ocak 2025'ten bu yana Borsa İstanbul tarafından ücretli sunulmakta ve T+2 gecikmeyle yayımlanmaktadır [32]. | Lisanslı veri ve fon portföy içerikleri bulunursa borsa yatırım fonları için denenebilir |
+| Takas analizi | Takas (aracı kurum dağılımı) verisi borsada işlem gören paylar içindir; TEFAS'ta işlem gören yatırım fonları için karşılığı yoktur. Bir fonun içindeki hisselerin takas verisini kullanmak için fonun portföy içeriğini bilmek gerekirdi; portföy dağılımı da elimizde yok (Bölüm 2.8). Takas verisi ayrıca ücretsiz ve açık bir kaynaktan alınamıyor: 1 Ocak 2025'ten bu yana Borsa İstanbul tarafından ücretli sunulmakta ve T+2 gecikmeyle yayımlanmaktadır [36]. | Lisanslı veri ve fon portföy içerikleri bulunursa borsa yatırım fonları için denenebilir |
 | RSI, MACD gibi teknik göstergeler | Test ettiğimiz fiyat temelli özellikler (momentum, 1 yıllık zirveye uzaklık) bir aylık getiriyi drift'ten iyi tahmin etmedi (Bölüm 6.6). Test edilmemiş göstergeleri çoğaltmak kullanıcıda sinyal varmış izlenimi yaratabilirdi. Yalnızca geçmişi özetleyen 50/200 günlük ortalama ve 52 haftalık aralığı, "geleceği tahmin etmez" notuyla ekledik (Bölüm 4.4) | Göstergeler önce walk-forward düzeneğinde sınanır, işe yararsa gösterilir |
 | Haber ve duygu analizi | Fon ve şirket haberlerinin başlıca kaynağı KAP'tır ve KAP verisi saklanamaz (Bölüm 2.8). Haber sitelerinin içeriği telif kapsamındadır. Türkçe finans metinleri için etiketli veri yoktur. Fiyat temelli sinyallerin bile drift'i geçemediği bir ufukta haberden ek fayda beklemek için gerekçe bulamadık | Lisanslı bir haber akışı ve etiketli veriyle ayrı bir araştırma olarak yapılabilir |
 | Yönetim ücreti | TEFAS'ın sayfalarında ve uç noktalarında yok; resmî olarak izahnamede ve KAP'ta yayımlanır (Bölüm 2.9). Getiri hesaplarını etkilemez, çünkü ücret fiyata yansımıştır | MKK'nın izniyle ya da portföy şirketlerinin sitelerinin koşulları incelenerek |
@@ -107,13 +107,13 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 
 ## 8.6 Gelecek çalışmalar
 
-- **Kıyaslama:** Fonların BIST 100, enflasyon ve mevduat getirisiyle kıyası ve beta katsayısı.
+- **Kıyaslama:** Fonların BIST 100 ve mevduat getirisiyle kıyası ve beta katsayısı (enflasyon kıyası yapıldı, Bölüm 3.8).
 - **Geçmişin biriktirilmesi:** Fon büyüklüğü, yatırımcı sayısı, risk değeri ve kategorinin her gün saklanması. Yeterli geçmiş oluşunca bu bilgiler geriye dönük testte sınanabilir (Bölüm 5.8).
 - **Diğer fon türleri:** Emeklilik (EMK) ve borsa yatırım fonlarının (BYF) eklenmesi.
 - **Farklı piyasa koşulları:** Öneri sisteminin ve ML'nin başka bir faiz rejimini kapsayan veriyle yeniden sınanması; LSTM'in bu durumda yeniden değerlendirilmesi (Bölüm 6.8).
 - **Yayına alma:** PostgreSQL, backend ve ön yüz için barındırma, gece işinin zamanlanmış görev servisine taşınması, alan adı, Alembic'e geçiş. TEFAS verisi için resmî kaynak (Borsa İstanbul veri yayın ürünleri) (Bölüm 2.9).
 - **İzne bağlı veriler:** MKK'nın yazılı izniyle KAP portföy dağılım raporlarından varlık dağılımı ve fonların yönetim ücreti (Bölüm 2.8, 2.9).
-- **Borsa İstanbul hisse analizi:** Hisse senetleri için analiz şimdilik eklenmedi (13.11.2026 kararı). Gerekçeler: (1) Hisse fiyat verisi Borsa İstanbul'un veri lisansına tabidir; Borsa İstanbul piyasa verilerini ücretli veri ürünleri olarak sunar (takas verisi örneği [32]; TEFAS için benzer durum Bölüm 2.9). Ücretsiz kaynakların (ör. finans siteleri ve programlama arayüzleri) kullanım koşulları, verinin saklanması ve bir uygulamada gösterilmesi bakımından belirsizdir. (2) Temel analiz için gereken veriler (finansal tablolar, özel durum açıklamaları) KAP'ta yayımlanır ve KAP'ın kullanım koşulu, MKK'nın yazılı izni olmadan kopyalamayı ve ileride kullanılmak üzere saklamayı yasaklar [15] (Bölüm 2.8). Lisanslı veri ya da izin alınırsa, mevcut fiyat tabanlı altyapı (metrikler, teknik göstergeler, tahmin karnesi, sanal portföy) hisselere büyük ölçüde olduğu gibi uyarlanabilir: bu bileşenler yalnızca günlük fiyat serisine dayanır; sanal portföyde fon valörü yerine pay piyasasının takas kuralları (T+2) kullanılması gerekir.
+- **Borsa İstanbul hisse analizi:** Hisse senetleri için analiz şimdilik eklenmedi (13.11.2026 kararı). Gerekçeler: (1) Hisse fiyat verisi Borsa İstanbul'un veri lisansına tabidir; Borsa İstanbul piyasa verilerini ücretli veri ürünleri olarak sunar (takas verisi örneği [36]; TEFAS için benzer durum Bölüm 2.9). Ücretsiz kaynakların (ör. finans siteleri ve programlama arayüzleri) kullanım koşulları, verinin saklanması ve bir uygulamada gösterilmesi bakımından belirsizdir. (2) Temel analiz için gereken veriler (finansal tablolar, özel durum açıklamaları) KAP'ta yayımlanır ve KAP'ın kullanım koşulu, MKK'nın yazılı izni olmadan kopyalamayı ve ileride kullanılmak üzere saklamayı yasaklar [15] (Bölüm 2.8). Lisanslı veri ya da izin alınırsa, mevcut fiyat tabanlı altyapı (metrikler, teknik göstergeler, tahmin karnesi, sanal portföy) hisselere büyük ölçüde olduğu gibi uyarlanabilir: bu bileşenler yalnızca günlük fiyat serisine dayanır; sanal portföyde fon valörü yerine pay piyasasının takas kuralları (T+2) kullanılması gerekir.
 - **Kullanıcı özellikleri:** E-posta doğrulaması ve e-postayla şifre sıfırlama (yerel komutun yerine), iki aşamalı doğrulama, birden fazla sanal portföy, sanal portföyde komisyon ve stopaj.
 - **Erişilebilirlik:** Ekran okuyucuyla deneme ve sayfada tema seçimi.
 

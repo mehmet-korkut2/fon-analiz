@@ -68,6 +68,28 @@ def estimate_risk_free_rate(db: Session, prices: pd.DataFrame) -> float | None:
     return statistics.median(rets) if rets else None
 
 
+def attach_real_returns(db: Session) -> int:
+    """1 yıllık reel getiriyi metrik satırlarına yazar (TÜFE yoksa boş kalır). Hata metrikleri bozmasın."""
+    from app.services import inflation  # döngüsel içe aktarmayı önlemek için
+
+    try:
+        real, as_of = inflation.real_1y_by_fund(db)
+    except Exception:
+        log.exception("Reel getiri hesaplanamadı")
+        return 0
+    n = 0
+    for m in db.scalars(select(FundMetrics)):
+        r = real.get(m.fund_code)
+        m.real_ret_1y, m.real_as_of = (r, as_of) if r is not None else (None, None)
+        n += r is not None
+    db.commit()
+    try:
+        inflation.beat_summary_cached(db)  # ana sayfa özetini ısıt
+    except Exception:
+        log.exception("Enflasyon özeti hesaplanamadı")
+    return n
+
+
 def recompute_all(db: Session) -> dict:
     t0 = time.time()
     prices = load_prices(db)
@@ -86,6 +108,7 @@ def recompute_all(db: Session) -> dict:
     db.execute(delete(FundMetrics))
     db.add_all(rows)
     db.commit()
-    result = {"funds": len(rows), "risk_free_rate": rf, "seconds": round(time.time() - t0, 1)}
+    real = attach_real_returns(db)
+    result = {"funds": len(rows), "risk_free_rate": rf, "real_1y": real, "seconds": round(time.time() - t0, 1)}
     log.info("Metrikler hesaplandı: %s", result)
     return result

@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
-from app.models import Fund, Price
+from app.models import Fund, FundMetrics, Price
 from app.services import recommender as R
 from app.services.fund_status import STATUS_LIQUIDATION
 from app.services.metrics_job import recompute_all
@@ -286,3 +286,40 @@ def test_store_and_load_rolling(db_session):
     loaded = [w for p in R.PROFILES_ALL for q in (False, True) for w in R.load_windows(db, p, q)]
     assert n == len(loaded) > 0
     assert R.store_rolling(db) == n  # yeniden hesaplama öncekileri siler, çoğaltmaz
+
+
+def test_inflation_does_not_change_recommendations(db_session):
+    """Reel getiri yalnızca gerekçe metnine eklenir; puan, sıra ve geriye dönük test değişmez."""
+    from app.services import inflation as I
+
+    db, Session = db_session
+
+    def run():
+        R._frame_cache.clear()
+        rec, bt = R.recommend(db, "agresif", False), R.backtest(db, "agresif", False)
+        return rec.items.reset_index(drop=True), rec.portfolio.reset_index(drop=True), bt.performance.funds
+
+    before = run()
+    m, v, rows = date(2023, 1, 1), 100.0, []
+    while m <= date(2026, 9, 1):  # fiyatlar 09.10.2026'da bitiyor: dönem sonu 30.09.2026
+        rows.append((m, v))
+        m, v = I.add_months(m, 1), v * 1.02
+    I.store(db, rows)
+    recompute_all(db)
+    assert db.scalar(select(FundMetrics.real_ret_1y).where(FundMetrics.real_ret_1y.is_not(None)).limit(1)) is not None
+    after = run()
+    pd.testing.assert_frame_equal(before[0], after[0])
+    pd.testing.assert_frame_equal(before[1], after[1])
+    assert before[2] == after[2]
+
+    def override():
+        with Session() as s:
+            yield s
+
+    app.dependency_overrides[get_db] = override
+    try:
+        items = TestClient(app).get("/api/recommendations", params={"profile": "agresif"}).json()["items"]
+    finally:
+        app.dependency_overrides.clear()
+    assert all(any("enflasyonu" in r and "Eylül 2026" in r for r in it["reasons"]) for it in items)
+    assert [it["code"] for it in items] == list(after[0]["code"])

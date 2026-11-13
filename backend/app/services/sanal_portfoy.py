@@ -31,7 +31,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models import Fund, Price, SanalAyar, SanalDeger, SanalEmir
-from app.services import recommender
+from app.services import inflation, recommender
 from app.services.data_quality import drop_one_day_glitches
 from app.services.fund_status import STATUS_ACTIVE
 from app.services.metrics_job import STALE_AFTER_DAYS
@@ -437,6 +437,8 @@ def summary(db: Session, user_id: int) -> dict:
         }
 
     return {
+        # alım gücü: bugünkü toplam değer, başlangıç ayının fiyatlarıyla (TÜFE; son açıklanan aya kadar)
+        "purchasing_power": inflation.purchasing_power(inflation.load_cpi(db), round(total, 2), ayar.start_date),
         "initial_balance": ayar.initial_balance, "start_date": ayar.start_date, "as_of": latest_date(db),
         "total": round(total, 2), "cash": round(st.cash, 2), "reserved": round(st.reserved, 2),
         "available": round(st.available, 2), "holdings": round(holdings, 2),
@@ -481,6 +483,7 @@ def what_if(db: Session, codes: list[str], when: date, amount: float) -> dict:
         raise SanalHata(f"Fiyat verisi {first:%d.%m.%Y} tarihinden başlıyor.")
 
     mm = mm_index(db, when, end)
+    cpi = inflation.load_cpi(db)
     funds_out, chart = [], {}
     for c in codes:
         f = db.get(Fund, c)
@@ -509,6 +512,7 @@ def what_if(db: Session, codes: list[str], when: date, amount: float) -> dict:
             "mm_value": round(amount * (1 + mm_r), 2) if mm_r is not None else None, "mm_pct": mm_r,
             "mm_annualized": annualized(mm_r, days) if mm_r is not None else None,
             "late_start": buy_date > next_business_day(when) + timedelta(days=STALE_AFTER_DAYS),
+            "purchasing_power": inflation.purchasing_power(cpi, round(value, 2), buy_date),
         })
         for d, p in held.items():
             chart.setdefault(d, {})[c] = round(units * p, 2)

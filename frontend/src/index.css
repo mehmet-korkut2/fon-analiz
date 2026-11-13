@@ -596,7 +596,7 @@ tbody tr:hover td { background: var(--hover); }
 .btn-danger, .btn-danger:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); color: var(--danger-ink); }
 .sim-table { font-size: 14px; min-width: 760px; }
 .sim-table td { vertical-align: middle; }
-.whatif-table { min-width: 820px; }
+.whatif-table { min-width: 920px; }
 .whatif-table .fund-name { min-width: 240px; }
 .side-badge { padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
 .side-alis { background: var(--brand-soft); color: var(--brand-ink); }
@@ -695,3 +695,20 @@ tbody tr:hover td { background: var(--hover); }
 .fav-mini-name:hover strong { color: var(--brand); }
 .fav-mini-warn { color: var(--danger-ink); background: var(--danger-soft); padding: 0 6px; border-radius: 999px; justify-self: start; }
 .chip .fav-compact { min-height: 26px; padding: 0 4px; }
+
+/* --- Enflasyon ve reel getiri ------------------------------------------------------------- */
+.rank-real { margin-left: 8px; white-space: nowrap; }
+.real-panel { display: flex; flex-direction: column; gap: 10px; }
+.real-panel h2 { margin: 0; }
+.real-table { min-width: 520px; }
+.real-table td, .real-table th { white-space: nowrap; }
+.beat-yes, .beat-no { padding: 1px 8px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
+.beat-yes { background: var(--brand-soft); color: var(--brand-ink); }
+.beat-no { background: var(--danger-soft); color: var(--danger-ink); }
+.infl-summary { display: flex; flex-direction: column; gap: 10px; }
+.infl-headline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.infl-big { font-family: var(--font-display); font-size: 34px; font-weight: 600; color: var(--ink); line-height: 1.1; }
+.infl-cats { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 18px; }
+.infl-cats li { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: 8px; align-items: center; font-size: 14px; }
+.infl-cats .imp-track { height: 8px; }
+.infl-cats .imp-track span { background: var(--chart-price); }

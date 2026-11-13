@@ -7,7 +7,7 @@ import LoginRequired from '../components/LoginRequired'
 import FundPicker from '../components/FundPicker'
 import RiskBar from '../components/RiskBar'
 import { axisDigits, monthTicks } from '../chart'
-import { num, pct, signClass, trDate } from '../format'
+import { monthLabel, num, pct, signClass, trDate } from '../format'
 import { isClosed, STATUS_LABELS } from '../fundStatus'
 import { compactTl, parseAmount, signedTl, tl2 } from '../money'
 import { C, SERIES } from '../theme'
@@ -370,6 +370,7 @@ function Portfolio({ initialCode }) {
   if (error) return <p className="error">{error}</p>
   if (!data) return <p className="muted">Yükleniyor...</p>
   const diff = data.benchmark != null ? data.total - data.benchmark : null
+  const pp = data.purchasing_power
   return (
     <div className="sim">
       <div className="cards">
@@ -384,6 +385,11 @@ function Portfolio({ initialCode }) {
         </Stat>
         <Stat label="Kıyas: para piyasası medyanı" value={data.benchmark != null ? tl2(data.benchmark) : '–'}>
           Aynı para başlangıçta para piyasası fonlarına (medyan) yatırılsaydı{diff != null && <>; fark <span className={signClass(diff)}>{signedTl(diff)}</span></>}.
+        </Stat>
+        <Stat label="Alım gücü (enflasyondan arındırılmış)" value={pp?.available ? tl2(pp.real_value) : '–'}>
+          {pp?.available
+            ? <>Toplam değer, {monthLabel(pp.start_month)} fiyatlarıyla ({monthLabel(pp.start_month)}–{monthLabel(pp.last_month)} TÜFE {pct(pp.inflation)}).</>
+            : (pp?.message ?? 'Enflasyon verisi yok.')}
         </Stat>
       </div>
 
@@ -490,11 +496,12 @@ function WhatIf({ initialCodes }) {
                   <th scope="col">Fon</th><th scope="col">Alış</th><th scope="col" className="r">Bugünkü değer</th>
                   <th scope="col" className="r">Kâr / zarar</th><th scope="col" className="r">%</th><th scope="col" className="r">Yıllık</th>
                   <th scope="col" className="r">Para piyasası medyanı</th>
+                  <th scope="col" className="r" title="Bugünkü değer, alış ayının fiyatlarıyla (TÜFE)">Alım gücü</th>
                 </tr>
               </thead>
               <tbody>
                 {data.funds.map((f) => f.error ? (
-                  <tr key={f.code}><td><strong className="num">{f.code}</strong></td><td colSpan={6} className="muted">{f.error}</td></tr>
+                  <tr key={f.code}><td><strong className="num">{f.code}</strong></td><td colSpan={7} className="muted">{f.error}</td></tr>
                 ) : (
                   <tr key={f.code}>
                     <td className="fund-name">
@@ -508,6 +515,11 @@ function WhatIf({ initialCodes }) {
                     <td data-label="Kâr / zarar %" className={`r num ${signClass(f.pnl_pct)}`}>{pct(f.pnl_pct)}</td>
                     <td data-label="Yıllık" className={`r num ${signClass(f.annualized)}`}>{f.annualized != null ? pct(f.annualized) : '–'}</td>
                     <td data-label="Para piyasası medyanı" className="r num nowrap">{f.mm_value != null ? tl2(f.mm_value) : '–'}<br /><span className={`small ${signClass(f.mm_pct)}`}>{pct(f.mm_pct)}</span></td>
+                    <td data-label="Alım gücü" className="r num nowrap" title={f.purchasing_power?.message ?? undefined}>
+                      {f.purchasing_power?.available ? (
+                        <>{tl2(f.purchasing_power.real_value)}<br /><span className="muted small">TÜFE {pct(f.purchasing_power.inflation)}</span></>
+                      ) : '–'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -516,6 +528,8 @@ function WhatIf({ initialCodes }) {
           <p className="muted small">
             Yıllık getiri yalnızca yaklaşık 1 yıl (360 gün) ve daha uzun dönemlerde gösterilir; kısa dönemi yıllığa çevirmek yanıltıcı olur.
             Para piyasası medyanı her fon için aynı alış ve son fiyat günleri arasında hesaplanır. Pay kesirli kabul edilir; komisyon ve vergi yoktur.
+            Alım gücü: bugünkü değerin alış ayının fiyatlarıyla karşılığı; enflasyon alış ayından açıklanmış son TÜFE ayına kadardır
+            (TÜİK, TCMB EVDS aracılığıyla). Alış ayının TÜFE'si henüz açıklanmadıysa boş kalır.
           </p>
           <section className="panel" aria-labelledby="wi-chart-title">
             <div className="panel-head">

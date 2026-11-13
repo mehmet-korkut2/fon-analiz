@@ -8,7 +8,7 @@ Bu aşamada uygulamanın uçtan uca doğru çalıştığını göstermeyi, sunum
 
 ## 7.2 Otomatik testler
 
-Backend'de 201 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
+Backend'de 223 otomatik test bulunmaktadır (Bölüm 3.9; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
 
 **Tablo 7.1** Test dosyalarına göre otomatik testler
 
@@ -18,7 +18,7 @@ Backend'de 201 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz 
 | `test_funds_api.py` | Fon listesi, detay, fiyat, teknik gösterge, büyüklük API'leri | 23 |
 | `test_horizons.py` | Tahmin karnesi: sızıntı, tatil takvimi ve hedef tarih, aralık içi/dışı, ufka göre ayrı kalibrasyon, canlı/geriye dönük ayrımı, yöntem sürümü | 21 |
 | `test_sanal_portfoy.py` | Sanal portföy ve "Ya o zaman alsaydım?" | 18 |
-| `test_recommender.py` | Öneri puanı, portföy, geriye dönük test | 17 |
+| `test_recommender.py` | Öneri puanı, portföy, geriye dönük test, enflasyonun öneriyi değiştirmemesi | 18 |
 | `test_sources.py` | TEFAS, TCMB ve anlık kur ayrıştırıcıları; internetsiz döviz (son bilinen kurlar) | 11 |
 | `test_risk_survey.py` | Risk anketi ve profil | 10 |
 | `test_ml.py` | ML özellikleri, modeller, değerlendirme | 9 |
@@ -30,10 +30,11 @@ Backend'de 201 otomatik test bulunmaktadır (Bölüm 3.8; 13.11.2026). Ön yüz 
 | `test_data_quality.py` | Tek günlük fiyat sıçramaları | 4 |
 | `test_ml_job.py` | Gece tahmin işi, tahmin ve karne API'leri | 3 |
 | `test_fund_status.py` | SPK kararıyla kapatılan fonlar | 3 |
+| `test_inflation.py` | Enflasyon ve reel getiri: EVDS ayrıştırma, anahtarın sızmaması, internetsiz ve anahtarsız çalışma, dönem hizalaması, eksik ay, alım gücü, filtreler, hayatta kalma yanılgısı | 21 |
 | `test_hesap_betikleri.py` | Yerel şifre sıfırlama (`scripts.sifre_sifirla`) ve hesap listesi (`scripts.hesaplar`): oturumların kapanması, kural, şifrenin gizli kalması | 9 |
 | `test_favorites.py` | Favorilerde tahmin karnesi özeti, sanal portföy pozisyonu, kapatılmış/eski verili fon uyarısı, kullanıcıya özel olma | 3 |
 | `test_api.py` | Sağlık kontrolü | 1 |
-| **Toplam** | | **201** |
+| **Toplam** | | **223** |
 
 ## 7.3 Uçtan uca test
 
@@ -62,16 +63,17 @@ Sanal portföy akışı gerçek bir alış emri verip iptal eder. Portföy boşs
 | Sanal portföy | Simülasyon uyarısı; fon arama ve seçim (valör bilgisi görünür); 5.000 TL alış emri; emir bekleyenlerde ve nakit "ayrılan" olarak görünür; emir iptal edilir; işlem geçmişi |
 | Ya o zaman alsaydım? | Bağlantıyla gelen 2 fonun sonucu ve grafik; tarih 03.10.2022 yapılıp yeniden hesaplanınca alış günü 2022 olur ve yıllıklandırılmış getiri görünür |
 | Döviz ve altın | Anlık kur tablosu, TCMB sekmesi; çevrimdışında "Son bilinen kurlar … en son X tarihinde güncellendi" notu |
+| Enflasyon ve reel getiri | Ana sayfada enflasyonu yenen fonlar özeti (oran ve kategoriler); fon listesinde "1 yıl reel" sütunu ve "enflasyonu yenenler" filtresi (bütün değerler pozitif); sıralamalarda aynı filtre; fon detayında 5 dönemlik reel getiri tablosu ve etiketler; "Ya o zaman alsaydım?" ve sanal portföyde alım gücü. İnternetsiz turda TÜFE güncellemesi atlanır, son bilinen veriyle çalışılır |
 | Model performansı | Sonuç tabloları (3+), aylık hata grafiği, ufka göre karne ve hata grafiği, kaydedilen tahminlerin karnesi |
 | Kullanıcı girişi ve favoriler | Girişsiz sanal portföy ve Favorilerim'de giriş kartı; kayıtta kısa şifre uyarısı; arayüzden geçici `.example` hesabı açılıp aynı sayfaya dönülür; sanal portföy akışı bu hesapla; fon listesinde her satırda yıldız; fon detayında ve sıralamalarda favori ekleme; Favorilerim'de tahmin karnesi sütunu ve tek tıkla karşılaştırma; ana sayfa favori özeti; Hesabım'da anketteki profilin hesaba aktarıldığı, favori sayısı, şifre değiştirme; kullanıcı menüsünden çıkış; yanlış şifre mesajı; yeni şifreyle giriş; arayüzden hesap silme. Tur yarıda kalırsa hesap API ile silinir; gerçek kullanıcı verisine dokunulmaz |
 | Her sayfada | Yatay taşma yok; konsol ve sayfa hatası yok; 5xx dönen API isteği yok; localhost dışına istek yok |
 
-**Sonuçlar (13.11.2026; tahmin karnesi, kullanıcı girişi ve favori adımları eklendikten sonra).**
+**Sonuçlar (13.11.2026; tahmin karnesi, kullanıcı girişi, favori ve enflasyon adımları eklendikten sonra).**
 
 | Koşul | Açık, 1280 px | Koyu, 1280 px | Açık, 390 px | Koyu, 390 px | Toplam |
 |---|---|---|---|---|---|
-| İnternet var | 84/84 | 84/84 | 84/84 | 84/84 | 336/336 |
-| İnternet yok (Bölüm 7.4) | 85/85 | 85/85 | 85/85 | 85/85 | 340/340 |
+| İnternet var | 91/91 | 91/91 | 91/91 | 91/91 | 364/364 |
+| İnternet yok (Bölüm 7.4) | 92/92 | 92/92 | 92/92 | 92/92 | 368/368 |
 
 Bütün turlarda konsol hatası, sayfa hatası, 5xx yanıtı ve dış istek kaydedilmedi. Çevrimdışı turda bir adım fazladır: "son bilinen kurlar" notunun görünmesi.
 

@@ -5,6 +5,7 @@ import { getForecast, getFund, getFundPrices, getTechnical } from '../api/client
 import FavoriteButton from '../components/FavoriteButton'
 import ForecastCard from '../components/ForecastCard'
 import ForecastScorecard from '../components/ForecastScorecard'
+import RealReturns from '../components/RealReturns'
 import RiskBar from '../components/RiskBar'
 import TechnicalSummary from '../components/TechnicalSummary'
 import { num, pct, signClass, trDate } from '../format'
@@ -404,6 +405,8 @@ export default function FundDetail() {
               <MetricCard key={k} label={label} value={pct(m[k])} cls={signClass(m[k])}>{desc}</MetricCard>
             ))}
           </div>
+
+          <RealReturns code={fund.code} />
 
           <h2>Risk ve verimlilik <span className="muted small">(son 1 yıl)</span></h2>
           <div className="cards">

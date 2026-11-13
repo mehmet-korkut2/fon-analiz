@@ -19,6 +19,30 @@ class MetricsOut(BaseModel):
     sharpe_1y: float | None = None
     sharpe_note: str | None = None  # Sharpe neden yok (ör. volatilite çok düşük)
     max_drawdown_1y: float | None = None
+    real_ret_1y: float | None = None  # 1 yıllık reel getiri (enflasyona göre), dönem sonu real_as_of
+    real_as_of: date | None = None
+
+
+class RealPeriodOut(BaseModel):
+    months: int
+    label: str
+    start: date
+    end: date
+    nominal: float | None
+    inflation: float | None
+    real: float | None
+    beat: bool | None  # enflasyonu yendi mi (reel > 0); hesaplanamadıysa None
+
+
+class FundRealOut(BaseModel):
+    code: str
+    available: bool
+    message: str | None = None  # ör. "Enflasyon verisi yok."
+    last_month: date | None = None  # açıklanmış son TÜFE ayı (ayın ilk günü)
+    end: date | None = None  # dönem sonu (o ayın son günü)
+    source_note: str | None = None
+    base_year: str | None = None
+    periods: list[RealPeriodOut] = []
 
 
 class FundOut(BaseModel):
@@ -510,7 +534,18 @@ class SanalValueOut(BaseModel):
     benchmark: float | None = None
 
 
+class PurchasingPowerOut(BaseModel):
+    """Paranın enflasyondan arındırılmış değeri: bugünkü değer, başlangıç ayının fiyatlarıyla (TÜFE)."""
+    available: bool
+    message: str | None = None
+    start_month: date | None = None
+    last_month: date | None = None  # açıklanmış son TÜFE ayı
+    inflation: float | None = None  # başlangıç ayından son aya
+    real_value: float | None = None
+
+
 class SanalOut(BaseModel):
+    purchasing_power: PurchasingPowerOut | None = None
     initial_balance: float
     start_date: date
     as_of: date | None = None
@@ -552,6 +587,7 @@ class WhatIfFund(BaseModel):
     mm_pct: float | None = None
     mm_annualized: float | None = None
     late_start: bool = False  # fonun ilk fiyatı seçilen tarihten çok sonra
+    purchasing_power: PurchasingPowerOut | None = None
 
 
 class WhatIfOut(BaseModel):

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app.ml.features import HORIZON
 from app.ml.horizons import latest_forecasts
+from app.services.inflation import month_label
 from app.models import BacktestWindow, Fund
 from app.routers.funds import fund_out, stale_cutoff
 from app.schemas import (
@@ -79,6 +80,19 @@ def _portfolio_forecast(funds: list[PortfolioFund], perf: R.Performance | None) 
                                  "kötü gittiği varsayımıyla, gerçek aralıktan geniştir."))
 
 
+
+def real_reason(f) -> list[str]:
+    """Gerekçe metnine 1 yıllık reel getiri (enflasyona göre). Öneri puanlaması bunu KULLANMAZ: geriye dönük testteki
+    seçimlerle aynı kalması için (rapor 5 ve 3.8)."""
+    m = f.metrics
+    if m is None or m.real_ret_1y is None or m.real_as_of is None:
+        return []
+    r = m.real_ret_1y
+    pct = f"%{abs(r) * 100:.1f}".replace(".", ",")
+    when = f"{month_label(m.real_as_of)} sonuna kadar son 1 yılda"
+    return [f"{when} enflasyonu {'yendi' if r > 0 else 'yenemedi'}: reel getirisi {'-' if r < 0 else ''}{pct} (TÜFE, TÜİK)."]
+
+
 @router.get("", response_model=RecommendationsOut)
 def recommendations(
     profile: Profile,
@@ -96,6 +110,7 @@ def recommendations(
     items = []
     for rank, row in enumerate(rec.items.itertuples(), start=1):
         reasons, caution = rec.reasons[row.code]
+        reasons = [*reasons, *real_reason(funds[row.code])]  # yalnızca gerekçe metni; puan ve sıra değişmez
         items.append(RecommendationItem(
             **fund_out(funds[row.code], cutoff).model_dump(), rank=rank, score=round(row.score, 4),
             components={c: round(getattr(row, c), 4) for c in R.COMPONENTS}, low_volatility=bool(row.low_vol), quota=bool(row.quota),
