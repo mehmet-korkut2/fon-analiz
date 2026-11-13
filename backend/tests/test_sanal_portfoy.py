@@ -10,13 +10,14 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
-from app.models import Fund, Price, SanalDeger
+from app.models import Fund, Price, SanalDeger, User
 from app.services import sanal_portfoy as S
 from app.services.fund_status import STATUS_CLOSED
 
 LAST = date(2026, 10, 9)  # cuma; veritabanındaki son fiyat günü
 IDX = pd.bdate_range("2025-01-01", LAST)
 MON, TUE, WED, THU, FRI = (date(2026, 10, d) for d in (12, 13, 14, 15, 16))
+U = 1  # testlerdeki kullanıcı
 
 
 def hsa_price(i: int) -> float:
@@ -56,8 +57,9 @@ def db():
             ])
             if d <= date(2026, 9, 1):
                 s.add(Price(fund_code="OLD", date=d, price=3.0))
+        s.add(User(id=U, email="test@ornek.com", password_hash="-", full_name="Test"))
         s.commit()
-        S.settings(s, today=MON)
+        S.settings(s, U, today=MON)
         yield s
 
 
@@ -92,9 +94,9 @@ def test_target_date_valor_and_forward_pricing():
 # --- Alış ----------------------------------------------------------------------------
 
 def test_buy_waits_for_valor_then_executes_at_that_days_price(db):
-    o = S.place_buy(db, "HSA", 10_000, now=datetime(2026, 10, 12, 10, 0))
+    o = S.place_buy(db, U, "HSA", 10_000, now=datetime(2026, 10, 12, 10, 0))
     assert (o.status, o.order_date, o.valor, o.target_date) == (S.BEKLIYOR, MON, 1, TUE)
-    st = S.state(db)
+    st = S.state(db, U)
     assert st.reserved == 10_000 and st.available == 90_000 and st.cash == 100_000
 
     add_day(db, MON)  # pazartesi fiyatı geldi; hedef salı, hâlâ bekliyor
@@ -105,13 +107,13 @@ def test_buy_waits_for_valor_then_executes_at_that_days_price(db):
     price = tue["HSA"]
     assert o.status == S.GERCEKLESTI and o.exec_date == TUE and o.exec_price == pytest.approx(price)
     assert o.exec_units == int(10_000 // price)  # tam pay; artan nakde döner
-    st = S.state(db)
+    st = S.state(db, U)
     assert st.reserved == 0 and st.cash == pytest.approx(100_000 - o.exec_units * price, abs=0.01)
     assert st.positions["HSA"].units == o.exec_units
 
 
 def test_holiday_uses_next_trading_day_price(db):
-    o = S.place_buy(db, "HSA", 5_000, now=datetime(2026, 10, 12, 10, 0))  # hedef salı
+    o = S.place_buy(db, U, "HSA", 5_000, now=datetime(2026, 10, 12, 10, 0))  # hedef salı
     add_day(db, MON)
     wed = add_day(db, WED)  # salı tatil: fiyat yok
     S.process(db)
@@ -120,56 +122,56 @@ def test_holiday_uses_next_trading_day_price(db):
 
 
 def test_missing_valor_uses_next_business_day(db):
-    o = S.place_buy(db, "NOV", 1_000, now=datetime(2026, 10, 12, 10, 0))
+    o = S.place_buy(db, U, "NOV", 1_000, now=datetime(2026, 10, 12, 10, 0))
     assert o.valor_known is False and o.valor == 1 and o.target_date == TUE and "valör bilgisi yok" in o.note
 
 
 def test_after_cutoff_counts_as_next_day(db):
-    o = S.place_buy(db, "PPA", 1_000, now=datetime(2026, 10, 12, 14, 0))  # PPA son işlem 13:30, valör 0
+    o = S.place_buy(db, U, "PPA", 1_000, now=datetime(2026, 10, 12, 14, 0))  # PPA son işlem 13:30, valör 0
     assert o.order_date == TUE and o.target_date == TUE
 
 
 def test_insufficient_cash_counts_pending_buys(db):
-    S.place_buy(db, "HSA", 70_000, now=datetime(2026, 10, 12, 10, 0))
+    S.place_buy(db, U, "HSA", 70_000, now=datetime(2026, 10, 12, 10, 0))
     with pytest.raises(S.SanalHata, match="Yetersiz nakit"):
-        S.place_buy(db, "PPA", 40_000, now=datetime(2026, 10, 12, 10, 0))
-    S.place_buy(db, "PPA", 30_000, now=datetime(2026, 10, 12, 10, 0))  # tam kalan nakit
-    assert S.state(db).available == pytest.approx(0)
+        S.place_buy(db, U, "PPA", 40_000, now=datetime(2026, 10, 12, 10, 0))
+    S.place_buy(db, U, "PPA", 30_000, now=datetime(2026, 10, 12, 10, 0))  # tam kalan nakit
+    assert S.state(db, U).available == pytest.approx(0)
 
 
 def test_cannot_buy_closed_stale_or_bad_amount(db):
     with pytest.raises(S.SanalHata, match="işleme kapatıldı"):
-        S.place_buy(db, "CLS", 1_000)
+        S.place_buy(db, U, "CLS", 1_000)
     with pytest.raises(S.SanalHata, match="güncellenmiyor"):
-        S.place_buy(db, "OLD", 1_000)
+        S.place_buy(db, U, "OLD", 1_000)
     with pytest.raises(S.SanalHata, match="sıfırdan büyük"):
-        S.place_buy(db, "HSA", 0)
+        S.place_buy(db, U, "HSA", 0)
     with pytest.raises(S.SanalHata, match="en az 1 pay"):
-        S.place_buy(db, "NOV", 1.5)  # fiyat 2 TL
+        S.place_buy(db, U, "NOV", 1.5)  # fiyat 2 TL
     with pytest.raises(S.SanalHata, match="bulunamadı"):
-        S.place_buy(db, "YOK", 1_000)
+        S.place_buy(db, U, "YOK", 1_000)
 
 
 # --- Satış -----------------------------------------------------------------------------
 
 def _bought(db) -> int:
-    S.place_buy(db, "HSA", 10_000, now=datetime(2026, 10, 12, 10, 0))
+    S.place_buy(db, U, "HSA", 10_000, now=datetime(2026, 10, 12, 10, 0))
     add_day(db, MON)
     add_day(db, TUE)
     S.process(db)
-    return S.state(db).positions["HSA"].units
+    return S.state(db, U).positions["HSA"].units
 
 
 def test_partial_sell_with_valor_and_average_cost(db):
     units = _bought(db)
-    cost = S.state(db).positions["HSA"].cost
+    cost = S.state(db, U).positions["HSA"].cost
     half = units // 2
-    o = S.place_sell(db, "HSA", half, now=datetime(2026, 10, 13, 20, 0))  # salı akşamı: çarşamba + 2 = cuma
+    o = S.place_sell(db, U, "HSA", half, now=datetime(2026, 10, 13, 20, 0))  # salı akşamı: çarşamba + 2 = cuma
     assert (o.order_date, o.valor, o.target_date) == (WED, 2, FRI)
     # bekleyen satıştaki paylar yeniden satılamaz
     with pytest.raises(S.SanalHata, match="satılabilir pay"):
-        S.place_sell(db, "HSA", units - half + 1)
-    assert S.state(db).sellable("HSA") == units - half
+        S.place_sell(db, U, "HSA", units - half + 1)
+    assert S.state(db, U).sellable("HSA") == units - half
 
     add_day(db, WED)
     add_day(db, THU)
@@ -180,7 +182,7 @@ def test_partial_sell_with_valor_and_average_cost(db):
     S.process(db)
     db.refresh(o)
     assert o.status == S.GERCEKLESTI and o.exec_amount == pytest.approx(half * fri["HSA"], abs=0.01)
-    p = S.state(db).positions["HSA"]
+    p = S.state(db, U).positions["HSA"]
     assert p.units == units - half
     assert p.cost == pytest.approx(cost * (units - half) / units)  # ortalama maliyet
     assert p.realized == pytest.approx(half * fri["HSA"] - cost * half / units, abs=0.01)
@@ -189,33 +191,33 @@ def test_partial_sell_with_valor_and_average_cost(db):
 def test_sell_all_and_validation(db):
     units = _bought(db)
     with pytest.raises(S.SanalHata, match="tam sayı"):
-        S.place_sell(db, "HSA", 0)
+        S.place_sell(db, U, "HSA", 0)
     with pytest.raises(S.SanalHata, match="satılabilir pay"):
-        S.place_sell(db, "PPA", 1)  # hiç alınmamış
-    S.place_sell(db, "HSA", units, now=datetime(2026, 10, 13, 20, 0))
+        S.place_sell(db, U, "PPA", 1)  # hiç alınmamış
+    S.place_sell(db, U, "HSA", units, now=datetime(2026, 10, 13, 20, 0))
     for d in (WED, THU, FRI):
         add_day(db, d)
     S.process(db)
-    st = S.state(db)
+    st = S.state(db, U)
     assert st.positions["HSA"].units == 0 and st.sellable("HSA") == 0
     assert st.cash > 100_000  # fiyat yükseldi; kâr nakde geçti
 
 
 def test_cancel_releases_reserved_cash(db):
-    o = S.place_buy(db, "HSA", 60_000, now=datetime(2026, 10, 12, 10, 0))
-    S.cancel(db, o.id)
-    assert S.state(db).available == 100_000 and o.status == S.IPTAL
+    o = S.place_buy(db, U, "HSA", 60_000, now=datetime(2026, 10, 12, 10, 0))
+    S.cancel(db, U, o.id)
+    assert S.state(db, U).available == 100_000 and o.status == S.IPTAL
     with pytest.raises(S.SanalHata, match="bekleyen"):
-        S.cancel(db, o.id)
+        S.cancel(db, U, o.id)
 
 
 def test_reset_clears_orders_and_sets_balance(db):
     _bought(db)
-    S.reset(db, 250_000, today=WED)
-    st = S.state(db)
-    assert st.cash == 250_000 and not st.positions and S.settings(db).start_date == WED
+    S.reset(db, U, 250_000, today=WED)
+    st = S.state(db, U)
+    assert st.cash == 250_000 and not st.positions and S.settings(db, U).start_date == WED
     with pytest.raises(S.SanalHata, match="arasında"):
-        S.reset(db, 10)
+        S.reset(db, U, 10)
 
 
 # --- Değer geçmişi ve kıyas ---------------------------------------------------------------
@@ -226,13 +228,13 @@ def test_value_history_and_money_market_benchmark(db):
     assert [r.date for r in rows] == [MON, TUE]
     first, last = rows[0], rows[-1]
     assert first.total == 100_000 and first.benchmark == pytest.approx(100_000)
-    o = S.orders(db, S.GERCEKLESTI)[0]
+    o = S.orders(db, U, S.GERCEKLESTI)[0]
     assert last.holdings == pytest.approx(units * o.exec_price, abs=0.01)
     assert last.total == pytest.approx(last.cash + last.holdings, abs=0.01)
     # kıyas: PPA ve PPB'nin pazartesiden salıya getirilerinin medyanı
     expected = np.median([1.0012, 1.0010]) * 100_000
     assert last.benchmark == pytest.approx(expected, rel=1e-6)
-    out = S.summary(db)
+    out = S.summary(db, U)
     assert out["total"] == pytest.approx(last.total, abs=0.01) and out["positions"][0]["code"] == "HSA"
     assert out["pnl"] == pytest.approx(out["total"] - 100_000, abs=0.01)
 
@@ -277,6 +279,11 @@ def test_api(db):
     app.dependency_overrides[get_db] = override
     try:
         c = TestClient(app)
+        assert c.get("/api/sanal-portfoy").status_code == 401  # giriş gerekir
+        w = c.get("/api/sanal-portfoy/geriye", params={"funds": "HSA,PPA", "tarih": "2025-06-02", "tutar": 5000})
+        assert w.status_code == 200 and len(w.json()["funds"]) == 2  # "Ya o zaman alsaydım?" herkese açık
+        c.headers["X-Requested-With"] = "XMLHttpRequest"
+        assert c.post("/api/auth/kayit", json={"email": "a@ornek.com", "password": "uzun-sifre-1", "name": "A"}).status_code == 201
         body = c.get("/api/sanal-portfoy").json()
         assert body["total"] == 100_000 and body["positions"] == [] and body["values"]
         r = c.post("/api/sanal-portfoy/emir", json={"code": "CLS", "side": "alis", "amount": 1000})
@@ -286,8 +293,6 @@ def test_api(db):
         oid = r.json()["pending"][0]["id"]
         assert c.delete(f"/api/sanal-portfoy/emir/{oid}").json()["history"][0]["status"] == "iptal"
         assert c.post("/api/sanal-portfoy/sifirla", json={"initial_balance": 50_000}).json()["total"] == 50_000
-        w = c.get("/api/sanal-portfoy/geriye", params={"funds": "HSA,PPA", "tarih": "2025-06-02", "tutar": 5000})
-        assert w.status_code == 200 and len(w.json()["funds"]) == 2
         assert c.get("/api/sanal-portfoy/geriye", params={"funds": "HSA", "tarih": "2030-01-01"}).status_code == 400
         assert c.get("/api/funds/HSA").json()["sell_valor"] == 2
     finally:

@@ -8,7 +8,7 @@ import ProfileSummary from '../components/ProfileSummary'
 import RiskBar from '../components/RiskBar'
 import RollingBacktest from '../components/RollingBacktest'
 import { num, pct, signClass, trDate } from '../format'
-import { loadProfile } from '../profileStore'
+import { useAuth } from '../auth'
 
 // Bileşen adları ve kısa açıklamaları (backend: recommender.COMPONENTS)
 const COMPONENTS = [
@@ -91,7 +91,7 @@ function PortfolioTable({ funds, showReturn }) {
 }
 
 export default function Recommendations() {
-  const [saved] = useState(loadProfile)
+  const { profile: saved } = useAuth()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const profile = saved?.result.profile

@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import { AuthProvider } from './auth.jsx'
 // Yazı tipleri pakete gömülü (internetsiz de çalışır). Yalnızca latin ve latin-ext alt kümeleri:
 // Türkçe harfler (ı, ş, ğ, İ) latin-ext'te; tarayıcı unicode-range'e göre sadece gerekeni indirir.
 import '@fontsource/fraunces/latin-500.css'
@@ -25,7 +26,9 @@ import './index.css'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

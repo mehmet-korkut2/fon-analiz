@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getForecast, getFund, getFundPrices, getTechnical } from '../api/client'
+import FavoriteButton from '../components/FavoriteButton'
 import ForecastCard from '../components/ForecastCard'
 import ForecastScorecard from '../components/ForecastScorecard'
 import RiskBar from '../components/RiskBar'
@@ -266,6 +267,7 @@ export default function FundDetail() {
       </div>
 
       <div className="detail-actions">
+        <FavoriteButton code={fund.code} />
         <Link className="btn" to={`/sanal-portfoy?fon=${fund.code}`}>Sanal portföyde dene</Link>
         {inCompare ? (
           <>

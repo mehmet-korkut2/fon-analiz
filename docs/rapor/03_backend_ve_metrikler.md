@@ -102,7 +102,7 @@ Bu yüzden **1 yıllık volatilitesi %5'in altındaki fonlarda Sharpe oranını 
 
 ## 3.6 Sanal portföy
 
-Kullanıcının hayali parayla fon alıp satarak deneme yapabildiği bir simülasyon ekledik (`app/services/sanal_portfoy.py`). Gerçek alım satım yapılmaz. Kullanıcı girişi olmadığı için tek bir portföy vardır ve yerel veritabanında saklanır. Üç tablo kullanılır: `sanal_portfoy` (başlangıç bakiyesi ve günü), `sanal_emirler` (bütün emirler) ve `sanal_degerler` (günlük portföy değeri). Tablolar açılışta `init_db()` ile oluşturulur.
+Kullanıcının hayali parayla fon alıp satarak deneme yapabildiği bir simülasyon ekledik (`app/services/sanal_portfoy.py`). Gerçek alım satım yapılmaz. Her kullanıcının kendi portföyü vardır ve yerel veritabanında saklanır (giriş gerekir; Bölüm 3.7). Üç tablo kullanılır: `sanal_portfoy` (başlangıç bakiyesi ve günü), `sanal_emirler` (bütün emirler) ve `sanal_degerler` (günlük portföy değeri). Tablolar açılışta `init_db()` ile oluşturulur.
 
 **Defter yaklaşımı.** Nakit, pozisyonlar ve maliyet ayrıca saklanmaz; her seferinde emir kayıtlarından yeniden hesaplanır. Böylece bakiye ile işlemler arasında tutarsızlık oluşamaz. Maliyet ortalama maliyet yöntemiyle izlenir: kısmi satışta satılan payların maliyeti ortalama maliyetten düşülür, aradaki fark "gerçekleşen kâr/zarar" olur.
 
@@ -122,22 +122,64 @@ Bekleyen emirler her gece güncellemeden sonra, ilgili günün fiyatı geldiğin
 
 **"Ya o zaman alsaydım?"** Geriye dönük modda kullanıcı en fazla 4 fon, bir tarih ve bir tutar seçer. Her fon, o tarihteki ya da sonraki ilk işlem günündeki fiyattan alınmış sayılır ve son fiyat gününe kadar tutulur. Bu modda pay kesirli kabul edilir, çünkü amaç fonları aynı tutarla karşılaştırmaktır. Sonuçta bugünkü değer, kâr/zarar (TL ve %), yıllıklandırılmış getiri ve aynı dönemde para piyasası medyanının getirisi gösterilir. Para piyasası kıyası her fon için o fonun kendi alış ve son fiyat günleri arasında hesaplanır; böylece seçilen tarihte henüz var olmayan ya da sonradan kapatılan bir fon da doğru dönemle kıyaslanır. Yıllıklandırma yalnızca yaklaşık 1 yıl (360 gün) ve daha uzun dönemlerde yapılır; daha kısa bir dönemi yıllığa çevirmek, tek bir iyi ayı yıllık %100'lerin üstünde göstererek yanıltıcı olurdu. SPK kararıyla kapatılan fonlar bu modda seçilebilir (geçmişte alınabiliyorlardı), ama sonuçta durumları belirtilir.
 
-## 3.7 Testler
+## 3.7 Kullanıcı girişi ve güvenlik
 
-Backend'de toplam 131 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
+Sanal portföy, kaydedilmiş risk profili ve favori fonlar kullanıcıya özeldir; bunlar için hesap gerekir (13.11.2026). Fon listesi, fon detayı, tahmin karnesi, karşılaştırma, sıralamalar, risk anketi, öneriler, model performansı, döviz ve "Ya o zaman alsaydım?" hesaplayıcısı girişsiz kullanılabilir. Uç noktalar: `POST /api/auth/kayit`, `giris`, `cikis`, `sifre`, `DELETE /api/auth/hesap`, `GET /api/auth/ben`; kullanıcıya özel veriler için `GET/POST/DELETE /api/profilim` ve `/api/favoriler`. Kod: `app/services/auth.py`, `app/deps.py`, `app/routers/auth.py`, `app/routers/account.py`.
+
+**Şifre saklama.** Şifreler Argon2id ile özetlenir (`argon2-cffi`; zaman maliyeti 3, bellek 64 MiB, paralellik 4, 16 baytlık rastgele tuz; RFC 9106'nın önerdiği düşük bellekli ayar [22]). Bir özet ve bir doğrulama bu bilgisayarda yaklaşık 50 ms sürer. Argon2id'yi bcrypt'e tercih ettik: OWASP'ın şifre saklama rehberinde ilk sırada önerilen algoritmadır ve kullandığımız parametreler rehberdeki en düşük değerlerin üstündedir [23]; bellek zorlamalı olduğu için GPU ile toplu deneme yapmayı pahalılaştırır ve bcrypt'in 72 baytlık şifre sınırı yoktur. Düz şifre hiçbir tabloda ve günlükte bulunmaz; bunu bir test, veritabanının tamamını metne döküp şifreyi arayarak doğrular. Şifre kuralı en az 8, en çok 128 karakterdir. Üst sınır, çok uzun şifrelerle özet hesabını yavaşlatma girişimine karşıdır.
+
+**Oturum: HttpOnly çerez, JWT değil.** Girişte 256 bitlik rastgele bir belirteç üretilir ve `HttpOnly`, `SameSite=Lax`, `Path=/api` özellikli bir çereze yazılır (14 gün). Veritabanında belirtecin kendisi değil, SHA-256 özeti saklanır; veritabanı ele geçirilse bile oturumlar kullanılamaz. JWT yerine sunucu tarafı oturumu seçmemizin nedenleri:
+
+- *Geri alınabilirlik.* Çıkışta, şifre değişikliğinde ve hesap silinince oturum sunucuda silinir ve hemen geçersiz olur. JWT ise süresi dolana kadar geçerli kalır; iptal için yine sunucuda bir liste tutmak gerekir.
+- *JavaScript erişimi.* HttpOnly çerez sayfadaki koddan okunamaz; bir XSS açığında belirteç çalınamaz. JWT'yi `localStorage`'da tutmak bu riski taşır.
+- *Mimari.* Uygulama tek sunuculu ve aynı kökenlidir (frontend API'ye Vite proxy'si üzerinden erişir). JWT'nin asıl avantajı olan, birden fazla sunucuda veritabanına sormadan doğrulama burada gerekmez.
+
+Girişte her zaman yeni belirteç verilir (oturum sabitlemeye karşı). Şifre değiştirilince diğer bütün oturumlar kapanır, mevcut oturum yeni belirteçle sürer. `Secure` bayrağı ayarla açılır (`COOKIE_SECURE`); uygulama `http://localhost`'ta çalıştığı için varsayılan olarak kapalıdır, HTTPS ile yayına alınırsa açılmalıdır.
+
+**CSRF.** Çerez `SameSite=Lax` olduğundan başka bir siteden gönderilen POST isteklerine eklenmez. Buna ek olarak, oturum çerezi taşıyan ve durum değiştiren (POST, PUT, PATCH, DELETE) isteklerde `X-Requested-With` başlığı zorunludur. Başka bir sitedeki form bu başlığı ekleyemez; `fetch` ile eklenmeye çalışılırsa tarayıcı CORS ön kontrolü yapar ve izin verilen tek köken frontend'dir.
+
+**Kaba kuvvet.** Hatalı girişler e-posta ve IP başına sayılır (`login_throttle` tablosu; uygulama yeniden başlasa da korunur). Aynı e-postaya art arda 5, aynı IP'den 20 hatalı denemeden sonra 30 saniye bekleme başlar; her yeni hata süreyi ikiye katlar (en çok 15 dakika). Beklemede doğru şifre de reddedilir ve yanıt `429` ile kalan süreyi (`Retry-After`) bildirir. Başarılı giriş e-posta sayacını sıfırlar; son hatadan 15 dakika sonra sayaç kendiliğinden sıfırlanır.
+
+**Bilgi sızdırmama.** Yanlış şifre ile kayıtlı olmayan e-posta aynı mesajı alır ("E-posta ya da şifre hatalı."). Kayıtlı olmayan e-postada da sahte bir özet doğrulanır; yanıt süresinden e-postanın kayıtlı olup olmadığı anlaşılamaz. Başka bir kullanıcının emrini iptal etmeye çalışan 403 değil 404 alır; emrin varlığı da belli olmaz. Kayıt ekranında "bu e-posta kayıtlı" uyarısı ise kaçınılmazdır, çünkü e-posta doğrulaması yoktur.
+
+**Kullanıcıya özel veri.** Sanal portföy tablolarına `user_id` eklendi ve bütün sorgular oturumdaki kullanıcıya göre süzülür. Gece güncellemesi her kullanıcının portföyünü ayrı işler. `sanal_degerler`'in birincil anahtarı (tarih) yerine (kullanıcı, tarih) oldu. SQLite birincil anahtarı değiştirmeye izin vermediği için bu tablo kaldırılıp yeniden kuruldu; tablo emirlerden türetildiği için veri kaybı olmaz. Kullanıcı girişinden önceki sanal portföy, açılan **ilk hesaba** aktarılır. Uçtan uca testin geçici hesapları RFC 2606'ya göre gerçek olamayacak `.example` uzantılı adresler kullanır ve bu aktarımı devralmaz. Risk profili girişli kullanıcıda `risk_profiles` tablosuna kaydedilir (geçmiş tutulur, en sonuncusu geçerlidir). Girişsiz kullanıcının profili yalnızca o oturumda tutulur; giriş yapınca hesaba aktarılır. "Hesabımı sil" şifre onayıyla hesabı ve bütün kişisel verileri (profil, sanal portföy, favoriler, oturumlar) siler.
+
+**Tablo 3.1** Tehditler ve önlemler
+
+| Tehdit | Önlem |
+|---|---|
+| Veritabanı sızıntısında şifrelerin çözülmesi | Argon2id, kullanıcıya özel tuz; düz şifre saklanmaz |
+| Veritabanı sızıntısında oturumların ele geçirilmesi | Belirteç değil, SHA-256 özeti saklanır |
+| XSS ile oturum çalınması | HttpOnly çerez; belirteç JavaScript'e hiç verilmez |
+| CSRF | SameSite=Lax + çerezli yazma isteklerinde zorunlu `X-Requested-With` başlığı |
+| Kaba kuvvet / şifre deneme | E-posta ve IP başına artan bekleme (30 sn → 15 dk), 429 |
+| Kullanıcı adı (e-posta) keşfi | Tek hata mesajı; kayıtlı olmayan e-postada da sahte doğrulama |
+| Oturum sabitleme | Girişte ve şifre değişikliğinde yeni belirteç |
+| Çalınan cihazdaki oturum | Şifre değişince diğer oturumlar kapanır; 14 günlük süre |
+| Başka kullanıcının verisine erişim (IDOR) | Bütün sorgular oturumdaki kullanıcıya göre süzülür; yabancı kayda 404 |
+| Açık yönlendirme (`/giris?sonra=...`) | Yalnızca site içi yollar kabul edilir |
+
+**Testler.** `tests/test_auth.py` (33 test): kayıt, giriş, yanlış şifre ve bilinmeyen e-postanın aynı yanıtı alması, art arda hatalı girişte bekleme ve sürenin ikiye katlanması, IP sınırı, çıkış sonrası eski belirtecin geçersizliği, süresi dolan oturum, giriş gerektiren 10 uç noktada girişsiz 401, herkese açık sayfaların girişsiz çalışması, CSRF başlığı, iki kullanıcının birbirinin portföyünü, emrini, favorisini ve profilini görememesi, şifre değişince diğer oturumların kapanması, giriş öncesi portföyün yalnızca ilk hesaba aktarılması, hesap silme. Kullanıcı süzgeci kasıtlı olarak kaldırıldığında veri ayrımı testinin kaldığını da denedik.
+
+**Kısıtlar.** E-posta doğrulaması ve şifre sıfırlama yoktur (e-posta gönderen bir servis gerektirir); şifresini unutan kullanıcı hesabına erişemez. İki aşamalı doğrulama yoktur. Kayıt ekranı bir e-postanın kayıtlı olduğunu söyler. Uygulama HTTPS olmadan yerelde çalıştığından çerezin `Secure` bayrağı kapalıdır.
+
+## 3.8 Testler
+
+Backend'de toplam 188 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
 
 - **Metrik tanımları:** Bilinen sentetik serilerle.
 - **API davranışları:** Süzme, sıralama, sayfalama, Türkçe arama, eski verili ve kapatılmış fonların dışlanması.
 - **Diğer kurallar:** Veri kalitesi ve SPK işaretleme; teknik göstergeler; fon büyüklüğünün öneriye katılmaması.
 - **Veri toplama ve çalışma ortamı:** TEFAS ve döviz yanıtlarının ayrıştırılması, gece güncellemesi, internet yokken güncellemenin atlanması ve son bilinen kurlar, yedek ve geri yükleme.
 - **Sanal portföy:** Emir günü ve son işlem saati, valör ve hafta sonu, ileri fiyat, tatil gününde sonraki fiyat, valör bilgisi olmayan fon, nakit yetersizliği (bekleyen alışlar dahil), kısmi ve tam satış ile ortalama maliyet, bekleyen satıştaki payların yeniden satılamaması, iptal, sıfırlama, kapatılmış ve eski verili fon, günlük değer ve para piyasası kıyası, "Ya o zaman alsaydım?" hesabı ve yıllıklandırma sınırı (18 test).
+- **Kullanıcı girişi ve güvenlik:** Bölüm 3.7 (33 test).
 - **Diğer bölümler:** Öneri sistemi ve makine öğrenmesi modülü (Bölüm 5 ve 6).
 
 Her değişiklikten sonra bütün testler çalıştırıldı.
 
-## 3.8 Kısıtlar
+## 3.9 Kısıtlar
 
 - Fonların BIST 100, enflasyon ve mevduat ile kıyası ve beta katsayısı hesaplanmadı; bu kıyaslama kapsam dışı bırakıldı ve gelecek çalışmalar arasındadır (Bölüm 8.6).
 - Şema değişiklikleri bir migration aracıyla değil, açılışta eksik sütunları ekleyen bir yardımcıyla (`init_db`) yönetilmektedir; Alembic'e geçiş gelecek çalışmalara bırakıldı.
-- Sanal portföy tek kullanıcılıdır ve bilgisayardaki veritabanında saklanır; komisyon, stopaj ve TEFAS'ın tutar/adet sınırları uygulanmaz. Resmî tatiller bilinmediği için valör günü hesabında yalnızca hafta sonları atlanır; tatile denk gelen hedef günde sonraki ilk işlem gününün fiyatı kullanılır.
+- Sanal portföy bilgisayardaki veritabanında saklanır (kullanıcı başına bir portföy); komisyon, stopaj ve TEFAS'ın tutar/adet sınırları uygulanmaz. Valör günü hesabında yalnızca hafta sonları atlanır; tatile denk gelen hedef günde sonraki ilk işlem gününün fiyatı kullanılır.
 - Metrikler basit getiriler üzerinden hesaplanmaktadır; vergi, giriş-çıkış komisyonu gibi maliyetler hesaba katılmamaktadır (fon yönetim ücreti fiyata yansımıştır).

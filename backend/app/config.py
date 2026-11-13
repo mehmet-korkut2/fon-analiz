@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     # Boş bırakılırsa para piyasası fonlarının 1 yıllık medyan getirisi kullanılır.
     risk_free_rate: float | None = None
 
+    # Kullanıcı oturumu (app/services/auth.py). Uygulama http://localhost'ta çalıştığı için Secure kapalı;
+    # HTTPS ile yayına alınırsa COOKIE_SECURE=true yapılmalı.
+    session_days: int = 14
+    cookie_name: str = "fon_oturum"
+    cookie_secure: bool = False
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

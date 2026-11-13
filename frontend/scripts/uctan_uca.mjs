@@ -4,9 +4,10 @@
 //   node scripts/uctan_uca.mjs --cevrimdisi    # tarayıcının dış ağı kapalı; döviz "son bilinen kurlar" bekler
 //   node scripts/uctan_uca.mjs --tur acik-masaustu
 // Her adımda: beklenen öğeler, yatay taşma, konsol/sayfa hataları, 5xx API yanıtları, localhost dışına istek.
-// Not: sanal portföy boşsa akış bir alış emri verip iptal eder, sonunda portföy aynı başlangıç
-// bakiyesiyle yeniden boşaltılır. Portföyde kayıt varsa (gerçek kullanım) alış/iptal adımları atlanır
-// ve hiçbir şey silinmez.
+// Kullanıcı girişi: her tur önce girişsiz sayfaları dener, sonra arayüzden geçici bir hesap açar
+// (uctan-uca-<tur>-<zaman>@fonanaliz.example; ".example" hesapları giriş öncesi sanal portföyü devralmaz),
+// sanal portföy, favori, şifre değiştirme, çıkış, yanlış şifre ve girişi dener, son adımda hesabı arayüzden
+// siler. Tur yarıda kalırsa hesap API üzerinden silinir. Gerçek kullanıcıların verisine dokunulmaz.
 import { BASE, connect, evaluate, launch, setViewport, sleep, waitForPage } from './cdp.mjs'
 
 const args = process.argv.slice(2)
@@ -106,6 +107,24 @@ const FLOWS = [
       await __t.until(() => __t.q('.planner-table tfoot')?.textContent.includes('50.000')); return true })()`],
     ['Kayan pencereli test', `!!__t.byText('h2', 'Geriye dönük test') && !!__t.q('.rolling .recharts-bar-rectangle, .rolling .recharts-rectangle')`],
   ]],
+  ['Sanal portföy (girişsiz)', '/sanal-portfoy', [
+    ['Giriş gerekli kartı', `!!__t.q('.login-required') && !!__t.byText('.login-required a', 'Giriş yap')`],
+    ['Menüde Giriş / Kayıt ol', `!!__t.q('.user-login') && !!__t.byText('.user-area a', 'Kayıt ol')`],
+  ]],
+  ['Favorilerim (girişsiz)', '/favoriler', [
+    ['Giriş gerekli kartı', `!!__t.q('.login-required')`],
+  ]],
+  ['Kayıt', '/kayit?sonra=/sanal-portfoy', [
+    ['Kısa şifre uyarısı', `(async () => { __t.type('.auth-form input[autocomplete=new-password]', 'kisa');
+      await __t.until(() => __t.q('#pw-rule.error')); return true })()`],
+    ['Hesap oluştur ve geri dön', `(async () => {
+      __t.type('.auth-form input[autocomplete=name]', 'Uçtan Uca'); __t.type('.auth-form input[type=email]', __cred.email)
+      for (const e of __t.all('.auth-form input[type=password]')) {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(e, __cred.pw); e.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+      await __t.until(() => !__t.q('.auth-form button[type=submit]').disabled); __t.click('.auth-form button[type=submit]')
+      await __t.until(() => location.pathname === '/sanal-portfoy' && __t.q('.user-btn')); return __t.q('.user-name').textContent })()`],
+  ]],
   ['Sanal portföy', '/sanal-portfoy', [
     ['Uyarı metni', `__t.q('.sim-warning')?.textContent.includes('Bu hayali parayla yapılan bir simülasyondur')`],
     ['Fon seç (TTE)', `(async () => { __t.type('#buy-fund', 'TTE'); await __t.until(() => __t.byText('.picker-results button', 'TTE'));
@@ -126,6 +145,35 @@ const FLOWS = [
       return __t.all('.whatif-table td[data-label="Alış"]').map((t) => t.textContent.slice(0, 10)).join(', ') + ' → yıllık ' +
         __t.all('.whatif-table td[data-label="Yıllık"]').map((t) => t.textContent).join(' / ') })()`],
   ]],
+  ['Favori ekle', '/fonlar/TTE', [
+    ['Yıldıza bas', `(async () => { __t.click('.detail-actions .fav-btn'); await __t.until(() => __t.q('.detail-actions .fav-btn[aria-pressed=true]'));
+      return __t.q('.detail-actions .fav-btn').textContent })()`],
+  ]],
+  ['Favorilerim', '/favoriler', [
+    ['TTE listede', `(async () => { await __t.until(() => __t.all('.fav-table tbody tr').length); return __t.q('.fav-table tbody').textContent.includes('TTE') })()`],
+  ]],
+  ['Hesabım', '/hesabim', [
+    ['Anketteki profil hesaba aktarıldı', `!!__t.byText('.account-link', 'Risk profili') && !__t.byText('.account-link', 'Risk profili').textContent.includes('Anketi doldur')`],
+    ['Favori sayısı', `__t.byText('.account-link', 'Favoriler')?.textContent.includes('1 fon')`],
+    ['Şifre değiştir', `(async () => { const f = __t.all('.auth-form input[type=password]');
+      const set = (e, v) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(e, v); e.dispatchEvent(new Event('input', { bubbles: true })) }
+      set(f[0], __cred.pw); set(f[1], __cred.pw2); set(f[2], __cred.pw2)
+      await __t.until(() => !__t.q('.auth-form button[type=submit]').disabled); __t.click('.auth-form button[type=submit]')
+      await __t.until(() => __t.q('.ok-note')); return __t.q('.ok-note').textContent })()`],
+    ['Çıkış yap (kullanıcı menüsü)', `(async () => { __t.click('.user-btn'); await __t.until(() => __t.q('.user-menu'));
+      __t.click('.user-menu button', 'Çıkış'); await __t.until(() => __t.q('.user-login')); return location.pathname === '/' })()`],
+  ]],
+  ['Giriş', '/giris?sonra=/hesabim', [
+    ['Yanlış şifre mesajı', `(async () => { __t.type('.auth-form input[type=email]', __cred.email); __t.type('.auth-form input[type=password]', __cred.pw);
+      __t.click('.auth-form button[type=submit]'); await __t.until(() => __t.q('.auth-form .error')); return __t.q('.auth-form .error').textContent })()`],
+    ['Yeni şifreyle giriş', `(async () => { __t.type('.auth-form input[type=password]', __cred.pw2); __t.click('.auth-form button[type=submit]');
+      await __t.until(() => location.pathname === '/hesabim' && __t.q('.user-btn')); return true })()`],
+  ]],
+  ['Hesap silme', '/hesabim', [
+    ['Hesabımı sil', `(async () => { __t.click('.danger-zone button', 'Hesabımı sil'); await __t.until(() => __t.q('.danger-zone input'));
+      __t.type('.danger-zone input', __cred.pw2); await __t.until(() => !__t.q('.danger-zone button[type=submit]').disabled)
+      __t.click('.danger-zone button[type=submit]'); await __t.until(() => location.pathname === '/' && __t.q('.user-login')); return true })()`],
+  ]],
   ['Döviz ve altın', '/doviz', offline ? [
     ['Son bilinen kurlar notu', `__t.q('.notice')?.textContent.includes('en son')`],
     ['Kur tablosu (anlık)', `__t.all('.fx table tbody tr').length > 3`],
@@ -144,11 +192,23 @@ const FLOWS = [
 
 const EXTERNAL_OK = /^(data:|blob:|chrome|about:|devtools:)/
 const API = 'http://127.0.0.1:8000/api'
-const sanalBefore = await (await fetch(`${API}/sanal-portfoy`)).json()
-const sanalEmpty = !sanalBefore.pending.length && !sanalBefore.history.length
-const SANAL_WRITES = new Set(['Fon seç (TTE)', 'Alış emri ver', 'Bekleyen emirde görünür', 'Nakit ayrıldı', 'Emri iptal et'])
+
+// Tur yarıda kalırsa geçici hesabı API üzerinden sil (iki şifre de denenir: şifre değişmiş olabilir)
+async function cleanupAccount(cred) {
+  for (const pw of [cred.pw2, cred.pw]) {
+    const r = await fetch(`${API}/auth/giris`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cred.email, password: pw }) }).catch(() => null)
+    if (!r?.ok) continue
+    const cookie = r.headers.get('set-cookie')?.split(';')[0]
+    await fetch(`${API}/auth/hesap`, { method: 'DELETE', body: JSON.stringify({ password: pw }),
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'e2e', Cookie: cookie } }).catch(() => {})
+    return true
+  }
+  return false
+}
 
 async function runRound(round) {
+  const cred = { email: `uctan-uca-${round.name}-${Date.now()}@fonanaliz.example`, pw: 'ilk-sifre-123', pw2: 'yeni-sifre-456' }
   const { proc, ws } = await launch(offline ? ['--proxy-server=127.0.0.1:9', '--proxy-bypass-list=localhost;127.0.0.1'] : [])
   const cdp = connect(ws)
   await cdp.ready
@@ -176,12 +236,9 @@ async function runRound(round) {
       await cdp.send('Page.navigate', { url: BASE + path })
       await waitForPage(cdp)
       await evaluate(cdp, HELPERS)
+      await evaluate(cdp, `window.__cred = ${JSON.stringify(cred)}; true`)
       for (const [name, expr] of steps) {
         const t0 = Date.now()
-        if (!sanalEmpty && title === 'Sanal portföy' && SANAL_WRITES.has(name)) {
-          results.push({ tur: round.name, sayfa: title, adim: name, sonuc: 'GEÇTİ', ayrinti: 'ATLANDI: portföyde gerçek kayıt var', ms: 0 })
-          continue
-        }
         try {
           const v = await evaluate(cdp, expr)
           results.push({ tur: round.name, sayfa: title, adim: name, sonuc: v ? 'GEÇTİ' : 'KALDI', ayrinti: typeof v === 'string' ? v.replace(/\s+/g, ' ').slice(0, 70) : '', ms: Date.now() - t0 })
@@ -196,6 +253,9 @@ async function runRound(round) {
   } finally {
     cdp.close()
     proc.kill()
+    // arayüzden silinmediyse (tur yarıda kaldıysa) API ile sil; silindiyse giriş denenmez (IP sayacı şişmesin)
+    const deleted = results.some((r) => r.adim === 'Hesabımı sil' && r.sonuc === 'GEÇTİ')
+    if (!deleted && await cleanupAccount(cred)) issues.push('geçici hesap tur sonunda kalmıştı, API ile silindi')
   }
   return { results, issues }
 }
@@ -208,11 +268,6 @@ for (const round of ROUNDS) {
   allIssues.push(...issues.map((i) => `[${round.name}] ${i}`))
   const failed = results.filter((r) => r.sonuc !== 'GEÇTİ')
   console.log(`${round.name}: ${results.length - failed.length}/${results.length} geçti${issues.length ? `, ${issues.length} uyarı` : ''}`)
-}
-if (sanalEmpty) {  // deneme emirlerini temizle, portföyü eski (boş) hâline döndür
-  await fetch(`${API}/sanal-portfoy/sifirla`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initial_balance: sanalBefore.initial_balance }),
-  }).catch(() => {})
 }
 
 const failed = all.filter((r) => r.sonuc !== 'GEÇTİ')

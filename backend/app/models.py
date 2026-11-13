@@ -3,7 +3,12 @@
 funds ─┬─< prices                 (fonun günlük fiyat geçmişi)
        ├─< portfolio_allocations  (fonun varlık dağılımı)
        └── fund_metrics           (önceden hesaplanmış metrikler, 1:1)
-users ───< risk_profiles          (kullanıcının risk anketi sonuçları)
+users ─┬─< risk_profiles          (kullanıcının risk anketi sonuçları)
+       ├─< sessions               (oturumlar; belirtecin özeti)
+       ├─< favorites              (favori fonlar)
+       ├── sanal_portfoy          (sanal portföy ayarı, 1:1)
+       ├─< sanal_emirler, sanal_degerler
+login_throttle                    (hatalı giriş sayaçları)
 """
 from datetime import date, datetime
 
@@ -132,13 +137,17 @@ class FundMetrics(Base):
 
 
 class User(Base):
+    """Kullanıcı hesabı (app/services/auth.py). E-posta küçük harfe çevrilerek saklanır."""
+
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255))  # asla düz şifre saklanmaz
+    password_hash: Mapped[str] = mapped_column(String(255))  # Argon2id; asla düz şifre saklanmaz
     full_name: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    password_changed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     risk_profiles: Mapped[list["RiskProfile"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
@@ -161,8 +170,48 @@ class RiskProfile(Base):
     horizon_years: Mapped[int | None] = mapped_column(Integer)  # yatırım vadesi (yıl)
     answers: Mapped[dict] = mapped_column(JSON)  # {"soru_id": "cevap", ...}
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    qualified: Mapped[bool | None] = mapped_column()  # nitelikli yatırımcı beyanı
+    result: Mapped[dict | None] = mapped_column(JSON)  # POST /api/risk-profile yanıtı (ProfileOut)
 
     user: Mapped[User] = relationship(back_populates="risk_profiles")
+
+
+class UserSession(Base):
+    """Oturum. Çerezdeki rastgele belirtecin yalnızca SHA-256 özeti saklanır; veritabanı sızsa bile
+    oturum ele geçirilemez. Çıkış ve şifre değişikliğinde silinir (app/services/auth.py)."""
+
+    __tablename__ = "sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class LoginThrottle(Base):
+    """Art arda hatalı giriş sayacı (anahtar: "email:<adres>" ya da "ip:<adres>"). Eşik aşılınca
+    locked_until'e kadar giriş denenemez; başarılı giriş e-posta sayacını sıfırlar."""
+
+    __tablename__ = "login_throttle"
+
+    key: Mapped[str] = mapped_column(String(300), primary_key=True)
+    failures: Mapped[int] = mapped_column(Integer, default=0)
+    last_failure_at: Mapped[datetime | None] = mapped_column(DateTime)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class Favorite(Base):
+    """Kullanıcının favori fonları."""
+
+    __tablename__ = "favorites"
+    __table_args__ = (UniqueConstraint("user_id", "fund_code", name="uq_favorite"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 class BacktestWindow(Base):
@@ -240,14 +289,16 @@ class MlReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
-# --- Sanal portföy (tek kullanıcı, hayali para; app/services/sanal_portfoy.py) -----------------
+# --- Sanal portföy (kullanıcıya özel, hayali para; app/services/sanal_portfoy.py) -----------------
 
 class SanalAyar(Base):
-    """Sanal portföyün başlangıç bakiyesi ve başlangıç günü (tek satır, id=1)."""
+    """Sanal portföyün başlangıç bakiyesi ve başlangıç günü (kullanıcı başına bir satır). user_id boşsa
+    kullanıcı girişi öncesinden kalan portföydür; ilk açılan hesaba aktarılır (app/services/auth.py)."""
 
     __tablename__ = "sanal_portfoy"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
     initial_balance: Mapped[float] = mapped_column(Float)
     start_date: Mapped[date] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -259,6 +310,7 @@ class SanalEmir(Base):
     __tablename__ = "sanal_emirler"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     fund_code: Mapped[str] = mapped_column(ForeignKey("funds.code"), index=True)
     side: Mapped[str] = mapped_column(String(5))  # alis / satis
     status: Mapped[str] = mapped_column(String(12), index=True)  # bekliyor / gerceklesti / iptal
@@ -281,6 +333,7 @@ class SanalDeger(Base):
 
     __tablename__ = "sanal_degerler"
 
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     date: Mapped[date] = mapped_column(Date, primary_key=True)
     cash: Mapped[float] = mapped_column(Float)
     holdings: Mapped[float] = mapped_column(Float)

@@ -629,3 +629,48 @@ tbody tr:hover td { background: var(--hover); }
   .stack-table tbody tr:hover td { background: transparent; }
   .stack-table tr.sell-row td { display: block; text-align: left; }
 }
+
+/* --- Kullanıcı girişi: menü, formlar, favoriler ------------------------------------------- */
+.header nav { flex: 1 1 auto; }
+.user-area { position: relative; display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.user-login { color: var(--ink-2); font-size: 15px; }
+.user-login.active { color: var(--ink); font-weight: 600; }
+.user-btn { font: inherit; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; max-width: 220px; }
+.user-btn:hover { border-color: var(--brand); }
+.user-avatar { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); font-weight: 600; font-size: 13px; flex: none; }
+.user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; display: flex; flex-direction: column; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px var(--shadow-md); }
+.user-menu a, .user-menu button { font: inherit; font-size: 14px; text-align: left; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: var(--ink); cursor: pointer; }
+.user-menu a:hover, .user-menu button:hover { background: var(--hover); text-decoration: none; }
+.user-email { margin: 4px 10px 6px; overflow: hidden; text-overflow: ellipsis; }
+.auth-page { display: flex; flex-direction: column; gap: 16px; max-width: 520px; }
+.auth-page.account { max-width: 760px; }
+.auth-page h1 { margin: 0; }
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.auth-form h2 { margin: 0; font-size: 18px; }
+.auth-form .btn { align-self: flex-start; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field > span:first-child { font-size: 14px; font-weight: 500; }
+.field input { font: inherit; padding: 9px 12px; border: 1px solid var(--input-line); border-radius: 8px; background: var(--surface); color: var(--ink); max-width: 100%; }
+.field input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.ok-note { margin: 0; padding: 8px 12px; border-radius: 8px; background: var(--brand-soft); color: var(--brand-ink); }
+.notice-info { background: var(--info-soft); color: var(--info-ink); }
+.main > .notice-info { margin-bottom: 16px; }
+.danger-zone { border-color: var(--danger); }
+.danger-zone h2 { margin: 0; font-size: 18px; }
+.login-required h2 { margin: 0; font-size: 18px; }
+.account-link { text-decoration: none; color: var(--ink); gap: 4px; }
+.account-link:hover { border-color: var(--brand); text-decoration: none; }
+.fav-btn { gap: 6px; }
+.fav-btn span[aria-hidden] { font-size: 16px; line-height: 1; }
+.fav-btn.is-on { border-color: var(--warn); }
+.fav-btn.is-on span[aria-hidden] { color: var(--warn); }
+.fav-compact { min-height: 28px; padding: 2px 6px; border-color: transparent; background: none; }
+.fav-compact:hover:not(:disabled) { background: var(--hover); }
+.code-cell { display: inline-flex; align-items: center; gap: 2px; }
+.fav-table tr.is-removed td { opacity: .55; }
+.favorites-page { display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 760px) {
+  .user-area { margin-left: 0; }
+  .user-menu { right: auto; left: 0; }
+}

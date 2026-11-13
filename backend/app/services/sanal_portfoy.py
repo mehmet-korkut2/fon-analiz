@@ -1,7 +1,8 @@
 """Sanal portföy: hayali parayla fon alıp satma (ileriye dönük) ve "Ya o zaman alsaydım?" (geriye dönük).
 
-Tek kullanıcı, kullanıcı girişi yok; veriler yerel veritabanında (sanal_portfoy, sanal_emirler,
-sanal_degerler). Gerçek alım satım yapılmaz.
+Kullanıcıya özel (giriş gerekir; her fonksiyon user_id alır, sorgular kullanıcıya göre süzülür). Veriler
+yerel veritabanında (sanal_portfoy, sanal_emirler, sanal_degerler). Gerçek alım satım yapılmaz.
+"Ya o zaman alsaydım?" veri saklamaz, herkese açıktır.
 
 İleriye dönük mod, TEFAS kurallarına yakın çalışır:
 - Emir günü: hafta sonu ya da fonun son işlem saatinden (sonIsSaat) sonra verilen emir ertesi iş günü sayılır.
@@ -113,10 +114,10 @@ def first_on_or_after(s: pd.Series, d: date) -> tuple[date, float] | None:
     return (after.index[0], float(after.iloc[0])) if len(after) else None
 
 
-def settings(db: Session, today: date | None = None) -> SanalAyar:
-    ayar = db.get(SanalAyar, 1)
+def settings(db: Session, user_id: int, today: date | None = None) -> SanalAyar:
+    ayar = db.scalars(select(SanalAyar).where(SanalAyar.user_id == user_id)).first()
     if ayar is None:
-        ayar = SanalAyar(id=1, initial_balance=DEFAULT_BALANCE, start_date=today or date.today())
+        ayar = SanalAyar(user_id=user_id, initial_balance=DEFAULT_BALANCE, start_date=today or date.today())
         db.add(ayar)
         db.commit()
     return ayar
@@ -164,8 +165,11 @@ class State:
         return (p.units if p else 0) - self.pending_sell_units.get(code, 0)
 
 
-def orders(db: Session, status: str | None = None) -> list[SanalEmir]:
+def orders(db: Session, user_id: int | None, status: str | None = None) -> list[SanalEmir]:
+    """Kullanıcının emirleri; user_id None ise bütün kullanıcılarınki (yalnızca gece işi)."""
     stmt = select(SanalEmir).order_by(SanalEmir.id)
+    if user_id is not None:
+        stmt = stmt.where(SanalEmir.user_id == user_id)
     if status:
         stmt = stmt.where(SanalEmir.status == status)
     return list(db.scalars(stmt))
@@ -190,13 +194,13 @@ def _executed_key(o: SanalEmir):
     return (o.exec_date, o.id)
 
 
-def state(db: Session) -> State:
+def state(db: Session, user_id: int) -> State:
     """Gerçekleşen emirlere göre nakit ve pozisyonlar; bekleyen alışların tutarı ve satışların payı ayrılır."""
-    ayar = settings(db)
+    ayar = settings(db, user_id)
     st = State(initial=ayar.initial_balance, cash=ayar.initial_balance, reserved=0.0)
-    for o in sorted(orders(db, GERCEKLESTI), key=_executed_key):
+    for o in sorted(orders(db, user_id, GERCEKLESTI), key=_executed_key):
         apply(st, o)
-    for o in orders(db, BEKLIYOR):
+    for o in orders(db, user_id, BEKLIYOR):
         if o.side == ALIS:
             st.reserved += o.amount
         else:
@@ -206,14 +210,14 @@ def state(db: Session) -> State:
 
 # --- Emirler ----------------------------------------------------------------------------
 
-def _new_order(db: Session, fund: Fund, side: str, now: datetime) -> SanalEmir:
+def _new_order(db: Session, user_id: int, fund: Fund, side: str, now: datetime) -> SanalEmir:
     valor = fund.buy_valor if side == ALIS else fund.sell_valor
     known = valor is not None
     day = order_day(now, fund.cutoff_time)
     last = db.scalar(select(func.max(Price.date)).where(Price.fund_code == fund.code))
     t = target_date(day, valor if known else DEFAULT_VALOR, last)
     return SanalEmir(
-        fund_code=fund.code, side=side, status=BEKLIYOR, created_at=now, order_date=day,
+        user_id=user_id, fund_code=fund.code, side=side, status=BEKLIYOR, created_at=now, order_date=day,
         valor=valor if known else DEFAULT_VALOR, valor_known=known, target_date=t,
         note=None if known else "TEFAS'ta valör bilgisi yok; ertesi iş günü fiyatı kullanılır.",
     )
@@ -226,7 +230,7 @@ def _fund(db: Session, code: str) -> Fund:
     return fund
 
 
-def place_buy(db: Session, code: str, amount: float, now: datetime | None = None) -> SanalEmir:
+def place_buy(db: Session, user_id: int, code: str, amount: float, now: datetime | None = None) -> SanalEmir:
     now = now or datetime.now()
     fund = _fund(db, code)
     if not (amount and amount > 0 and math.isfinite(amount)):
@@ -234,67 +238,67 @@ def place_buy(db: Session, code: str, amount: float, now: datetime | None = None
     amount = round(float(amount), 2)
     if (reason := fund_buy_block(db, fund)) is not None:
         raise SanalHata(f"{fund.code} alınamaz: {reason}")
-    st = state(db)
+    st = state(db, user_id)
     if amount > st.available + 1e-9:
         raise SanalHata(f"Yetersiz nakit: kullanılabilir nakit {tl(st.available)} (bekleyen alışlar için ayrılan tutar düşüldü).")
     s = price_series(db, fund.code)
     if len(s) and amount < float(s.iloc[-1]):
         raise SanalHata(f"Tutar en az 1 pay alacak kadar olmalı (son fiyat: {tl(float(s.iloc[-1]), 4)}).")
-    o = _new_order(db, fund, ALIS, now)
+    o = _new_order(db, user_id, fund, ALIS, now)
     o.amount = amount
     db.add(o)
     db.commit()
-    process(db)
+    process(db, user_id)
     return o
 
 
-def place_sell(db: Session, code: str, units: int, now: datetime | None = None) -> SanalEmir:
+def place_sell(db: Session, user_id: int, code: str, units: int, now: datetime | None = None) -> SanalEmir:
     now = now or datetime.now()
     fund = _fund(db, code)
     if units is None or int(units) != units or units <= 0:
         raise SanalHata("Satılacak pay adedi pozitif bir tam sayı olmalı.")
     units = int(units)
-    st = state(db)
+    st = state(db, user_id)
     sellable = st.sellable(fund.code)
     if units > sellable:
         raise SanalHata(f"{fund.code} için satılabilir pay: {sellable:,} (bekleyen satışlar düşüldü).".replace(",", "."))
-    o = _new_order(db, fund, SATIS, now)
+    o = _new_order(db, user_id, fund, SATIS, now)
     o.units = units
     db.add(o)
     db.commit()
-    process(db)
+    process(db, user_id)
     return o
 
 
-def cancel(db: Session, order_id: int) -> SanalEmir:
+def cancel(db: Session, user_id: int, order_id: int) -> SanalEmir:
     o = db.get(SanalEmir, order_id)
-    if o is None:
+    if o is None or o.user_id != user_id:  # başka kullanıcının emri de "bulunamadı" (varlığı belli olmasın)
         raise SanalHata("Emir bulunamadı.")
     if o.status != BEKLIYOR:
         raise SanalHata("Yalnızca bekleyen emirler iptal edilebilir.")
     o.status, o.note = IPTAL, "Kullanıcı iptal etti."
     db.commit()
-    rebuild_values(db)
+    rebuild_values(db, user_id)
     return o
 
 
-def reset(db: Session, initial_balance: float, today: date | None = None) -> SanalAyar:
+def reset(db: Session, user_id: int, initial_balance: float, today: date | None = None) -> SanalAyar:
     if not (initial_balance and MIN_BALANCE <= initial_balance <= MAX_BALANCE):
         raise SanalHata("Başlangıç bakiyesi 1.000 TL ile 100.000.000 TL arasında olmalı.")
-    db.execute(delete(SanalEmir))
-    db.execute(delete(SanalDeger))
-    ayar = settings(db, today)
+    db.execute(delete(SanalEmir).where(SanalEmir.user_id == user_id))
+    db.execute(delete(SanalDeger).where(SanalDeger.user_id == user_id))
+    ayar = settings(db, user_id, today)
     ayar.initial_balance = round(float(initial_balance), 2)
     ayar.start_date = today or date.today()
     db.commit()
-    rebuild_values(db)
+    rebuild_values(db, user_id)
     return ayar
 
 
-def execute_pending(db: Session) -> int:
-    """Hedef günü (ya da sonrası) için fiyatı gelen bekleyen emirleri gerçekleştirir."""
+def execute_pending(db: Session, user_id: int | None = None) -> int:
+    """Hedef günü (ya da sonrası) için fiyatı gelen bekleyen emirleri gerçekleştirir (user_id None: herkesin)."""
     done = 0
-    pending = sorted(orders(db, BEKLIYOR), key=lambda o: (o.target_date, o.id))
+    pending = sorted(orders(db, user_id, BEKLIYOR), key=lambda o: (o.target_date, o.id))
     cache: dict[str, pd.Series] = {}
     for o in pending:
         s = cache.setdefault(o.fund_code, price_series(db, o.fund_code))
@@ -333,18 +337,18 @@ def mm_index(db: Session, start: date, end: date) -> pd.Series:
     return pd.Series(idx.values, index=[t.date() for t in idx.index])
 
 
-def rebuild_values(db: Session) -> int:
-    """Başlangıç gününden son fiyat gününe kadar günlük portföy değerini yeniden yazar."""
-    ayar = settings(db)
-    db.execute(delete(SanalDeger))
+def rebuild_values(db: Session, user_id: int) -> int:
+    """Başlangıç gününden son fiyat gününe kadar kullanıcının günlük portföy değerini yeniden yazar."""
+    ayar = settings(db, user_id)
+    db.execute(delete(SanalDeger).where(SanalDeger.user_id == user_id))
     end = latest_date(db)
     if end is None or end < ayar.start_date:
-        db.add(SanalDeger(date=ayar.start_date, cash=ayar.initial_balance, holdings=0.0,
+        db.add(SanalDeger(user_id=user_id, date=ayar.start_date, cash=ayar.initial_balance, holdings=0.0,
                           total=ayar.initial_balance, benchmark=ayar.initial_balance))
         db.commit()
         return 1
     days = sorted({ayar.start_date, *db.scalars(select(Price.date).distinct().where(Price.date > ayar.start_date))})
-    done = sorted(orders(db, GERCEKLESTI), key=_executed_key)
+    done = sorted(orders(db, user_id, GERCEKLESTI), key=_executed_key)
     codes = sorted({o.fund_code for o in done})
     series = {c: price_series(db, c, ayar.start_date - timedelta(days=STALE_AFTER_DAYS + 7)) for c in codes}
     mm = mm_index(db, ayar.start_date, end)
@@ -364,18 +368,22 @@ def rebuild_values(db: Session) -> int:
                 upto = s[s.index <= d]
                 holdings += p.units * (float(upto.iloc[-1]) if len(upto) else 0.0)
         bench = ayar.initial_balance * float(mm_ff.get(d)) if len(mm_ff) and pd.notna(mm_ff.get(d)) else None
-        rows.append(SanalDeger(date=d, cash=round(st.cash, 2), holdings=round(holdings, 2),
+        rows.append(SanalDeger(user_id=user_id, date=d, cash=round(st.cash, 2), holdings=round(holdings, 2),
                                total=round(st.cash + holdings, 2), benchmark=round(bench, 2) if bench else None))
     db.add_all(rows)
     db.commit()
     return len(rows)
 
 
-def process(db: Session) -> dict:
-    """Gece güncellemesinden ve her emirden sonra: bekleyen emirleri gerçekleştir, değerleri yeniden hesapla."""
-    executed = execute_pending(db)
-    n = rebuild_values(db)
-    return {"executed": executed, "days": n}
+def process(db: Session, user_id: int | None = None) -> dict:
+    """Gece güncellemesinden (user_id None: bütün kullanıcılar) ve her emirden sonra (o kullanıcı): bekleyen
+    emirleri gerçekleştir, değerleri yeniden hesapla. Sahipsiz (giriş öncesinden kalan) portföyün emirleri de
+    gerçekleşir; değeri ilk hesaba aktarılınca hesaplanır."""
+    executed = execute_pending(db, user_id)
+    users = [user_id] if user_id is not None else list(
+        db.scalars(select(SanalAyar.user_id).where(SanalAyar.user_id.is_not(None))))
+    n = sum(rebuild_values(db, u) for u in users)
+    return {"executed": executed, "days": n, "users": len(users)}
 
 
 # --- API için özet ----------------------------------------------------------------------
@@ -384,14 +392,14 @@ def _pct(a: float | None, b: float | None) -> float | None:
     return a / b - 1 if a is not None and b else None
 
 
-def summary(db: Session) -> dict:
-    if any(first_on_or_after(price_series(db, o.fund_code), o.target_date) for o in orders(db, BEKLIYOR)):
-        process(db)  # betikle fiyat yüklendiyse bekleyen emirler hemen gerçekleşsin
-    elif db.scalar(select(func.count()).select_from(SanalDeger)) == 0:
-        rebuild_values(db)  # ilk açılış
-    ayar = settings(db)
-    st = state(db)
-    all_orders = orders(db)
+def summary(db: Session, user_id: int) -> dict:
+    if any(first_on_or_after(price_series(db, o.fund_code), o.target_date) for o in orders(db, user_id, BEKLIYOR)):
+        process(db, user_id)  # betikle fiyat yüklendiyse bekleyen emirler hemen gerçekleşsin
+    elif db.scalar(select(func.count()).select_from(SanalDeger).where(SanalDeger.user_id == user_id)) == 0:
+        rebuild_values(db, user_id)  # ilk açılış (ya da hesaba yeni aktarılan portföy)
+    ayar = settings(db, user_id)
+    st = state(db, user_id)
+    all_orders = orders(db, user_id)
     funds = {f.code: f for f in db.scalars(select(Fund).where(Fund.code.in_({o.fund_code for o in all_orders})))}
 
     positions = []
@@ -415,7 +423,7 @@ def summary(db: Session) -> dict:
         })
 
     values = [{"date": v.date, "total": v.total, "cash": v.cash, "holdings": v.holdings, "benchmark": v.benchmark}
-              for v in db.scalars(select(SanalDeger).order_by(SanalDeger.date))]
+              for v in db.scalars(select(SanalDeger).where(SanalDeger.user_id == user_id).order_by(SanalDeger.date))]
     total = st.cash + holdings
     bench = values[-1]["benchmark"] if values else None
 

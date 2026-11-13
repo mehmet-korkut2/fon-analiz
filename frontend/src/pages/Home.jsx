@@ -4,7 +4,7 @@ import { getCategories, getFunds, getHealth, getStatus } from '../api/client'
 import RiskBar from '../components/RiskBar'
 import { pct, signClass } from '../format'
 import { compactTl, count } from '../money'
-import { loadProfile } from '../profileStore'
+import { useAuth } from '../auth'
 
 const FEATURED = 8
 const fmtDate = (s) => (s ? new Date(s).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: s.length > 10 ? 'short' : undefined }) : '–')
@@ -17,7 +17,7 @@ export default function Home() {
   const [categories, setCategories] = useState(null)
   const [featured, setFeatured] = useState(null)
   const [error, setError] = useState(null)
-  const profile = loadProfile()?.result
+  const profile = useAuth().profile?.result
 
   useEffect(() => {
     document.title = 'Fon Analiz'

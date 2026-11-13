@@ -29,8 +29,12 @@ def survey():
 
 @router.post("/risk-profile", response_model=ProfileOut)
 def risk_profile(body: ProfileIn):
-    """Cevaplardan puan ve profil hesaplar. Kullanıcı girişi olmadığı için hiçbir şey kaydedilmez;
-    sonuç tarayıcıda saklanır."""
+    """Cevaplardan puan ve profil hesaplar; hiçbir şey kaydedilmez (herkese açık). Girişli kullanıcı
+    sonucu POST /api/profilim ile kaydeder (app/routers/account.py)."""
+    return evaluate_profile(body)
+
+
+def evaluate_profile(body: ProfileIn) -> ProfileOut:
     try:
         r = rs.evaluate(body.answers, body.qualified)
     except rs.SurveyError as e:

@@ -16,7 +16,7 @@ Anket 8 puanlı soru ve puana girmeyen 1 uygunluk sorusundan oluşur (`app/servi
 | Hedef | ×2 | Risk isteğini ölçer |
 | Birikim payı (yatırılacak tutar birikimin ne kadarı?) | ×2 | Kapasite: aynı kayıp birikimin küçük bir kısmında katlanılabilir, tamamında katlanılamaz |
 | Gelir istikrarı, acil durum birikimi, deneyim | ×1 | Destekleyici etkenler |
-| Nitelikli yatırımcı | puana girmez | Serbest fonlar yalnızca nitelikli yatırımcıya satılabilir [23]; "Evet" ise serbest fonlar da önerilir |
+| Nitelikli yatırımcı | puana girmez | Serbest fonlar yalnızca nitelikli yatırımcıya satılabilir [25]; "Evet" ise serbest fonlar da önerilir |
 
 **Profil eşikleri ve risk aralıkları:**
 
@@ -157,5 +157,5 @@ Kotayı yine de tuttuk. Gerekçemiz geçmiş getiri değil, profil tutarlılığ
 - Fon büyüklüğü ve yatırımcı sayısı öneri puanına ve geriye dönük teste katılmadı. TEFAS bu değerlerin yalnızca bugünkü hâlini veriyor (Bölüm 2.2). Geçmiş bir seçim gününde bugünün büyüklüğünü kullanmak geleceği bilmek anlamına gelir: bugün büyük olan bir fon, büyük olasılıkla geçmişte iyi getiri sağladığı için büyümüştür; bu, testi iyimser yapardı. Bu bilgiler yalnızca fon listesinde ve detayında gösterilir. Bir testle (`test_size_and_investors_not_used_in_recommendation`) büyüklük değiştiğinde önerilerin ve geriye dönük test sonucunun değişmediği doğrulanır.
 - Alım-satım masrafı ve stopaj hesaba katılmadı; portföy yeniden dengelenmiyor.
 - Test dönemi tek bir yüksek faiz ortamını kapsar.
-- Profil kullanıcı girişi olmadığı için tarayıcıda saklanır.
+- Profil girişli kullanıcıda hesaba kaydedilir (geçmişiyle); girişsiz kullanıcıda yalnızca o oturumda tutulur (Bölüm 3.7).
 - Sistem yatırım danışmanlığı değildir; öneriler eğitim amaçlıdır ve her yerde bu uyarı bulunur.

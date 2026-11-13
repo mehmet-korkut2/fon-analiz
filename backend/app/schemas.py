@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class MetricsOut(BaseModel):
@@ -172,6 +172,51 @@ class CapOut(BaseModel):
     rule: str
     max_profile: str
     message: str
+
+
+# --- Kullanıcı hesabı ----------------------------------------------------------------
+
+class RegisterIn(BaseModel):
+    email: EmailStr
+    password: str = Field(max_length=200)  # kural (8-128) app/services/auth.py'de, anlaşılır mesajla
+    name: str = Field(max_length=200)
+
+
+class LoginIn(BaseModel):
+    email: str = Field(max_length=320)
+    password: str = Field(max_length=200)
+
+
+class PasswordChangeIn(BaseModel):
+    current_password: str = Field(max_length=200)
+    new_password: str = Field(max_length=200)
+
+
+class AccountDeleteIn(BaseModel):
+    password: str = Field(max_length=200)
+
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    name: str | None
+    created_at: datetime | None
+
+
+class MeOut(BaseModel):
+    user: UserOut | None  # giriş yapılmamışsa None (401 yerine; konsolda hata görünmesin)
+
+
+class AuthOut(BaseModel):
+    user: UserOut
+    migrated_portfolio: bool = False  # ilk hesap: giriş öncesi sanal portföy bu hesaba aktarıldı
+
+
+class SavedProfileOut(BaseModel):
+    answers: dict[str, int]
+    qualified: bool
+    result: "ProfileOut"
+    saved_at: datetime
 
 
 class ProfileOut(BaseModel):
@@ -493,3 +538,6 @@ class WhatIfOut(BaseModel):
     mm_value: float | None = None
     mm_start: date | None = None
     series: list[dict]  # {date, KOD: değer, ..., mm: değer}
+
+
+SavedProfileOut.model_rebuild()  # ProfileOut, SavedProfileOut'tan sonra tanımlı

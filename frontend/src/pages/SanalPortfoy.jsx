@@ -2,6 +2,8 @@ import { Fragment, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { cancelSanalOrder, getFund, getSanal, getWhatIf, postSanalOrder, resetSanal } from '../api/client'
+import { useAuth } from '../auth'
+import LoginRequired from '../components/LoginRequired'
 import FundPicker from '../components/FundPicker'
 import RiskBar from '../components/RiskBar'
 import { axisDigits, monthTicks } from '../chart'
@@ -529,6 +531,7 @@ function WhatIf({ initialCodes }) {
 }
 
 export default function SanalPortfoy() {
+  const { user } = useAuth()
   const [params, setParams] = useSearchParams()
   const mode = params.get('mod') === 'geriye' ? 'geriye' : 'portfoy'
   const codes = (params.get('fon') || '').toUpperCase().split(',').map((c) => c.trim()).filter(Boolean).slice(0, MAX_WHATIF)
@@ -548,7 +551,12 @@ export default function SanalPortfoy() {
         <button type="button" role="tab" id="tab-geriye" aria-selected={mode === 'geriye'} aria-controls="panel-sim" onClick={() => setMode('geriye')}>Ya o zaman alsaydım?</button>
       </div>
       <div id="panel-sim" role="tabpanel" aria-labelledby={`tab-${mode}`}>
-        {mode === 'portfoy' ? <Portfolio initialCode={code} /> : <WhatIf initialCodes={codes} />}
+        {mode === 'geriye' ? <WhatIf initialCodes={codes} /> : user ? <Portfolio key={user.id} initialCode={code} /> : (
+          <LoginRequired title="Sanal portföy için giriş yap">
+            Sanal portföyün hesabına özel saklanır: emirlerin, pozisyonların ve değer geçmişin yalnızca sana görünür.
+            &quot;Ya o zaman alsaydım?&quot; hesaplayıcısı girişsiz de kullanılabilir.
+          </LoginRequired>
+        )}
       </div>
     </section>
   )

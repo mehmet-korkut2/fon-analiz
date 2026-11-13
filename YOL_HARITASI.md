@@ -59,8 +59,8 @@ Son güncelleme: 13 Ekim 2026
 - [x] Yükleme, hata ve boş durum ekranları
 - [x] Mobil uyum
 - [x] Sanal Portföy: hayali parayla alış/satış (TEFAS valörü ve son işlem saatine göre bekleyen emir, ileri fiyat, kısmi satış, bloke nakit, para piyasası medyanı kıyası, her gece yeniden değerleme) ve "Ya o zaman alsaydım?" (en fazla 4 fon, yıllıklandırılmış getiri). Mantık `app/services/sanal_portfoy.py`, rapor 3.6 ve 4.5
-- [ ] Favori fonlar
-- [ ] Kullanıcı girişi (opsiyonel, zaman kalırsa)
+- [ ] Favori fonlar (temel hâli kullanıcı girişiyle geldi: yıldız düğmesi, Favorilerim; genişletmesi sürüyor)
+- [x] Kullanıcı girişi (13.11.2026): kayıt, giriş, çıkış, şifre değiştirme, hesap silme; Argon2id, HttpOnly çerezde sunucu tarafı oturum (JWT değil), CSRF başlığı, art arda hatalı girişte artan bekleme (30 sn → 15 dk). Sanal portföy, kayıtlı risk profili ve favoriler hesaba özel; giriş öncesi sanal portföy ilk hesaba aktarılır. 33 test, rapor 3.7 (güvenlik kararları ve tehdit/önlem tablosu)
 
 ## 5. Risk profili ve öneri ✅
 
@@ -126,6 +126,7 @@ Bitirme projesi kapsamı dışında bırakılan, yayına alma ve altyapı işler
 - [ ] Alan adı (GitHub Student Pack ile ücretsiz)
 - [ ] Alembic migration'larına geçiş
 - [ ] Kıyaslama: BIST 100, enflasyon, mevduat; beta (kapsam dışı bırakıldı; rapor 8.6)
+- [ ] Kullanıcı girişi: e-posta doğrulaması, şifre sıfırlama, iki aşamalı doğrulama; yayına alınırsa çerezde `Secure` (`COOKIE_SECURE=true`)
 
 ---
 

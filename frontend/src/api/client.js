@@ -1,6 +1,12 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' })
+// Oturum HttpOnly çerezde (JavaScript okuyamaz). X-Requested-With: backend, çerezli ve durum değiştiren
+// isteklerde bu başlığı ister (CSRF koruması; backend/app/deps.py).
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+  withCredentials: true,
+  headers: { 'X-Requested-With': 'XMLHttpRequest' },
+})
 
 export const getHealth = () => api.get('/health').then((r) => r.data)
 export const getFunds = (params) => api.get('/funds', { params }).then((r) => r.data)
@@ -29,5 +35,31 @@ export const postSanalOrder = (order) => api.post('/sanal-portfoy/emir', order).
 export const cancelSanalOrder = (id) => api.delete(`/sanal-portfoy/emir/${id}`).then((r) => r.data)
 export const resetSanal = (initialBalance) => api.post('/sanal-portfoy/sifirla', { initial_balance: initialBalance }).then((r) => r.data)
 export const getWhatIf = (codes, date, amount) => api.get('/sanal-portfoy/geriye', { params: { funds: codes.join(','), tarih: date, tutar: amount } }).then((r) => r.data)
+
+// Kullanıcı hesabı
+export const getMe = () => api.get('/auth/ben').then((r) => r.data.user)
+export const postRegister = (body) => api.post('/auth/kayit', body).then((r) => r.data)
+export const postLogin = (body) => api.post('/auth/giris', body).then((r) => r.data)
+export const postLogout = () => api.post('/auth/cikis')
+export const postPassword = (body) => api.post('/auth/sifre', body).then((r) => r.data)
+export const deleteAccount = (password) => api.delete('/auth/hesap', { data: { password } })
+export const getMyProfile = () => api.get('/profilim').then((r) => r.data)
+export const postMyProfile = (answers, qualified) => api.post('/profilim', { answers, qualified }).then((r) => r.data)
+export const getFavorites = () => api.get('/favoriler').then((r) => r.data)
+export const addFavorite = (code) => api.post(`/favoriler/${code}`)
+export const removeFavorite = (code) => api.delete(`/favoriler/${code}`)
+
+// API hata mesajı (FastAPI "detail": metin ya da doğrulama listesi)
+export function errorMessage(e, fallback = 'Bir hata oluştu.') {
+  const d = e?.response?.data?.detail
+  if (typeof d === 'string') return d
+  if (Array.isArray(d) && d.length) {
+    const field = d[0].loc?.[d[0].loc.length - 1]
+    if (field === 'email') return 'Geçerli bir e-posta adresi girin.'
+    return d[0].msg || fallback
+  }
+  if (!e?.response) return 'Sunucuya ulaşılamadı. Backend çalışıyor mu?'
+  return fallback
+}
 
 export default api

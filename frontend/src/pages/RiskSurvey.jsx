@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getSurvey, postRiskProfile } from '../api/client'
+import { Link, useLocation } from 'react-router-dom'
+import { errorMessage, getSurvey, postRiskProfile } from '../api/client'
+import { useAuth } from '../auth'
 import ProfileSummary from '../components/ProfileSummary'
-import { loadProfile, saveProfile } from '../profileStore'
 
 export default function RiskSurvey() {
+  const { user, profile: saved, saveProfile } = useAuth()
+  const loc = useLocation()
   const [survey, setSurvey] = useState(null)
   const [error, setError] = useState(null)
-  const [saved, setSaved] = useState(loadProfile)
-  const [editing, setEditing] = useState(() => !loadProfile())
+  const [editing, setEditing] = useState(() => !saved)
   const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState(() => loadProfile()?.answers ?? {})
-  const [qualified, setQualified] = useState(() => loadProfile()?.qualified ?? null)
+  const [answers, setAnswers] = useState(() => saved?.answers ?? {})
+  const [qualified, setQualified] = useState(() => saved?.qualified ?? null)
   const [sending, setSending] = useState(false)
 
   useEffect(() => { document.title = 'Risk Anketi · Fon Analiz' }, [])
@@ -27,6 +28,13 @@ export default function RiskSurvey() {
       <section className="survey">
         <h1>Risk anketi</h1>
         <ProfileSummary saved={saved} />
+        {!user && (
+          <p className="notice notice-info small">
+            Profilin yalnızca bu oturumda tutuluyor. Kalıcı olarak kaydetmek için{' '}
+            <Link to={`/giris?sonra=${encodeURIComponent(loc.pathname)}`}>giriş yap</Link> ya da{' '}
+            <Link to={`/kayit?sonra=${encodeURIComponent(loc.pathname)}`}>hesap oluştur</Link>; bu profil hesabına aktarılır.
+          </p>
+        )}
         <div className="survey-actions">
           <Link className="btn btn-primary" to="/oneriler">Önerileri gör →</Link>
           <button type="button" className="btn" onClick={() => { setEditing(true); setStep(0) }}>Anketi yeniden doldur</button>
@@ -50,12 +58,12 @@ export default function RiskSurvey() {
     setSending(true)
     setError(null)
     try {
-      const result = await postRiskProfile(answers, Boolean(qualified))
-      setSaved(saveProfile(answers, Boolean(qualified), result))
+      const result = user ? null : await postRiskProfile(answers, Boolean(qualified)) // girişliyse sunucu hesaplayıp kaydeder
+      await saveProfile(answers, Boolean(qualified), result)
       setEditing(false)
       window.scrollTo(0, 0)
     } catch (e) {
-      setError(e.response?.data?.detail || 'Profil hesaplanamadı.')
+      setError(errorMessage(e, 'Profil hesaplanamadı.'))
     } finally {
       setSending(false)
     }
@@ -65,7 +73,9 @@ export default function RiskSurvey() {
     <section className="survey">
       <div>
         <h1>Risk anketi</h1>
-        <p className="hint">{questions.length} soru. Cevapların sadece bu tarayıcıda saklanır.</p>
+        <p className="hint">
+          {questions.length} soru. {user ? 'Sonuç hesabına kaydedilir.' : 'Giriş yapmadan sonuç yalnızca bu oturumda tutulur.'}
+        </p>
       </div>
       <div className="progress" role="progressbar" aria-valuemin={1} aria-valuemax={questions.length} aria-valuenow={step + 1}>
         <span style={{ width: `${((step + 1) / questions.length) * 100}%` }} />

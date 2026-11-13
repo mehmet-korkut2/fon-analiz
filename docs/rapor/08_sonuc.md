@@ -85,7 +85,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 
 **Uygulama.**
 
-- Tek kullanıcılıdır ve yereldir; kullanıcı girişi ve favoriler yoktur.
+- Yereldir. Kullanıcı girişinde e-posta doğrulaması, şifre sıfırlama ve iki aşamalı doğrulama yoktur (Bölüm 3.7).
 - Şema değişiklikleri bir migration aracıyla yönetilmez.
 - İnternetsiz çalışma proxy ile canlandırılarak denendi.
 - Ekran okuyucuyla deneme yapılmadı.
@@ -97,14 +97,13 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 
 | Konu | Neden kapsam dışı | Ne olursa yapılabilir |
 |---|---|---|
-| Takas analizi | Takas (aracı kurum dağılımı) verisi borsada işlem gören paylar içindir; TEFAS'ta işlem gören yatırım fonları için karşılığı yoktur. Bir fonun içindeki hisselerin takas verisini kullanmak için fonun portföy içeriğini bilmek gerekirdi; portföy dağılımı da elimizde yok (Bölüm 2.8). Takas verisi ayrıca ücretsiz ve açık bir kaynaktan alınamıyor: 1 Ocak 2025'ten bu yana Borsa İstanbul tarafından ücretli sunulmakta ve T+2 gecikmeyle yayımlanmaktadır [30]. | Lisanslı veri ve fon portföy içerikleri bulunursa borsa yatırım fonları için denenebilir |
+| Takas analizi | Takas (aracı kurum dağılımı) verisi borsada işlem gören paylar içindir; TEFAS'ta işlem gören yatırım fonları için karşılığı yoktur. Bir fonun içindeki hisselerin takas verisini kullanmak için fonun portföy içeriğini bilmek gerekirdi; portföy dağılımı da elimizde yok (Bölüm 2.8). Takas verisi ayrıca ücretsiz ve açık bir kaynaktan alınamıyor: 1 Ocak 2025'ten bu yana Borsa İstanbul tarafından ücretli sunulmakta ve T+2 gecikmeyle yayımlanmaktadır [32]. | Lisanslı veri ve fon portföy içerikleri bulunursa borsa yatırım fonları için denenebilir |
 | RSI, MACD gibi teknik göstergeler | Test ettiğimiz fiyat temelli özellikler (momentum, 1 yıllık zirveye uzaklık) bir aylık getiriyi drift'ten iyi tahmin etmedi (Bölüm 6.6). Test edilmemiş göstergeleri çoğaltmak kullanıcıda sinyal varmış izlenimi yaratabilirdi. Yalnızca geçmişi özetleyen 50/200 günlük ortalama ve 52 haftalık aralığı, "geleceği tahmin etmez" notuyla ekledik (Bölüm 4.4) | Göstergeler önce walk-forward düzeneğinde sınanır, işe yararsa gösterilir |
 | Haber ve duygu analizi | Fon ve şirket haberlerinin başlıca kaynağı KAP'tır ve KAP verisi saklanamaz (Bölüm 2.8). Haber sitelerinin içeriği telif kapsamındadır. Türkçe finans metinleri için etiketli veri yoktur. Fiyat temelli sinyallerin bile drift'i geçemediği bir ufukta haberden ek fayda beklemek için gerekçe bulamadık | Lisanslı bir haber akışı ve etiketli veriyle ayrı bir araştırma olarak yapılabilir |
 | Yönetim ücreti | TEFAS'ın sayfalarında ve uç noktalarında yok; resmî olarak izahnamede ve KAP'ta yayımlanır (Bölüm 2.9). Getiri hesaplarını etkilemez, çünkü ücret fiyata yansımıştır | MKK'nın izniyle ya da portföy şirketlerinin sitelerinin koşulları incelenerek |
 | Portföy dağılımı | TEFAS yayımlamıyor; KAP raporları teknik olarak sınırda çıkarılabiliyor ama saklanmaları kullanım koşuluna aykırı (Bölüm 2.8) | MKK'nın yazılı izni alınırsa üç rapor kalıbı için ayrıştırıcı yazılabilir |
 | Yayına alma | TEFAS dışarıya API sunmuyor; yayında Borsa İstanbul veri ürünleri gerekebilir (Bölüm 2.9). Ücretsiz sunucularda gece işi uyku nedeniyle güvenilir çalışmaz. Bitirme projesinin amacı için yerel sunum yeterli | Resmî veri lisansı, PostgreSQL ve zamanlanmış görev servisiyle |
 | LSTM | Veri miktarı ve sinyalin zayıflığı; önceden belirlenen karar kuralı gereği LightGBM başarısız olunca denenmedi (Bölüm 6.8) | Daha uzun veri ve ek bilgi kaynaklarıyla |
-| Kullanıcı girişi ve favoriler | Tek kullanıcılı yerel sunum için gerekmedi; kişisel veri işleme yükü getirirdi | Yayına alınırsa |
 
 ## 8.6 Gelecek çalışmalar
 
@@ -114,7 +113,7 @@ Bölümlerdeki kısıtları üç başlıkta topluyoruz:
 - **Farklı piyasa koşulları:** Öneri sisteminin ve ML'nin başka bir faiz rejimini kapsayan veriyle yeniden sınanması; LSTM'in bu durumda yeniden değerlendirilmesi (Bölüm 6.8).
 - **Yayına alma:** PostgreSQL, backend ve ön yüz için barındırma, gece işinin zamanlanmış görev servisine taşınması, alan adı, Alembic'e geçiş. TEFAS verisi için resmî kaynak (Borsa İstanbul veri yayın ürünleri) (Bölüm 2.9).
 - **İzne bağlı veriler:** MKK'nın yazılı izniyle KAP portföy dağılım raporlarından varlık dağılımı ve fonların yönetim ücreti (Bölüm 2.8, 2.9).
-- **Kullanıcı özellikleri:** Kullanıcı girişi, favori fonlar, birden fazla sanal portföy, sanal portföyde komisyon ve stopaj.
+- **Kullanıcı özellikleri:** E-posta doğrulaması ve şifre sıfırlama, iki aşamalı doğrulama, birden fazla sanal portföy, sanal portföyde komisyon ve stopaj.
 - **Erişilebilirlik:** Ekran okuyucuyla deneme ve sayfada tema seçimi.
 
 ## 8.7 Kişisel değerlendirme

@@ -221,4 +221,4 @@ Puanlar 8 soruluk ankete göredir (birikim payı sorusu eklendikten sonra; profi
 - Daha uzun veriyle (TEFAS 5 yıl veriyor; seçim için 1 yıllık geçmiş gerektiğinden en fazla ~4 yıllık pencere) farklı faiz dönemlerini kapsayan test.
 - Dengeli profildeki riskli fon kotasını piyasa koşuluna bağlamak (ör. risk primi negatifken kotayı azaltmak) ve bunu ayrı bir test döneminde sınamak.
 - Aynı portföy yönetim şirketinden en fazla 1–2 fon (şirket riskini çeşitlendirmek; Bölüm 6.3'te HVK'nın etkisi bu riskin gerçek bir örneği).
-- Kullanıcı girişiyle profillerin `risk_profiles` tablosunda saklanması.
+- ~~Kullanıcı girişiyle profillerin `risk_profiles` tablosunda saklanması.~~ Yapıldı (13.11.2026; rapor 3.7).

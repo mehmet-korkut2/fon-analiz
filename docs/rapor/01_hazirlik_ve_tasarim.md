@@ -69,7 +69,7 @@ Hesaplaması uzun süren işler (metrikler, kayan pencereli geriye dönük test,
 
 Henüz bir migration aracına (Alembic) geçmediğimiz için, mevcut tablolara sonradan eklenen boş bırakılabilir sütunları açılışta ekleyen küçük bir yardımcı (`init_db`) yazdık. Böylece yerel veritabanı silinip yeniden yüklenmeden şema güncellenebildi.
 
-`portfolio_allocations` tablosu, TEFAS'ın portföy dağılımı yayımlamayı bırakması nedeniyle şu an boştur (bkz. Bölüm 2.2). `users` ve `risk_profiles` tabloları da kullanıcı girişi kapsam dışı kaldığı için kullanılmamaktadır; risk profili tarayıcıda saklanır.
+`portfolio_allocations` tablosu, TEFAS'ın portföy dağılımı yayımlamayı bırakması nedeniyle şu an boştur (bkz. Bölüm 2.2). `users` ve `risk_profiles` tabloları ilk sürümde kullanılmıyordu; kullanıcı girişi eklenince (Bölüm 3.7) hesaplar, kayıtlı risk profilleri, oturumlar (`sessions`), favoriler (`favorites`) ve hatalı giriş sayaçları (`login_throttle`) bu tablolarda tutulmaktadır.
 
 ## 1.6 Arayüz taslakları
 
@@ -103,6 +103,6 @@ Arayüz taslaklarını 11.10.2026'da Claude'un tasarım tuvali (Design) aracıyl
 
 ## 1.8 Kısıtlar
 
-- Uygulama tek kullanıcılı ve yereldir; kullanıcı girişi, favori fonlar ve yayına alma kapsam dışıdır.
+- Uygulama yereldir ve yayına alma kapsam dışıdır. Kullanıcı girişi ve favori fonlar ilk planda kapsam dışıydı; sonradan eklendi (Bölüm 3.7).
 - SQLite tek dosyalık bir veritabanıdır; çok kullanıcılı bir ortamda PostgreSQL gerekir (Gelecek çalışmalar).
 - Gece güncellemesi yalnızca backend açıkken çalışır; bilgisayar kapalıyken kaçırılan günler bir sonraki açılışta otomatik tamamlanır.

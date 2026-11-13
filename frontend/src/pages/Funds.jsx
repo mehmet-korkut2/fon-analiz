@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getCategories, getFunds } from '../api/client'
+import FavoriteButton from '../components/FavoriteButton'
 import RiskBar from '../components/RiskBar'
 import { num, pct } from '../format'
 import { compactTl, count } from '../money'
@@ -132,7 +133,12 @@ export default function Funds() {
             {data && data.items.length === 0 && <tr><td colSpan={4 + COLUMNS.length + INFO_COLUMNS.length} className="muted">Aramana uyan fon yok.</td></tr>}
             {data?.items.map((f) => (
               <tr key={f.code}>
-                <td className="num">{data.sample ? <strong>{f.code}</strong> : <Link to={`/fonlar/${f.code}`}><strong>{f.code}</strong></Link>}</td>
+                <td className="num">
+                  <span className="code-cell">
+                    {!data.sample && <FavoriteButton code={f.code} compact />}
+                    {data.sample ? <strong>{f.code}</strong> : <Link to={`/fonlar/${f.code}`}><strong>{f.code}</strong></Link>}
+                  </span>
+                </td>
                 <td className="fund-name">
                   {data.sample ? <span>{f.name}</span> : <Link to={`/fonlar/${f.code}`}>{f.name}</Link>}
                   {f.category && <span className="muted small">{f.category}</span>}
