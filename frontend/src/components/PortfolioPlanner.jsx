@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { pct, signClass } from '../format'
 import { parseAmount, tl } from '../money'
+import DiversificationCheck from './DiversificationCheck'
 import EducationWarning from './EducationWarning'
 
 // funds: RecommendationsOut.portfolio, forecast: portfolio_forecast, performance: son 1 yıl (geriye bakış)
@@ -76,6 +77,7 @@ export default function PortfolioPlanner({ funds, forecast, performance }) {
           )}
         </>
       )}
+      <DiversificationCheck codes={funds.map((f) => f.code)} weights={funds.map((f) => f.weight)} showScore title="Bu dağılımın çeşitlendirmesi" />
     </div>
   )
 }

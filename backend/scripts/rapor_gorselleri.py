@@ -261,10 +261,111 @@ def ufuk_hata(con):
     save(fig, "sekil_6_2_ufuk_hata.png")
 
 
+def _similarity_payload(con):
+    import json
+
+    row = con.execute("select id, payload from similarity_runs order by created_at desc, id desc limit 1").fetchone()
+    return (row[0], json.loads(row[1])) if row else (None, None)
+
+
+def kume_secimi(con):
+    """Şekil 6.3: küme sayısına göre ortalama silhouette ve iki yıl arası kararlılık (Ward)."""
+    _, p = _similarity_payload(con)
+    if not p:
+        print("similarity_runs boş, sekil_6_3 atlandı")
+        return
+    c = pd.DataFrame(p["silhouette_curve"])
+    fig, (a, b) = plt.subplots(1, 2, figsize=(7.5, 2.8), sharex=True)
+    a.plot(c["k"], c["silhouette"], color=BLUE, lw=1.8)
+    if "stability" in c:
+        b.plot(c["k"], c["stability"], color=ORANGE, lw=1.8)
+    for ax in (a, b):
+        ax.axvline(p["k"], color=MUTED, lw=1, ls="--")
+        ax.set_xlabel("Küme sayısı k")
+    a.text(p["k"] + 0.3, a.get_ylim()[1], f"seçilen k={p['k']}", color=MUTED, fontsize=7, va="top")
+    a.set_title("Ortalama silhouette")
+    b.set_title("Kararlılık (önceki yılla ARI)")
+    save(fig, "sekil_6_3_kume_secimi.png")
+
+
+def kume_kategori(con):
+    """Şekil 6.4: kümeler (satır) ve TEFAS kategorileri (sütun), fon sayısı."""
+    from matplotlib.colors import LinearSegmentedColormap
+
+    run_id, p = _similarity_payload(con)
+    if not p:
+        print("similarity_runs boş, sekil_6_4 atlandı")
+        return
+    df = pd.read_sql("select c.cluster, f.category from fund_clusters c join funds f on f.code = c.fund_code where c.run_id = ?",
+                     con, params=(run_id,))
+    ct = pd.crosstab(df["cluster"], df["category"])
+    names = {c["id"]: c["name"] for c in p["clusters"]}
+    ct.index = [f"{i}. {names[i]}" for i in ct.index]
+    cmap = LinearSegmentedColormap.from_list("seq", ["#f4f6f5", "#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"])
+    fig, ax = plt.subplots(figsize=(7.5, 3.6))
+    ax.imshow(ct.values, cmap=cmap, aspect="auto")
+    ax.set_xticks(range(ct.shape[1]), ct.columns, rotation=30, ha="right")
+    ax.set_yticks(range(ct.shape[0]), ct.index)
+    for i in range(ct.shape[0]):
+        for j in range(ct.shape[1]):
+            v = ct.values[i, j]
+            if v:
+                ax.text(j, i, v, ha="center", va="center", fontsize=7, color="white" if v > 60 else INK)
+    ax.grid(False)
+    save(fig, "sekil_6_4_kume_kategori.png")
+
+
+def kalicilik(con):
+    """Şekil 6.5: fon çiftlerinin korelasyonu ve fonların 1 yıllık getirisi, önceki yıl ve son yıl."""
+    from scipy.stats import spearmanr
+    from sqlalchemy import create_engine, func, select
+    from sqlalchemy.orm import Session
+
+    from app.ml import similarity as S
+    from app.models import Fund, Price
+    from app.services.fund_status import is_tradable
+
+    with Session(create_engine(f"sqlite:///{db_path()}")) as db:
+        end = db.scalar(select(func.max(Price.date)))
+        start, prev = end - timedelta(days=S.WINDOW_DAYS), end - timedelta(days=2 * S.WINDOW_DAYS)
+        tradable = set(db.scalars(select(Fund.code).where(is_tradable())))
+        wide = S.load_wide(db, prev, end)
+    ok1, ok0 = S.coverage_ok(wide, start, end), S.coverage_ok(wide, prev, start)
+    both = sorted(c for c in wide.columns if c in tradable and ok1.get(c, False) and ok0.get(c, False))
+    A1 = S.weekly_corr(wide[both], start, end).to_numpy()
+    A0 = S.weekly_corr(wide[both], prev, start).to_numpy()
+    iu = np.triu_indices(len(both), 1)
+    x, y = A0[iu], A1[iu]
+    m = ~np.isnan(x) & ~np.isnan(y)
+    x, y = x[m], y[m]
+    w = S.window(wide[both], prev, end).ffill()
+    ps, pm, pe = (w.loc[:pd.Timestamp(d)].iloc[-1] for d in (prev, start, end))
+    r0, r1 = pm / ps - 1, pe / pm - 1
+    from matplotlib.colors import LinearSegmentedColormap
+
+    cmap = LinearSegmentedColormap.from_list("seq", ["#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"])
+    fig, (a, b) = plt.subplots(1, 2, figsize=(7.5, 3.2))
+    a.hexbin(x, y, gridsize=40, cmap=cmap, bins="log", mincnt=1)
+    a.plot([-1, 1], [-1, 1], color=MUTED, lw=1, ls="--")
+    a.set_title(f"Fon çiftlerinin korelasyonu (Spearman {spearmanr(x, y).statistic:.2f})".replace(".", ","))
+    a.set_xlabel("Önceki yıl")
+    a.set_ylabel("Son yıl")
+    q = r0.between(r0.quantile(.01), r0.quantile(.99)) & r1.between(r1.quantile(.01), r1.quantile(.99))
+    b.scatter(r0[q], r1[q], s=5, color=BLUE, alpha=0.5, linewidths=0)
+    b.set_title(f"Fonların 1 yıllık getirisi (Spearman {spearmanr(r0, r1, nan_policy='omit').statistic:.2f})".replace(".", ","))
+    b.set_xlabel("Önceki yıl")
+    b.set_ylabel("Son yıl")
+    pct_axis(b, "x")
+    pct_axis(b, "y")
+    print(f"kalıcılık: {len(both)} fon, {len(x)} çift")
+    save(fig, "sekil_6_5_kalicilik.png")
+
+
 # sırayla; ilk argüman: "prices" (fiyat tablosu), "con" (bağlantı) ya da yok
 FIGURES = {
     "mimari": None, "fon_sayisi": "prices", "spk_fonlari": "prices", "pazartesi": "prices", "sharpe_vol": "con",
     "risk_getiri": "con", "kayan_pencere": "con", "aylik_hata": "con", "ufuk_hata": "con",
+    "kume_secimi": "con", "kume_kategori": "con", "kalicilik": "con",
 }
 
 

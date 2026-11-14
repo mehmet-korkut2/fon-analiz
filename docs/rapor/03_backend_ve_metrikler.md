@@ -204,7 +204,7 @@ Yüksek enflasyon ortamında bir fonun nominal getirisi tek başına yanıltıc�
 
 ## 3.9 Testler
 
-Backend'de toplam 223 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
+Backend'de toplam 242 otomatik test vardır (`backend/tests/`; dosyalara göre dağılım Tablo 7.1'de). Testler şu alanları kapsar:
 
 - **Metrik tanımları:** Bilinen sentetik serilerle.
 - **API davranışları:** Süzme, sıralama, sayfalama, Türkçe arama, eski verili ve kapatılmış fonların dışlanması.
@@ -213,6 +213,7 @@ Backend'de toplam 223 otomatik test vardır (`backend/tests/`; dosyalara göre d
 - **Sanal portföy:** Emir günü ve son işlem saati, valör ve hafta sonu, ileri fiyat, tatil gününde sonraki fiyat, valör bilgisi olmayan fon, nakit yetersizliği (bekleyen alışlar dahil), kısmi ve tam satış ile ortalama maliyet, bekleyen satıştaki payların yeniden satılamaması, iptal, sıfırlama, kapatılmış ve eski verili fon, günlük değer ve para piyasası kıyası, "Ya o zaman alsaydım?" hesabı ve yıllıklandırma sınırı (18 test).
 - **Enflasyon ve reel getiri:** Bölüm 3.8 (21 test ve öneri değişmezliği testi).
 - **Kullanıcı girişi ve güvenlik:** Bölüm 3.7 (33 test; yerel şifre sıfırlama ve hesap listesi komutları 9 test).
+- **Benzer fonlar ve kümeleme:** Bölüm 6.11 (19 test).
 - **Diğer bölümler:** Öneri sistemi ve makine öğrenmesi modülü (Bölüm 5 ve 6).
 
 Her değişiklikten sonra bütün testler çalıştırıldı.

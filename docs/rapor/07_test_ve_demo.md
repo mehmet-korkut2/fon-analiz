@@ -8,7 +8,7 @@ Bu aşamada uygulamanın uçtan uca doğru çalıştığını göstermeyi, sunum
 
 ## 7.2 Otomatik testler
 
-Backend'de 223 otomatik test bulunmaktadır (Bölüm 3.9; 13.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
+Backend'de 242 otomatik test bulunmaktadır (Bölüm 3.9; 14.11.2026). Ön yüz her değişiklikten sonra `npm run lint` ve `npm run build` ile denetlenmiştir.
 
 **Tablo 7.1** Test dosyalarına göre otomatik testler
 
@@ -32,9 +32,10 @@ Backend'de 223 otomatik test bulunmaktadır (Bölüm 3.9; 13.11.2026). Ön yüz 
 | `test_fund_status.py` | SPK kararıyla kapatılan fonlar | 3 |
 | `test_inflation.py` | Enflasyon ve reel getiri: EVDS ayrıştırma, anahtarın sızmaması, internetsiz ve anahtarsız çalışma, dönem hizalaması, eksik ay, alım gücü, filtreler, hayatta kalma yanılgısı | 21 |
 | `test_hesap_betikleri.py` | Yerel şifre sıfırlama (`scripts.sifre_sifirla`) ve hesap listesi (`scripts.hesaplar`): oturumların kapanması, kural, şifrenin gizli kalması | 9 |
+| `test_similarity.py` | Benzer fonlar ve kümeleme: korelasyon ve uzaklık, elle hesaplanmış silhouette ve ARI, pazartesi etkisi (günlük / haftalık), k-NN, uyarı eşiği, etkin fon sayısı, eksik veri, sentetik grupların geri bulunması, API | 19 |
 | `test_favorites.py` | Favorilerde tahmin karnesi özeti, sanal portföy pozisyonu, kapatılmış/eski verili fon uyarısı, kullanıcıya özel olma | 3 |
 | `test_api.py` | Sağlık kontrolü | 1 |
-| **Toplam** | | **223** |
+| **Toplam** | | **242** |
 
 ## 7.3 Uçtan uca test
 
@@ -64,16 +65,17 @@ Sanal portföy akışı gerçek bir alış emri verip iptal eder. Portföy boşs
 | Ya o zaman alsaydım? | Bağlantıyla gelen 2 fonun sonucu ve grafik; tarih 03.10.2022 yapılıp yeniden hesaplanınca alış günü 2022 olur ve yıllıklandırılmış getiri görünür |
 | Döviz ve altın | Anlık kur tablosu, TCMB sekmesi; çevrimdışında "Son bilinen kurlar … en son X tarihinde güncellendi" notu |
 | Enflasyon ve reel getiri | Ana sayfada enflasyonu yenen fonlar özeti (oran ve kategoriler); fon listesinde "1 yıl reel" sütunu ve "enflasyonu yenenler" filtresi (bütün değerler pozitif); sıralamalarda aynı filtre; fon detayında 5 dönemlik reel getiri tablosu ve etiketler; "Ya o zaman alsaydım?" ve sanal portföyde alım gücü. İnternetsiz turda TÜFE güncellemesi atlanır, son bilinen veriyle çalışılır |
-| Model performansı | Sonuç tabloları (3+), aylık hata grafiği, ufka göre karne ve hata grafiği, kaydedilen tahminlerin karnesi |
+| Benzer fonlar ve çeşitlendirme | Fon detayında en çok benzeyen 5 fon ve grubu; benzer fon düğmesiyle karşılaştırmaya geçilir; karşılaştırmada 4×4 korelasyon ısı haritası; planlayıcıda çeşitlendirme skoru; Favorilerim'de çeşitlendirme kontrolü |
+| Model performansı | Sonuç tabloları (3+), aylık hata grafiği, ufka göre karne ve hata grafiği, kaydedilen tahminlerin karnesi, kümeleme bölümü |
 | Kullanıcı girişi ve favoriler | Girişsiz sanal portföy ve Favorilerim'de giriş kartı; kayıtta kısa şifre uyarısı; arayüzden geçici `.example` hesabı açılıp aynı sayfaya dönülür; sanal portföy akışı bu hesapla; fon listesinde her satırda yıldız; fon detayında ve sıralamalarda favori ekleme; Favorilerim'de tahmin karnesi sütunu ve tek tıkla karşılaştırma; ana sayfa favori özeti; Hesabım'da anketteki profilin hesaba aktarıldığı, favori sayısı, şifre değiştirme; kullanıcı menüsünden çıkış; yanlış şifre mesajı; yeni şifreyle giriş; arayüzden hesap silme. Tur yarıda kalırsa hesap API ile silinir; gerçek kullanıcı verisine dokunulmaz |
 | Her sayfada | Yatay taşma yok; konsol ve sayfa hatası yok; 5xx dönen API isteği yok; localhost dışına istek yok |
 
-**Sonuçlar (13.11.2026; tahmin karnesi, kullanıcı girişi, favori ve enflasyon adımları eklendikten sonra).**
+**Sonuçlar (14.11.2026; tahmin karnesi, kullanıcı girişi, favori, enflasyon ve benzer fon adımları eklendikten sonra).**
 
 | Koşul | Açık, 1280 px | Koyu, 1280 px | Açık, 390 px | Koyu, 390 px | Toplam |
 |---|---|---|---|---|---|
-| İnternet var | 91/91 | 91/91 | 91/91 | 91/91 | 364/364 |
-| İnternet yok (Bölüm 7.4) | 92/92 | 92/92 | 92/92 | 92/92 | 368/368 |
+| İnternet var | 97/97 | 97/97 | 97/97 | 97/97 | 388/388 |
+| İnternet yok (Bölüm 7.4) | 98/98 | 98/98 | 98/98 | 98/98 | 392/392 |
 
 Bütün turlarda konsol hatası, sayfa hatası, 5xx yanıtı ve dış istek kaydedilmedi. Çevrimdışı turda bir adım fazladır: "son bilinen kurlar" notunun görünmesi.
 

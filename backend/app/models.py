@@ -293,6 +293,41 @@ class MlReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class SimilarityRun(Base):
+    """Benzer fonlar / kümeleme hesabı (app/ml/similarity.py, ayda bir). payload: yöntem, k, silhouette eğrisi,
+    kategorilerle örtüşme (ARI), kararlılık, küme adları ve özetleri."""
+
+    __tablename__ = "similarity_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    data_as_of: Mapped[date] = mapped_column(Date)
+    payload: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class FundCluster(Base):
+    """Fonun kümesi (yalnızca son hesabın satırları tutulur)."""
+
+    __tablename__ = "fund_clusters"
+
+    run_id: Mapped[int] = mapped_column(ForeignKey("similarity_runs.id", ondelete="CASCADE"), primary_key=True)
+    fund_code: Mapped[str] = mapped_column(String(10), primary_key=True)
+    cluster: Mapped[int] = mapped_column(Integer)
+    silhouette: Mapped[float | None] = mapped_column(Float)
+
+
+class FundNeighbor(Base):
+    """Fona en çok benzeyen fonlar (haftalık getiri korelasyonu; yalnızca son hesabın satırları tutulur)."""
+
+    __tablename__ = "fund_neighbors"
+
+    run_id: Mapped[int] = mapped_column(ForeignKey("similarity_runs.id", ondelete="CASCADE"), primary_key=True)
+    fund_code: Mapped[str] = mapped_column(String(10), primary_key=True)
+    rank: Mapped[int] = mapped_column(Integer, primary_key=True)
+    neighbor_code: Mapped[str] = mapped_column(String(10))
+    corr: Mapped[float] = mapped_column(Float)
+
+
 # --- Sanal portföy (kullanıcıya özel, hayali para; app/services/sanal_portfoy.py) -----------------
 
 class SanalAyar(Base):

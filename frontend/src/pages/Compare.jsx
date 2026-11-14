@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getCompare } from '../api/client'
+import DiversificationCheck from '../components/DiversificationCheck'
 import FavoriteButton from '../components/FavoriteButton'
 import FundPicker from '../components/FundPicker'
 import { MAX_COMPARE, getCompareList, setCompareList } from '../compareList'
@@ -284,6 +285,7 @@ export default function Compare() {
                 {funds.some(isExcludedFromBest) && ' Verisi güncellenmeyen ve işleme kapatılan fonlar vurgulamaya dahil edilmez.'}
                 {funds.some((f) => f.metrics?.sharpe_note) && " * Sharpe, volatilitesi %5'in altındaki fonlarda anlamlı olmadığı için hesaplanmaz."}
               </p>
+              <DiversificationCheck codes={selected} showHeatmap title="Birlikte hareket (korelasyon)" />
             </>
           )}
         </>

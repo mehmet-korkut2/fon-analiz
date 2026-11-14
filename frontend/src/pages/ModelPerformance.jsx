@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { getMlPerformance } from '../api/client'
+import ClusteringReport from '../components/ClusteringReport'
 import { num, trDate } from '../format'
 import { C, SERIES } from '../theme'
 
@@ -440,6 +441,8 @@ export default function ModelPerformance() {
         </ul>
         <p className="small">Yöntemin ayrıntıları: <Link to="/oneriler">öneri sistemi</Link> ve proje belgeleri (docs/ml_tahmin.md).</p>
       </div>
+
+      <ClusteringReport />
     </section>
   )
 }

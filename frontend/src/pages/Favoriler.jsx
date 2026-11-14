@@ -8,6 +8,7 @@ import LoginRequired from '../components/LoginRequired'
 import RiskBar from '../components/RiskBar'
 import { num, pct, signClass, trDate } from '../format'
 import { tl } from '../money'
+import DiversificationCheck from '../components/DiversificationCheck'
 
 const fmtPrice = (v) => (v == null ? '–' : num(v, v < 100 ? 4 : 2))
 
@@ -145,6 +146,7 @@ export default function Favoriler() {
             (geriye dönük hesaplananlar dahil; ayrıntı fon sayfasında). Sanal portföy sütunu, sanal portföyündeki açık pozisyonu gösterir.
             Geçmiş performans gelecekteki sonuçların göstergesi değildir.
           </p>
+          <DiversificationCheck codes={active.slice(0, 25).map((f) => f.code)} title="Favorilerde birlikte hareket eden fonlar" />
         </>
       )}
     </section>

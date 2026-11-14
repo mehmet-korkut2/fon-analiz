@@ -59,6 +59,11 @@
   --series-2: #eb6834;
   --series-3: #1baf7a;
   --series-4: #eda100;
+  /* Korelasyon ısı haritası: iki uçlu (mavi negatif, kırmızı pozitif), ortası nötr gri */
+  --heat-pos: #c43a3a;
+  --heat-neg: #1c5cab;
+  --heat-mid: #f0efec;
+  --heat-on-strong: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -111,6 +116,10 @@
     --series-2: #d95926;
     --series-3: #199e70;
     --series-4: #c98500;
+    --heat-pos: #e66767;
+    --heat-neg: #3987e5;
+    --heat-mid: #383835;
+    --heat-on-strong: #0f1513;
   }
 }
 
@@ -712,3 +721,27 @@ tbody tr:hover td { background: var(--hover); }
 .infl-cats li { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: 8px; align-items: center; font-size: 14px; }
 .infl-cats .imp-track { height: 8px; }
 .infl-cats .imp-track span { background: var(--chart-price); }
+
+/* Benzer fonlar ve çeşitlendirme (SimilarFunds, DiversificationCheck, CorrelationHeatmap) */
+.similar { margin-top: 8px; }
+.cluster-line { margin: 0 0 8px; }
+.similar-table { font-size: 14px; min-width: 560px; }
+.similar-table td { vertical-align: middle; }
+.sim-bar { display: inline-block; width: 56px; height: 6px; margin-right: 8px; vertical-align: middle; border-radius: 3px; background: var(--track); overflow: hidden; }
+.sim-bar span { display: block; height: 100%; background: var(--series-1); border-radius: 3px; }
+.divers { display: grid; gap: 10px; margin-top: 12px; }
+.divers h3 { margin: 0; font-size: 16px; }
+.divers p { margin: 0; }
+.divers-warn { margin: 0; padding: 10px 12px 10px 30px; border-radius: 8px; background: var(--warn-soft); color: var(--warn-ink); border-left: 4px solid var(--warn); font-size: 14px; display: grid; gap: 4px; }
+.divers-score { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; padding: 10px 12px; border-radius: 8px; background: var(--surface-2); }
+.divers-big { font-family: var(--font-display); font-size: 30px; font-weight: 600; line-height: 1; }
+.heatmap { border-collapse: separate; border-spacing: 2px; font-size: 13px; width: auto; min-width: 0; }
+.heatmap th, .heatmap td { padding: 6px 8px; text-align: center; border: 0; }
+.heatmap td { min-width: 52px; border-radius: 4px; }
+.heatmap th[scope="row"] { text-align: right; }
+.heat-diag { background: var(--surface-2); color: var(--ink-2); }
+.heat-legend { display: flex; align-items: center; gap: 8px; padding: 4px 12px 10px; }
+.heat-scale { display: inline-block; width: 140px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--heat-neg), var(--heat-mid), var(--heat-pos)); }
+@media (max-width: 560px) {
+  .divers-score { grid-template-columns: 1fr; }
+}

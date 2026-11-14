@@ -50,24 +50,27 @@ Dört nedenle. Veri az: fon başına en fazla 47 aylık gözlem. Tablo biçimli,
 **14. Gelecekten bilgi sızmadığından nasıl emin oldunuz?**
 Her test ayında model yalnızca hedef penceresi o günden önce biten gözlemlerle yeniden eğitildi. Özellikler yalnızca tahmin günü ve öncesinin fiyatlarından hesaplandı. Hiperparametreler test döneminden önceki ayrı bir dönemde seçildi. Sonradan kapatılan fonlar da teste dahil. Bu kuralların her biri birim testleriyle doğrulanıyor (Bölüm 6.5).
 
+**15. Getiri tahmini işe yaramadı da kümeleme neden işe yaradı?**
+Çünkü ölçtüğümüz şey farklı. İki fonun birlikte hareket etmesi ne tuttuklarından gelir (altın, dolar, BIST endeksi) ve yavaş değişir: fon çiftlerinin korelasyonu bir yıldan ötekine Spearman 0,58 ile korunuyor, getirinin sırası ise 0,25 (hisse fonları içinde 0,05). Korelasyon aynı veriyle getiriden çok daha kesin ölçülür: ρ = 0,9 için standart hata yaklaşık 0,03, bir yıllık ortalama getiri için yaklaşık 25 puan. Pazartesi etkisi para piyasası fonlarını yapay olarak benzettiği için günlük değil haftalık getiri kullandık. Kümeler varlık türü kategorileriyle örtüşüyor (ARI 0,76) ve önceki yılın kümelerine benziyor (0,61) (Bölüm 6.11).
+
 ## Uygulama
 
-**15. Sanal portföyde valörü nasıl modellediniz?**
+**16. Sanal portföyde valörü nasıl modellediniz?**
 TEFAS'ın fon profilindeki valör ve son işlem saatini kullanıyoruz. Saat sonrası ya da hafta sonu verilen emir ertesi iş günü sayılıyor. Emir, valör kadar iş günü sonraki günün fiyatından gerçekleşiyor; o gün tatilse sonraki ilk işlem gününden. Ayrıca "ileri fiyat" kuralı var: o günün fiyatı emir anında zaten biliniyorsa emir bir gün kayıyor, bilinen fiyattan alım yapılamıyor. Alışta tutar bloke ediliyor, pay adedi tam sayı. TEFAS'taki alan adları ters görünüyor; hangisinin alış olduğunu yabancı hisse fonlarının bilinen T+1 / T+3 valörlerinden çıkardık (Bölüm 3.6).
 
-**16. Sistemi nasıl test ettiniz?**
-Backend'de 223 otomatik test var: metrik tanımları, API kuralları, öneri, ML'de sızıntı önlemleri, sanal portföyün valör ve nakit kuralları, internetsiz çalışma, yedek. Arayüzü gerçek tarayıcıda tıklayıp yazan bir betikle açık/koyu temada, masaüstü ve telefon genişliğinde denedik: internetle 364/364, internetsiz 368/368 adım geçti, konsol hatası ve dış istek yok (Bölüm 7.2, 7.3).
+**17. Sistemi nasıl test ettiniz?**
+Backend'de 242 otomatik test var: metrik tanımları, API kuralları, öneri, ML'de sızıntı önlemleri, sanal portföyün valör ve nakit kuralları, internetsiz çalışma, yedek. Arayüzü gerçek tarayıcıda tıklayıp yazan bir betikle açık/koyu temada, masaüstü ve telefon genişliğinde denedik: internetle 388/388, internetsiz 392/392 adım geçti, konsol hatası ve dış istek yok (Bölüm 7.2, 7.3).
 
-**17. Sunumda internet olmazsa ne olur?**
+**18. Sunumda internet olmazsa ne olur?**
 Uygulama çalışır. Fon verisi yereldeki veritabanında, yazı tipleri projeye gömülü. Döviz sayfası son bilinen kurları "en son X tarihinde güncellendi" notuyla gösterir. Gece güncellemesi internet yoksa birkaç saniyede atlanır. Bunu internet kesintisini canlandırarak denedik (Bölüm 7.4).
 
 ## Etik ve yöntem
 
-**18. Bu bir yatırım tavsiyesi mi?**
+**19. Bu bir yatırım tavsiyesi mi?**
 Hayır. Yatırım danışmanlığı SPK lisansı gerektirir; bu bir bitirme projesi ve eğitim aracı. Her sayfada uyarı var; öneri, hesaplayıcı ve sanal portföyde daha belirgin uyarı kutuları var. Önerilerin geçmişte çoğunlukla kıyası geçemediğini de kullanıcıya gösteriyoruz.
 
-**19. Yapay zekâ araçlarını nasıl kullandınız?**
+**20. Yapay zekâ araçlarını nasıl kullandınız?**
 Anthropic'in Claude Code aracını kullandık. Kodun büyük bölümü, analiz betikleri ve raporun ilk taslakları bizim yönlendirmemizle onunla yazıldı. Kararları biz verdik: hedef değişkenin getiri olması, SPK fonlarının silinmemesi, Sharpe eşiği, başarısız modelin gösterilmemesi, KAP verisinin kullanılmaması gibi. Her değişiklikten sonra testleri çalıştırdık, veri iddialarını kaynağa karşı doğruladık, raporun sayılarını veritabanından aldık. Yapay zekânın yaptığı hatalar da commit geçmişinde kayıtlı (Bölüm 1.3). [DOLDUR: kendi deneyimini bir cümleyle ekle; ne zaman işini kolaylaştırdı, ne zaman düzeltmen gerekti.]
 
-**20. Projenin en büyük kısıtı ne? Yeniden yapsanız neyi farklı yapardınız?**
+**21. Projenin en büyük kısıtı ne? Yeniden yapsanız neyi farklı yapardınız?**
 En büyük kısıt veri: 5 yıllık fiyat geçmişi tek bir yüksek faiz dönemini kapsıyor, bu yüzden hem öneri testi hem ML testi başka piyasa koşullarına genellenemez. Fonların geçmişteki risk değeri ve büyüklüğü de bilinmiyor. Yeniden yapsaydık bu bilgileri ilk günden itibaren her gün saklamaya başlardık. [DOLDUR: kendi cevabını ekle.]

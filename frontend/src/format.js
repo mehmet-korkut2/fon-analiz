@@ -14,3 +14,6 @@ export const trDate = (iso, opts) => new Date(iso).toLocaleDateString('tr-TR', o
 
 // Ay adı: "Ekim 2026" (TÜFE ayları)
 export const monthLabel = (iso) => trDate(iso, { month: 'long', year: 'numeric' })
+
+// Benzerlik yüzdesi = haftalık getiri korelasyonu × 100 (son 1 yıl)
+export const simPct = (v) => (v == null ? '–' : `%${Math.round(v * 100)}`)

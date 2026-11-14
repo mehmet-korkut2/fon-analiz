@@ -126,6 +126,7 @@ Süre hedefi: 12–15 dakika anlatım + 4 dakikalık canlı demo (ya da `docs/de
 - Başarı ölçütü sonuçlardan önce tanımlandı
 - LightGBM drift'i 4 risk grubunun hiçbirinde geçemedi; ARIMA drift'le aynı
 - Sitede ML tahmini yok: etiketli drift tahmini + ölçülmüş %80 aralık
+- Aynı veriyle kümeleme işe yaradı: benzer fonlar ve çeşitlendirme uyarısı (korelasyon yıldan yıla kalıcı, getiri değil; Şekil 6.5)
 
 **Görsel:** Tablo 6.1 (Drift ve LightGBM satırları vurgulu) ve Şekil 6.1 Aylık fazla getiri hatası.
 
@@ -161,8 +162,8 @@ Süre hedefi: 12–15 dakika anlatım + 4 dakikalık canlı demo (ya da `docs/de
 
 ## 13. Test ve sunum hazırlığı
 
-- 223 otomatik test (metrikler, API, öneri, ML sızıntısı, tahmin karnesi, kullanıcı girişi ve güvenlik, favoriler, enflasyon ve reel getiri, sanal portföy, yedek)
-- Uçtan uca test: açık/koyu, masaüstü/390 px; internetle 364/364, internetsiz 368/368
+- 242 otomatik test (metrikler, API, öneri, ML sızıntısı, tahmin karnesi, benzer fonlar ve kümeleme, kullanıcı girişi ve güvenlik, favoriler, enflasyon ve reel getiri, sanal portföy, yedek)
+- Uçtan uca test: açık/koyu, masaüstü/390 px; internetle 388/388, internetsiz 392/392
 - Tek tıkla başlatma, internetsiz çalışma (son bilinen kurlar), yedek ve geri yükleme
 - Kullanıcı testi: 6 görev, 5 soruluk anket [DOLDUR: katılımcı sayısı ve sonuç]
 

@@ -11,6 +11,7 @@ import { monthLabel, num, pct, signClass, trDate } from '../format'
 import { isClosed, STATUS_LABELS } from '../fundStatus'
 import { compactTl, parseAmount, signedTl, tl2 } from '../money'
 import { C, SERIES } from '../theme'
+import DiversificationCheck from '../components/DiversificationCheck'
 
 const MAX_WHATIF = 4
 const SIDE = { alis: 'Alış', satis: 'Satış' }
@@ -220,6 +221,7 @@ function Positions({ data, onDone }) {
   const rows = data.positions.filter((p) => p.units > 0)
   if (!rows.length) return <p className="muted">Henüz fon yok. Yukarıdan bir fon seçip alış emri verebilirsin; emir valör gününde gerçekleşir.</p>
   return (
+    <>
     <div className="table-wrap">
       <table className="sim-table stack-table">
         <thead>
@@ -258,6 +260,8 @@ function Positions({ data, onDone }) {
         </tbody>
       </table>
     </div>
+    <DiversificationCheck codes={rows.map((p) => p.code)} weights={rows.map((p) => p.value ?? 0)} showScore title="Portföyün çeşitlendirmesi" />
+    </>
   )
 }
 

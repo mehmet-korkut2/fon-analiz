@@ -72,4 +72,24 @@ Kaynaklar IEEE biçimindedir ve metinde ilk geçiş sırasıyla numaralandırıl
 
 [35] A. N. Angelopoulos ve S. Bates, "A gentle introduction to conformal prediction and distribution-free uncertainty quantification," arXiv:2107.07511, 2021.
 
-[36] Fintables, "Takas ve aracı kurum dağılımı nedir?," Fintables Araştırma. [Çevrimiçi]. Erişim adresi: https://fintables.com/arastirma/yazilar/takas-analizi/takas-ve-araci-kurum-dagilimi-nedir. [Erişim: 15 Eki. 2026].
+[36] T. W. Epps, "Comovements in stock prices in the very short run," *Journal of the American Statistical Association*, vol. 74, no. 366, pp. 291–298, 1979.
+
+[37] R. N. Mantegna, "Hierarchical structure in financial markets," *The European Physical Journal B*, vol. 11, no. 1, pp. 193–197, 1999.
+
+[38] J. H. Ward, Jr., "Hierarchical grouping to optimize an objective function," *Journal of the American Statistical Association*, vol. 58, no. 301, pp. 236–244, 1963.
+
+[39] S. P. Lloyd, "Least squares quantization in PCM," *IEEE Transactions on Information Theory*, vol. 28, no. 2, pp. 129–137, 1982.
+
+[40] L. Kaufman ve P. J. Rousseeuw, *Finding Groups in Data: An Introduction to Cluster Analysis*. New York, NY, USA: Wiley, 1990.
+
+[41] P. J. Rousseeuw, "Silhouettes: A graphical aid to the interpretation and validation of cluster analysis," *Journal of Computational and Applied Mathematics*, vol. 20, pp. 53–65, 1987.
+
+[42] L. Hubert ve P. Arabie, "Comparing partitions," *Journal of Classification*, vol. 2, no. 1, pp. 193–218, 1985.
+
+[43] P. Virtanen vd., "SciPy 1.0: Fundamental algorithms for scientific computing in Python," *Nature Methods*, vol. 17, pp. 261–272, 2020.
+
+[44] T. M. Cover ve P. E. Hart, "Nearest neighbor pattern classification," *IEEE Transactions on Information Theory*, vol. 13, no. 1, pp. 21–27, 1967.
+
+[45] Y. Choueifaty ve Y. Coignard, "Toward maximum diversification," *The Journal of Portfolio Management*, vol. 35, no. 1, pp. 40–51, 2008.
+
+[46] Fintables, "Takas ve aracı kurum dağılımı nedir?," Fintables Araştırma. [Çevrimiçi]. Erişim adresi: https://fintables.com/arastirma/yazilar/takas-analizi/takas-ve-araci-kurum-dagilimi-nedir. [Erişim: 15 Eki. 2026].

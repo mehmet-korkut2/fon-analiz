@@ -86,11 +86,17 @@ const FLOWS = [
     ['Fon büyüklüğü ve yatırımcı', `__t.byText('.card', 'Fon büyüklüğü')?.textContent.includes('TL')`],
     ['KAP bağlantısı (TEFAS)', `__t.q('.kap-link a')?.href.startsWith('https://www.kap.org.tr/')`],
     ['Sanal portföyde dene', `__t.byText('.detail-actions a', 'Sanal portföyde dene')?.getAttribute('href') === '/sanal-portfoy?fon=TTE'`],
+    ['En çok benzeyen 5 fon ve grubu', `(async () => { await __t.until(() => __t.all('.similar-table tbody tr').length === 5);
+      return !!__t.q('.cluster-line') && __t.q('.cluster-line').textContent.slice(0, 50) + ' · ilk: ' + __t.q('.similar-table tbody td').textContent.slice(0, 3) })()`],
+    ['Benzer fonu karşılaştırmaya gönder', `(async () => { const a = __t.q('.similar-table tbody a.btn'); const other = a.getAttribute('href').split(',')[1]; a.click();
+      await __t.until(() => location.pathname === '/karsilastir' && location.search.includes('TTE') && location.search.includes(other)); return other })()`],
   ]],
   ['Karşılaştırma', '/karsilastir?fonlar=TTE,AFT,IPB,AES', [
     ['4 fon çizgisi', `__t.all('.recharts-line').length >= 4`],
     ['Metrik tablosu', `__t.all('.compare-table tbody tr').length >= 10`],
     ['Logaritmik ölçek', `(async () => { const c = __t.byText('label', 'Logaritmik')?.querySelector('input'); c.click(); await __t.until(() => c.checked); return true })()`],
+    ['Korelasyon ısı haritası (4×4)', `(async () => { await __t.until(() => __t.all('.heatmap tbody tr').length === 4);
+      return __t.all('.heatmap .heat-diag').length === 4 && __t.all('.heatmap td.num').length === 12 })()`],
   ]],
   ['Sıralamalar', '/siralamalar', [
     ['3 liste × 10 fon', `__t.all('.rank-card').length === 3 && __t.all('.rank-card').every((c) => c.querySelectorAll('li').length === 10)`],
@@ -120,6 +126,7 @@ const FLOWS = [
     ['Örnek portföy grafiği', `!!__t.q('.perf .recharts-line')`],
     ['Planlayıcı tutarı değişir', `(async () => { __t.type('.planner input', '50.000');
       await __t.until(() => __t.q('.planner-table tfoot')?.textContent.includes('50.000')); return true })()`],
+    ['Planlayıcıda çeşitlendirme skoru', `(async () => { await __t.until(() => __t.q('.planner .divers-big')); return 'etkin fon ' + __t.q('.planner .divers-big').textContent })()`],
     ['Kayan pencereli test', `!!__t.byText('h2', 'Geriye dönük test') && !!__t.q('.rolling .recharts-bar-rectangle, .rolling .recharts-rectangle')`],
   ]],
   ['Sanal portföy (girişsiz)', '/sanal-portfoy', [
@@ -173,6 +180,7 @@ const FLOWS = [
   ]],
   ['Favorilerim', '/favoriler', [
     ['İki favori, TTE listede', `(async () => { await __t.until(() => __t.all('.fav-table tbody tr').length === 2); return __t.q('.fav-table tbody').textContent.includes('TTE') })()`],
+    ['Çeşitlendirme kontrolü', `(async () => { await __t.until(() => __t.q('.favorites-page .divers')); return __t.q('.favorites-page .divers p').textContent.slice(0, 60) })()`],
     ['Tahmin karnesi ve fiyat sütunları', `!!__t.byText('.fav-table th', 'Tahmin karnesi') && __t.all('.fav-hits').length >= 1 && __t.q('.fav-hits').textContent`],
     ['Tek tıkla karşılaştır', `(async () => { __t.click('.fav-actions button'); await __t.until(() => location.pathname === '/karsilastir' && location.search.split(',').length === 2)
       await __t.until(() => __t.all('.chip .fav-btn[aria-pressed=true]').length === 2); return location.search })()`],
@@ -215,6 +223,8 @@ const FLOWS = [
     ['Aylık hata grafiği', `__t.all('.recharts-line').length >= 4`],
     ['Ufka göre karne ve hata grafiği', `!!__t.byText('h2', 'Ufka göre tahmin karnesi') && __t.all('.recharts-line').length >= 8`],
     ['Kaydedilen tahminlerin karnesi', `!!__t.byText('h2', 'Kaydedilen tahminlerin karnesi') && __t.all('.score-summary tbody tr').length === 5`],
+    ['Kümeleme bölümü', `(async () => { await __t.until(() => __t.all('.cluster-table tbody tr').length >= 5);
+      return !!__t.q('#kumeleme') && __t.all('.cluster-table tbody tr').length + ' küme' })()`],
   ]],
 ]
 

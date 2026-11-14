@@ -9,7 +9,7 @@ from app import scheduler
 from app.config import settings
 from app.database import init_db
 from app.deps import csrf_violation
-from app.routers import account, auth, compare, funds, fx, inflation, ml, rankings, recommendations, risk, sanal, status
+from app.routers import account, auth, compare, funds, fx, inflation, ml, rankings, recommendations, risk, sanal, similarity, status
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -53,6 +53,7 @@ app.include_router(sanal.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(account.router, prefix="/api")
 app.include_router(inflation.router, prefix="/api")
+app.include_router(similarity.router, prefix="/api")
 
 
 @app.get("/api/health")

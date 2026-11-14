@@ -7,6 +7,7 @@ import ForecastCard from '../components/ForecastCard'
 import ForecastScorecard from '../components/ForecastScorecard'
 import RealReturns from '../components/RealReturns'
 import RiskBar from '../components/RiskBar'
+import SimilarFunds from '../components/SimilarFunds'
 import TechnicalSummary from '../components/TechnicalSummary'
 import { num, pct, signClass, trDate } from '../format'
 import { DEFAULT_PERIOD, PERIODS, findPeriod } from '../periods'
@@ -441,6 +442,8 @@ export default function FundDetail() {
       ) : (
         <p className="muted">Bu fon için henüz metrik hesaplanmadı.</p>
       )}
+
+      <SimilarFunds code={fund.code} />
 
       <p className="small kap-link">
         {fund.kap_url ? (

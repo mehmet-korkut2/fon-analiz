@@ -22,6 +22,7 @@ from sqlalchemy import func, select
 from app.config import settings
 from app.database import SessionLocal
 from app.models import FundMetrics, Price
+from app.ml import similarity
 from app.services import inflation, metrics_job
 from app.services.tefas_client import internet_available
 from app.services.updater import run_update
@@ -71,6 +72,10 @@ def catch_up():
             metrics_job.recompute_all(db)  # enflasyon özetini de ısıtır
         else:
             inflation.beat_summary_cached(db)  # ana sayfadaki enflasyon özeti ilk istekte beklemesin
+        try:  # benzer fonlar ve kümeler: hiç hesaplanmadıysa ya da 28 günden eskiyse (~10 sn)
+            similarity.run_if_due(db)
+        except Exception:
+            log.exception("Benzerlik hesabı başarısız")
 
 
 def start() -> BackgroundScheduler | None:

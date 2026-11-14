@@ -602,3 +602,65 @@ class WhatIfOut(BaseModel):
 
 
 SavedProfileOut.model_rebuild()  # ProfileOut, SavedProfileOut'tan sonra tanımlı
+
+
+# --- Benzer fonlar, kümeleme, çeşitlendirme (app/ml/similarity.py) ------------------
+
+class SimilarFundOut(BaseModel):
+    code: str
+    name: str | None = None
+    category: str | None = None
+    corr: float  # haftalık getiri korelasyonu (son 1 yıl)
+    ret_1y: float | None = None
+
+
+class ClusterOut(BaseModel):
+    id: int
+    name: str
+    size: int
+    representative: str
+    diffuse: bool  # iç korelasyonu düşük: belirgin bir grup değil
+    internal_corr: float
+    median_vol: float | None = None
+    median_ret_1y: float | None = None
+    silhouette: float
+    categories: list[dict]
+
+
+class FundSimilarityOut(BaseModel):
+    code: str
+    available: bool
+    reason: str | None = None
+    as_of: date | None = None
+    computed_at: str | None = None
+    cluster: ClusterOut | None = None
+    fund_silhouette: float | None = None
+    neighbors: list[SimilarFundOut] = []
+    note: str
+
+
+class CorrPairOut(BaseModel):
+    a: str
+    b: str
+    corr: float
+    low_vol: bool  # iki fonun da oynaklığı düşük (para piyasası benzeri)
+
+
+class CorrelationOut(BaseModel):
+    as_of: date | None = None
+    codes: list[str]
+    ok: list[str]  # korelasyonu hesaplanabilen fonlar (matris sırası)
+    names: dict[str, str] = {}
+    missing: list[dict]  # {code, reason}
+    matrix: list[list[float | None]]
+    pairs: list[CorrPairOut]
+    threshold: float
+    n_eff: float | None = None  # etkin bağımsız fon sayısı
+    mean_corr: float | None = None
+    note: str
+
+
+class ClustersOut(BaseModel):
+    created_at: str
+    data_as_of: date
+    report: dict  # similarity.compute payload

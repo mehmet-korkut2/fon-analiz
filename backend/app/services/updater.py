@@ -41,6 +41,7 @@ class UpdateResult:
     ml: dict | None = None
     sanal: dict | None = None
     inflation: dict | None = None  # TÜFE güncellemesi (ayda bir yeni veri)
+    similarity: dict | None = None  # benzer fonlar ve kümeler (ayda bir)
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self):
@@ -216,6 +217,13 @@ def run_update(
                 except Exception as e:
                     log.exception("ML işi başarısız")
                     result.errors.append(f"ML: {e}")
+                try:
+                    from app.ml import similarity
+
+                    result.similarity = similarity.run_if_due(db)  # 28 günde bir, ~10 sn
+                except Exception as e:
+                    log.exception("Benzerlik hesabı başarısız")
+                    result.errors.append(f"benzerlik: {e}")
 
         result.status = "partial" if result.errors else "ok"
         return result

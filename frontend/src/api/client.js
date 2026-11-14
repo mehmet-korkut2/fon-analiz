@@ -51,6 +51,12 @@ export const getFavorites = () => api.get('/favoriler').then((r) => r.data)
 export const addFavorite = (code) => api.post(`/favoriler/${code}`)
 export const removeFavorite = (code) => api.delete(`/favoriler/${code}`)
 
+// Benzer fonlar, kümeler, korelasyon (çeşitlendirme uyarısı)
+export const getSimilar = (code) => api.get(`/funds/${code}/similar`).then((r) => r.data)
+export const getClusters = () => api.get('/clusters').then((r) => r.data)
+export const getCorrelation = (codes, weights) =>
+  api.get('/correlation', { params: { codes: codes.join(','), ...(weights ? { weights: weights.map((w) => w.toFixed(6)).join(',') } : {}) } }).then((r) => r.data)
+
 // API hata mesajı (FastAPI "detail": metin ya da doğrulama listesi)
 export function errorMessage(e, fallback = 'Bir hata oluştu.') {
   const d = e?.response?.data?.detail

@@ -158,7 +158,128 @@ Kısa ufuklarda kapsama hedefe yakındır. 1 aylık ufukta kapsama %71,5'e düş
 
 **Maliyet.** Gece işine ek süre yaklaşık 12 saniyedir (kalibrasyon 1,6 sn; bütün fonların karne özeti 9,8 sn). Karne özeti bütün kayıtları okuduğu için süresi kayıt sayısıyla doğrusal artar (bir yılda yaklaşık 40 sn). Bir gecenin kayıtları yaklaşık 3,7 MB yer tutar (kayıt başına ~205 bayt, indeksler dahil); bu, yılda yaklaşık 0,9 GB demektir. Veritabanı 13.11.2026'da 303,6 MB'tır. Bu nedenle yedekler artık gzip ile sıkıştırılmaktadır (Bölüm 7.4). Fonun karnesi 36–47 ms'de gelir.
 
-## 6.11 Sınırlamalar
+## 6.11 Benzer fonlar, kümeleme ve çeşitlendirme
+
+Bu bölümde makine öğrenmesini geleceği tahmin etmek için değil, fonlar arasındaki yapıyı ölçmek için kullandık. Kullanıcının iki sorusuna cevap aradık: "Bu fona en çok benzeyen fonlar hangileri?" ve "Portföyümdeki fonlar gerçekten birbirinden farklı mı?" İki soru da gözetimsiz öğrenmeyle, fonların getiri serilerinden cevaplanabilir; etiketli veri gerekmez.
+
+**Veri.** 13.11.2026 itibarıyla işleme açık (SPK kararıyla kapatılmamış), son fiyatı 7 günden yeni ve son 1 yılda en az 200 fiyatı olan 865 fonu kullandık. Kararlılık analizi için iki yıllık verisi olan 677 fonu ayrıca aldık. Tek günlük hatalı fiyatları metrik hesabındaki gibi çıkardık (Bölüm 2.7).
+
+**Benzerlik ölçüsü: neden haftalık getiri.** Benzerlik ölçüsü olarak iki fonun getirileri arasındaki korelasyonu (ρ) kullandık. Günlük getirinin para piyasası fonlarını yapay olarak birbirine benzettiğini gördük. Bölüm 3.5'te bulduğumuz pazartesi etkisi bu fonlarda çok güçlüdür: pazartesi getirisi diğer günlerin 2,96 katıdır ve günlük getiri "bugün pazartesi mi" göstergesiyle 0,93 korelasyonludur. Dolayısıyla iki para piyasası fonunun günlük korelasyonu büyük ölçüde ortak takvimden gelir. Haftanın gününe göre ortalamayı çıkarmak pazartesi etkisini giderir, ama bayram tatilleri gibi düzensiz takvim etkilerini gidermez. Haftalık getiri bütün bu etkileri haftanın içinde eritir. Haftalık getirinin bir yılda yalnızca 53 gözlemi olduğu için gürültüsünü azaltmak amacıyla haftayı pazartesiden cumaya her gün başlatıp beş korelasyon matrisinin ortalamasını aldık ("5 çapalı haftalık"). Bu, kümelerin iki yıl arası benzerliğini (ARI) 0,54'ten 0,61'e çıkardı. Kısa aralıklı getirilerde eşzamansız fiyatlamanın korelasyonu düşürdüğü literatürde de bilinmektedir (Epps etkisi [36]); bizim verimizde yerli hisse fonlarının korelasyonu getiri türünden etkilenmedi (Tablo 6.5).
+
+**Tablo 6.5** Getiri türüne göre kategori içi medyan korelasyon (son 1 yıl, 865 fon)
+
+| Getiri türü | Gözlem | Para piyasası | Yerli hisse | Altın |
+|---|---|---|---|---|
+| Günlük (ham) | 251 | 0,87 | 0,85 | 0,97 |
+| Günlük, haftanın günü ortalaması çıkarılmış | 251 | 0,53 | 0,85 | 0,97 |
+| Haftalık (cuma) | 53 | 0,67 | 0,87 | 0,99 |
+| Haftalık, 5 çapa ortalaması (seçilen) | 5 × 53 | 0,74 | 0,85 | 0,99 |
+
+**Uzaklık ve yöntemler.** Korelasyonu d = √(2(1 − ρ)) ile uzaklığa çevirdik [37]. Bu uzaklık, ortalaması çıkarılıp birim uzunluğa getirilmiş getiri vektörleri arasındaki Öklid uzaklığına eşittir; bu yüzden Öklid uzaklığı varsayan Ward bağlantısı [38] ve k-means [39] bu uzaklıkla tutarlı biçimde kullanılabilir. Beş yöntemi karşılaştırdık: Ward, tam bağlantı ve ortalama bağlantılı hiyerarşik kümeleme, standartlaştırılmış getiriler üzerinde k-means ve uzaklık matrisi üzerinde k-medoids (PAM [40]). Küme sayısını k = 2–30 arasında, ortalama silhouette değerine [41] göre seçtik. Kümelerin TEFAS kategorileriyle ve önceki yılın kümeleriyle örtüşmesini düzeltilmiş Rand indeksiyle (ARI [42]) ölçtük. ARI 1 ise iki gruplama aynıdır, 0 ise örtüşme rastgele gruplamadan farksızdır. Hiyerarşik kümelemede SciPy'ı [43] kullandık; silhouette ve ARI'yi kendimiz yazıp elle hesaplanmış örneklerle test ettik.
+
+**Tablo 6.6** Yöntem karşılaştırması (5 çapalı haftalık korelasyon; kararlılık: aynı yöntemle önceki yılın kümelerine göre ARI, 677 fon)
+
+| Yöntem | En iyi k | Silhouette | Kararlılık (ARI) | Not |
+|---|---|---|---|---|
+| Ward (seçilen) | 11 | 0,238 | 0,61 | silhouette ve kararlılığın ikisi de k = 11'de en yüksek |
+| k-medoids | 5 | 0,237 | 0,62 | daha kaba gruplama |
+| Tam bağlantı | 30 | 0,207 | 0,47 | çok parçalı |
+| Ortalama bağlantı | 2 | 0,229 | ≈ 0 | fonların %75–98'i tek kümede |
+| k-means (tek çapa) | 8 | 0,264 | 0,61 | Ward'a yakın; başlangıca bağlı |
+
+k-means'in silhouette değeri farklı bir korelasyon matrisinden (yalnızca cuma) hesaplandığı için diğerleriyle doğrudan karşılaştırılamaz. Ward'ı seçtik: sonucu deterministiktir, kümeleri iç içedir ve kararlılığı en iyiler arasındadır. k = 2–4 yalnızca "riskli / risksiz" gibi kaba ayrımlar verdiği için uygulamada k'yı 5–20 arasında seçiyoruz (Şekil 6.3).
+
+![Şekil 6.3 Küme sayısına göre ortalama silhouette ve iki yıl arası kararlılık (Ward)](gorseller/sekil_6_3_kume_secimi.png)
+
+**Bulgular.** Ward 11 küme buldu (Tablo 6.7). Küme adlarını içerikten kurallarla ürettik: fon adlarındaki anahtar kelimeler, kategori ve oynaklık. Kümelerin numarası her hesapta değişebileceği için adlar sabit değildir. Temsilci, kümedeki diğer fonlara toplam uzaklığı en küçük fondur.
+
+**Tablo 6.7** Kümeler (13.11.2026)
+
+| Küme | Fon | İç medyan ρ | Silhouette | Medyan oynaklık | Temsilci | En sık kategoriler |
+|---|---|---|---|---|---|---|
+| Yerli hisse ağırlıklı | 238 | 0,82 | 0,29 | %22,6 | DZE | Hisse Senedi 139, Serbest 49, Değişken 29 |
+| TL para piyasası benzeri | 135 | 0,73 | 0,36 | %1,5 | PTE | Serbest 50, Para Piyasası 36, Borçlanma Araçları 23, Katılım 22 |
+| Belirgin bir gruba girmeyen | 126 | 0,16 | −0,16 | %11,5 | MTH | Serbest 61, Değişken 32 |
+| Yabancı ve teknoloji hisseleri | 92 | 0,76 | 0,27 | %19,4 | IUH | Değişken 42, Serbest 16, Fon Sepeti 14 |
+| Fon sepeti, değişken ve karma | 78 | 0,62 | −0,05 | %9,0 | TJI | Fon Sepeti 29, Değişken 22, Serbest 21 |
+| Döviz ve eurobond ağırlıklı | 51 | 0,78 | 0,27 | %2,9 | GPC | Serbest 37, Borçlanma Araçları 9 |
+| Altın ve kıymetli madenler | 50 | 0,91 | 0,55 | %25,0 | HBF | Kıymetli Madenler 20, Katılım 13, Fon Sepeti 11 |
+| Avro bazlı | 26 | 0,97 | 0,72 | %5,3 | ONK | Serbest 26 |
+| Dolar bazlı | 26 | 0,95 | 0,62 | %1,3 | FPZ | Serbest 26 |
+| Belirgin bir gruba girmeyen (2) | 23 | 0,16 | −0,03 | %6,7 | OVD | Serbest 17, Fon Sepeti 5 |
+| TL tahvil ve bono | 20 | 0,93 | 0,61 | %6,5 | GUV | Borçlanma Araçları 18, Serbest 2 |
+
+Ortalama silhouette 0,24'tür; yapı zayıf-orta düzeydedir. Ancak bu ortalama iki farklı durumu birleştiriyor. Altın, avro, dolar, tahvil ve para piyasası kümeleri sıkıdır (silhouette 0,36–0,72). Öte yandan mutlak getiri hedefli, istatistiksel arbitraj ve karma stratejili 149 fon hiçbir gruba tam uymaz; Ward bunları iç korelasyonu 0,16 olan iki kümede toplar. Arayüzde bu kümeleri "belirgin bir gruba girmeyen fonlar" olarak adlandırdık.
+
+Kümeler TEFAS kategorileriyle bütün fonlarda zayıf örtüşür (ARI 0,16). Yalnızca varlık türünü belirten kategorilerde (Hisse Senedi, Para Piyasası, Borçlanma Araçları, Kıymetli Madenler) ise örtüşme 0,76'dır. Düşük örtüşmenin nedeni kümeleme değil, bazı kategorilerin fonun neye yatırım yaptığını söylememesidir (Şekil 6.4):
+
+- "Serbest" kategorisindeki 327 fon 11 kümenin hepsine dağılmıştır: dolar, avro, para piyasası, hisse.
+- "Katılım" kategorisindeki 13 fon altın kümesindedir; bunlar altın ve kıymetli maden katılım fonlarıdır (OGD, GOL, KZL, KUT…).
+- Özel sektör borçlanma araçları fonu GUB, para piyasası kümesindedir (para piyasası serbest fonlarıyla ρ = 0,97).
+- Yalnızca dolar ve avro bazlı serbest fonlardan oluşan iki küme vardır.
+
+Bu bulgular, kategori adının fonun nasıl hareket ettiğini her zaman göstermediğini, korelasyona dayalı gruplamanın kullanıcıya ek bilgi verdiğini gösterir.
+
+![Şekil 6.4 Kümeler (satır) ve TEFAS kategorileri (sütun), fon sayısı](gorseller/sekil_6_4_kume_kategori.png)
+
+**Benzer fonlar (k-NN).** Her fon için korelasyonu en yüksek 5 fonu, yani uzaklığa göre en yakın 5 komşuyu [44] seçtik. Tablo 6.8'deki örnekler beklentiyle tutarlıdır. Komşular farklı kategorilerden de gelebilir. Örneğin AFT'nin komşuları arasında serbest, karma ve değişken kategorilerinde teknoloji odaklı fonlar vardır; kategori listesi bunları birlikte göstermez. En yakın komşu fonların %61'inde aynı kategoridendir. %24'ünde aynı portföy yönetim şirketindendir; rastgele bir eşleşmede bu oran %4 olurdu. Şirket alanı TEFAS verisinde boş olduğu için şirketi fon adından çıkardık.
+
+**Tablo 6.8** Örnek fonlar ve en yakın 5 komşuları (ρ, son 1 yıl haftalık)
+
+| Fon | En yakın 5 fon |
+|---|---|
+| TTE (BIST teknoloji endeksi) | YHZ 0,97 · ICZ 0,96 · GRT 0,93 · DHJ 0,89 · GNH 0,79 (hepsi teknoloji hisse fonu) |
+| AFT (yabancı teknoloji hisse) | GUH 0,94 · YAY 0,93 · ODP 0,92 (Serbest) · ITP 0,92 (Karma) · HOA 0,92 (Değişken) |
+| BGP (para piyasası) | DLY 0,98 · ZBJ 0,97 · FIL 0,97 · PJL 0,96 · DL2 0,96 |
+| OJK (altın) | GTA 0,997 · DBA, HBF, AFO 0,996 · ICA 0,995 |
+| IPB (değişken) | GNH 0,81 · HRZ 0,80 · GIH 0,79 · KHB 0,77 · IDH 0,77 (hepsi hisse fonu) |
+
+**Kararlılık.** Önceki yılın verisiyle aynı yöntemle bulunan kümelerle örtüşme (ARI) 0,61'dir. Bir fonun 5 komşusundan ortalama 1,5'i ertesi yıl da komşu kalmıştır; rastgele seçimde bu oran %0,7 olurdu. Bu oran düşük görünür, çünkü örneğin 26 dolar fonu birbirine 0,99'un üstünde korelasyonla bağlıdır ve hangisinin ilk beşe girdiği şansa kalır. Daha anlamlı bir ölçü komşuların ne kadar benzer kaldığıdır. Geçen yılın en yakın 5 fonunun bu yılki medyan korelasyonu 0,88'dir; bu yılın en yakın 5 fonununki 0,92, rastgele bir fon çiftininki 0,33'tür.
+
+**Tahmin modelinin aksine neden işe yarıyor?** Getiri tahmininde LightGBM basit drift'i geçememişti (Bölüm 6.6). Benzerlik ve kümeleme ise tutarlı ve kararlı sonuç verdi. Bu farkı üç nedenle açıklıyoruz:
+
+1. **Ölçülen şey kalıcıdır.** İki fonun birlikte hareket etmesi, ne tuttuklarıyla belirlenir: varlık türü, endeks, para birimi. Bunlar fonun izahnamesiyle sınırlıdır ve yavaş değişir. Getirinin sırası ise piyasanın gelecekteki hareketine bağlıdır. Şekil 6.5 bu farkı veriyle gösterir. Fon çiftlerinin korelasyonunun önceki yıl ile son yıl arasındaki sıra korelasyonu (Spearman) 0,58'dir. Fonların 1 yıllık getirisinin sıra korelasyonu ise bütün fonlarda 0,25'tir. Kategori içinde bu değer hisse, değişken, fon sepeti ve katılım fonlarında −0,13 ile 0,05 arasındadır; yalnızca borçlanma araçları fonlarında yüksektir (0,81).
+2. **Tahmin hatası çok daha küçüktür.** Yıllık oynaklığı %25 olan bir fonun ortalama getirisini bir yıllık veriyle tahmin etmenin standart hatası yaklaşık 25 puandır; bu, tahmin edilmek istenen farkların çok üzerindedir. Korelasyonun standart hatası ise yaklaşık (1 − ρ²)/√n'dir: ρ = 0,9 ve n = 53 hafta için yaklaşık 0,03. Aynı veri, birlikte hareketi getiriden çok daha kesin ölçer.
+3. **Ölçüt farklıdır.** Tahmin modelinin, gelecekte basit bir referanstan daha isabetli olması gerekiyordu. Kümeleme ise geleceği tahmin etmez; ölçtüğü yapıyı bilinen bir dış ölçüte (varlık türü kategorileri, ARI 0,76) ve zamana (kararlılık, ARI 0,61) karşı doğruluyoruz. Çeşitlendirme uyarısı da yalnızca geçen yılın yüksek korelasyonunun sürmesini gerektirir. Geçen yıl 0,90'ın üstünde olan çiftlerin %80'i bu yıl da 0,80'in üstündedir.
+
+![Şekil 6.5 Önceki yıl ve son yıl: fon çiftlerinin korelasyonu ve fonların 1 yıllık getirisi (677 fon, 228.826 çift)](gorseller/sekil_6_5_kalicilik.png)
+
+**Çeşitlendirme uyarısı ve skoru.** Uyarı eşiğini 0,90 seçtik. Bütün fon çiftlerinin %2,2'si (373.680 çiftten 8.269'u) bu eşiğin üstündedir. Eşik 0,95 olsaydı TTE ile GRT gibi (0,93) açıkça aynı hareket eden çiftler uyarı dışında kalırdı. Korelasyonu 0,90 ve üstü iki fon için arayüz şu uyarıyı gösterir: "Bu iki fon büyük ölçüde aynı hareket ediyor; ikisini birlikte tutmak riski azaltmaz." İki fonun da yıllık oynaklığı %5'in altındaysa (para piyasası benzeri) metni yumuşattık: birlikte tutmak çeşitlendirme sağlamaz ama risk zaten düşüktür.
+
+Çeşitlendirme skoru olarak etkin bağımsız fon sayısını kullandık: N_etkin = 1 / (wᵀRw). Burada w portföy ağırlıkları, R korelasyon matrisidir. Eşit ağırlıklı ve tamamen bağımsız N fon için skor N'dir; birbirinin aynısı fonlar için 1'dir. Negatif korelasyon skoru fon sayısının üstüne çıkarabileceği için değeri [1, N] aralığına kırptık.
+
+**Tablo 6.9** Çeşitlendirme skoru örnekleri (eşit ağırlık)
+
+| Portföy | Ortalama ρ | N_etkin |
+|---|---|---|
+| TTE + YHZ + ICZ (üç teknoloji hisse fonu) | 0,96 | 1,02 |
+| OJK + GTA (iki altın fonu) | 1,00 | 1,00 |
+| TTE + OJK + DUV (hisse, altın, tahvil) | 0,27 | 1,95 |
+| TTE + AFT + OJK + GRO (yerli hisse, yabancı hisse, altın, dolar) | 0,09 | 3,15 |
+
+Oynaklıkla ağırlıklandırılmış çeşitlendirme oranını [45] de değerlendirdik, ama kullanmadık. Bu ölçüde oynaklığı çok düşük bir fon hesaba neredeyse hiç girmez; örneğin TTE ile bir para piyasası fonu 1,04 çıkar ve kullanıcıya açıklanması zordur.
+
+Öneri sisteminin 13.11.2026 tarihli 6 örnek portföyünde (3 profil × nitelikli yatırımcı olup olmama) 0,90'ı aşan çift yoktur; etkin fon sayıları temkinli profilde 1,3–1,4, dengelide 2,4–2,6, agresifte 3,0–3,4'tür. 10 öneriden oluşan listelerde ise 0,90'ı aşan çiftler vardır: temkinli profilde 6 çift, dengelide 1, nitelikli olmayan agresif profilde 2. Temkinli listedeki çiftlerin fonları farklı kategorilerdendir (para piyasası, katılım, borçlanma araçları, değişken); örneğin GUB (Borçlanma Araçları) ile TND (Değişken) arasında ρ = 0,95'tir. Öneri sistemindeki "aynı kategoriden en fazla 2 fon" kuralı (Bölüm 5.3) kategori adına baktığı için, farklı kategorilerdeki ama aynı hareket eden kısa vadeli TL fonlarını ayırt edemez. Öneri puanlamasını değiştirmedik; benzerlik yalnızca bilgi olarak gösteriliyor. Kategori sınırının yerine korelasyona dayalı bir sınır konması gelecek çalışma olarak kalmıştır (Bölüm 8.6).
+
+**Platformdaki uygulama.** Kümeler ve her fonun en yakın 5 fonu, gece güncellemesinden sonra son hesap 28 günden eskiyse yeniden hesaplanıp `similarity_runs`, `fund_clusters` ve `fund_neighbors` tablolarına yazılır. Veri bu sürede yalnızca birkaç hafta değiştiği için daha sık hesaplamaya gerek yoktur. Hesap yaklaşık 8 saniye sürer; uygulama açılırken eksikse tamamlanır. Karşılaştırma ve portföy uyarılarında seçilen birkaç fonun korelasyonu, aynı yöntemle anlık hesaplanır (yaklaşık 0,03 sn). Yaklaşık 1 yıllık güncel fiyatı olmayan fonlar hesaba girmez; arayüz bunu nedeniyle birlikte belirtir ("1 yıllık fiyat verisi yok", "son fiyatı eski"). Benzerlik şu yerlerde gösterilir:
+
+- **Fon detayı:** en çok benzeyen 5 fon, benzerlik yüzdesi (ρ × 100) ve karşılaştırmaya gönderme düğmesiyle; fonun kümesi.
+- **Karşılaştırma:** seçilen fonların korelasyon ısı haritası.
+- **Uyarılar:** karşılaştırma, sanal portföy, favoriler ve portföy planlayıcı.
+- **Çeşitlendirme skoru:** sanal portföy (pozisyon değerleriyle ağırlıklı) ve portföy planlayıcı.
+- **Model performansı sayfası:** yöntem, küme sayısı, kategorilerle örtüşme ve kararlılık.
+
+Hesap, 19 otomatik testle doğrulanır:
+
+- korelasyon ve uzaklık,
+- elle hesaplanmış silhouette ve ARI,
+- pazartesi deseni aynı, faizi bağımsız iki sentetik para piyasası fonunda günlük korelasyonun yüksek, haftalığın düşük çıkması,
+- k-NN, uyarı eşiğinin sınırı (0,8999 / 0,90) ve etkin fon sayısı,
+- eksik ve kısa veri,
+- bilinen gruplardan üretilmiş sentetik fonların geri bulunması,
+- API.
+
+## 6.12 Sınırlamalar
 
 - Test dönemi yaklaşık iki yıldır ve tek bir yüksek faiz ortamını kapsar; sonuçlar başka piyasa koşullarına genellenemez.
 - 24 aylık test, model ile referans arasındaki küçük farkların istatistiksel olarak ayırt edilmesi için kısadır.
@@ -166,8 +287,10 @@ Kısa ufuklarda kapsama hedefe yakındır. 1 aylık ufukta kapsama %71,5'e düş
 - ARIMA, hesaplama maliyeti nedeniyle 40 fonluk bir örnekte değerlendirilmiştir.
 - Tahmin karnesinin canlı kayıtları 13.11.2026'da başlamıştır; ilk aylarda karnenin büyük kısmı geriye dönük hesaplanmış kayıtlardan oluşur. Geriye dönük kayıtlarda fonların işleme kapalı olup olmadığı ve risk değeri için bugünkü bilgi kullanılmıştır.
 - Ufka göre aralık, risk 1–2 grubunda uzun ufuklarda hedeften dar kalmaktadır (1 ayda %74,0).
+- Kümelemenin yapısı zayıf-orta düzeydedir (ortalama silhouette 0,24); 149 fon belirgin bir gruba girmez. Küme adları kurallarla üretildiği için yaklaşıktır.
+- Korelasyon yalnızca birlikte hareketin yönünü ölçer, büyüklüğünü ölçmez: aynı yönde hareket eden iki fondan biri diğerinin iki katı oynak olabilir. Benzerlik geçmiş 1 yıla dayanır ve fonun stratejisi değişirse geçerliliğini yitirir.
 - Eylül 2026'daki SPK kararıyla kapatılan fonların sert değer kayıpları test dönemine dahildir; bu, yöntemin gerçek riskleri dışlamadan test edildiğini gösterirken sonuçların o aya duyarlı olmasına da yol açar.
 
-## 6.12 Sonuç
+## 6.13 Sonuç
 
-Bir aylık fon getirisini tahmin etmek için kurulan LightGBM modeli, gelecekten bilgi sızdırmayan walk-forward bir testte fonun geçmiş ortalama getirisinin sürmesini varsayan basit drift yöntemini hiçbir risk grubunda geçememiştir; fon bazında ARIMA ise drift ile pratikte aynı sonucu vermiştir. Bu bulgu, kısa vadeli fon getirilerinin büyük ölçüde öngörülemez olduğu yönündeki genel kabulle tutarlıdır. Çalışmanın katkısı, bir modelin yalnızca kurulmasıyla değil, önceden tanımlanmış bir ölçüte göre test edilmesiyle değerlendirilmesi ve sonucun —olumsuz da olsa— kullanıcıya şeffaf biçimde yansıtılmasıdır: platform, testte en isabetli çıkan yöntemi açık bir etiketle ve ölçülmüş kapsama oranına sahip bir aralıkla göstermekte, makine öğrenmesi modellerinin sonuçlarını ise ayrı bir sayfada bütünüyle yayımlamaktadır. Tahmin karnesi bu şeffaflığı her fon ve her gün için sürdürmektedir: her tahmin kaydedilir, gerçekleşenle karşılaştırılır ve canlı tahminler geriye dönük hesaplananlardan ayrı tutulur.
+Bir aylık fon getirisini tahmin etmek için kurulan LightGBM modeli, gelecekten bilgi sızdırmayan walk-forward bir testte fonun geçmiş ortalama getirisinin sürmesini varsayan basit drift yöntemini hiçbir risk grubunda geçememiştir; fon bazında ARIMA ise drift ile pratikte aynı sonucu vermiştir. Bu bulgu, kısa vadeli fon getirilerinin büyük ölçüde öngörülemez olduğu yönündeki genel kabulle tutarlıdır. Çalışmanın katkısı, bir modelin yalnızca kurulmasıyla değil, önceden tanımlanmış bir ölçüte göre test edilmesiyle değerlendirilmesi ve sonucun —olumsuz da olsa— kullanıcıya şeffaf biçimde yansıtılmasıdır: platform, testte en isabetli çıkan yöntemi açık bir etiketle ve ölçülmüş kapsama oranına sahip bir aralıkla göstermekte, makine öğrenmesi modellerinin sonuçlarını ise ayrı bir sayfada bütünüyle yayımlamaktadır. Tahmin karnesi bu şeffaflığı her fon ve her gün için sürdürmektedir: her tahmin kaydedilir, gerçekleşenle karşılaştırılır ve canlı tahminler geriye dönük hesaplananlardan ayrı tutulur. Aynı veriyle yapılan gözetimsiz öğrenme ise işe yaramıştır: haftalık getiri korelasyonuna dayalı kümeleme ve benzer fon araması, varlık türünü belirten kategorilerle büyük ölçüde örtüşen (ARI 0,76) ve yıldan yıla kararlı (ARI 0,61) sonuçlar vermiştir. Bunun nedeni, fonların birlikte hareketinin getirilerinden çok daha kalıcı ve kesin ölçülebilir olmasıdır (Bölüm 6.11).
